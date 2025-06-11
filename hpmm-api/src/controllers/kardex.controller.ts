@@ -67,8 +67,11 @@ export const createKardexController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const data: NewKardex = req.body;
     // Auditoría
-    data.usuario_ultimo_movimiento = req.user?.username || "Desconocido";
-    data.fecha_ultimo_movimiento = new Date();
+
+    console.log(req.user)
+    data.id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
+
+    console.log("Data received for Kardex creation:", data);
 
     const kardex = await KardexService.createKardexService(data);
     res.status(201).json({
@@ -99,8 +102,7 @@ export const updateKardexController = asyncWrapper(
     } = req.body;
 
     // Auditoría
-    const usuario_ultimo_movimiento = req.user?.id_user || "Desconocido";
-    const fecha_ultimo_movimiento = new Date();
+    const id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
 
     const updatedKardex = await KardexService.updateKardexService(
       id_kardex,
@@ -117,8 +119,7 @@ export const updateKardexController = asyncWrapper(
       tipo,
       observacion,
       estado,
-      usuario_ultimo_movimiento,
-      fecha_ultimo_movimiento
+      id_empleado_solicitud_f
     );
 
     if (!updatedKardex) {

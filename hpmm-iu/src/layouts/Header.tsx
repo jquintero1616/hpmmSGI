@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/use.Auth';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { logout, username, id_rol } = useAuth();
+  const { logout, username, roleName } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const avatarUrl = "https://www.material-tailwind.com/img/avatar1.jpg";
@@ -80,7 +80,7 @@ function getRoleAbbrev(role: string) {
                 <span className="text-sm font-medium text-gray-700 leading-tight">{username}</span>
                 <span className="w-full border-t border-gray-200 my-0.5"></span>
                 <span className="text-[10px] text-purple-700 font-semibold">
-                  {getRoleAbbrev(id_rol || "Usuario")}
+                  {getRoleAbbrev(roleName || "Usuario")}
                 </span>
               </span>
               <img

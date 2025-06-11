@@ -17,8 +17,7 @@ export interface kardex {
   estado: boolean;
   create_at: Date;
   update_at: Date;
-  usuario_ultimo_movimiento?: string;
-  fecha_ultimo_movimiento?: Date;
+  id_empleado_solicitud_f: string; // ID del empleado que solicita en el sistema de facturación
 }
 
 export interface NewKardex extends Omit<kardex, "id_kardex"> {}

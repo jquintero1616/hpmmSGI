@@ -19,7 +19,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string("observacion").notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
-    table.uuid("id_empleado_solicitud_f").nullable();
+    table.uuid("id_empleado_solicitud_f");
 
      table
        .foreign("id_empleado_solicitud_f")

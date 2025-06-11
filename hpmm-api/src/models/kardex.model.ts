@@ -94,8 +94,7 @@ export async function updateKardexModel(
   tipo: "Aprobado" | "Rechazado" | "Pendiente"  | "Cancelado",
   observacion: string,
   estado: boolean,
-  usuario_ultimo_movimiento: string,
-  fecha_ultimo_movimiento: Date
+  id_empleado_solicitud_f: string,
 ): Promise<NewKardex | null> {
   const updated_at = new Date();
   const [updatedKardex] = await knexTableName()
@@ -114,9 +113,8 @@ export async function updateKardexModel(
       tipo,
       observacion,
       estado,
-      usuario_ultimo_movimiento,
-      fecha_ultimo_movimiento,
       updated_at,
+      id_empleado_solicitud_f
     })
     .returning("*");
   return updatedKardex || null;

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
 import DashboardCard from "../molecules/DashboardCard";
+import {
+  CubeIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  TruckIcon,
+  BuildingStorefrontIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/solid";
 
 // Simulación de servicios (reemplaza por tus getters reales)
 const useDashboardData = () => {
@@ -40,18 +48,61 @@ const HomePage: React.FC = () => {
   } = useDashboardData();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-1 flex flex-col md:ml-0">
-        <main className="flex-1 p-6 overflow-auto bg-black-50 flex items-center justify-center">
-          <div className="w-full max-w-5xl flex flex-wrap justify-center items-center">
-            <DashboardCard title="Productos" subtitle="Próximos a Vencer" value={proximosAVencer} />
-            <DashboardCard title="Productos" subtitle="Bajas Existencias" value={bajasExistencias} />
-            <DashboardCard title="Productos" subtitle="Vencidos" value={vencidos} />
-            <DashboardCard title="Pactos" subtitle="Pendientes de Entrega" value={pactosPendientes} />
-            <DashboardCard title="Proveedores" subtitle="Entregas Pendientes" value={proveedoresPendientes} />
-            <DashboardCard title="Kardex" subtitle="Solicitudes de Fusión" value={kardexSolicitudes} />
-          </div>
-        </main>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Resumen del estado actual del sistema</p>
+        </div>
+
+        {/* Grid de tarjetas - Completamente responsive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          
+          <DashboardCard 
+            title="Productos" 
+            subtitle="Próximos a Vencer" 
+            value={proximosAVencer}
+            icon={<ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />}
+          />
+          
+          <DashboardCard 
+            title="Productos" 
+            subtitle="Bajas Existencias" 
+            value={bajasExistencias}
+            icon={<CubeIcon className="w-5 h-5 text-red-600" />}
+          />
+          
+          <DashboardCard 
+            title="Productos" 
+            subtitle="Vencidos" 
+            value={vencidos}
+            icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
+          />
+          
+          <DashboardCard 
+            title="Pactos" 
+            subtitle="Pendientes de Entrega" 
+            value={pactosPendientes}
+            icon={<TruckIcon className="w-5 h-5 text-blue-600" />}
+          />
+          
+          <DashboardCard 
+            title="Proveedores" 
+            subtitle="Entregas Pendientes" 
+            value={proveedoresPendientes}
+            icon={<BuildingStorefrontIcon className="w-5 h-5 text-purple-600" />}
+          />
+          
+          <DashboardCard 
+            title="Kardex" 
+            subtitle="Solicitudes de Fusión" 
+            value={kardexSolicitudes}
+            icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
+          />
+          
+        </div>
       </div>
     </div>
   );

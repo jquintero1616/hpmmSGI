@@ -16,18 +16,18 @@ const GenericModal: React.FC<ModalProps> = ({ children, isOpen, onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center"
       style={{ zIndex: 1000 }}
     >
-      <div className="bg-white p-4 rounded relative min-w-[300px]">
+      <div
+        className="
+          bg-white p-4 rounded 
+          w-11/12 max-w-2xl    /* ocupa casi todo el ancho, pero no excede 2xl */
+          max-h-[90vh]         /* no pasa del 90% de la altura de la ventana */
+          overflow-y-auto      /* si hay mucho contenido, hace scroll interno */
+          relative
+        "
+      >
         <button
           onClick={onClose}
-          style={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            background: "transparent",
-            border: "none",
-            fontSize: 20,
-            cursor: "pointer",
-          }}
+          className="absolute top-2 right-2 text-2xl leading-none hover:text-gray-600"
           aria-label="Cerrar"
         >
           ×

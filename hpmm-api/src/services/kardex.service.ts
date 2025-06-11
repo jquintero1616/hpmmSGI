@@ -49,8 +49,7 @@ export const updateKardexService = async (
   tipo: "Aprobado" | "Rechazado" | "Pendiente"  | "Cancelado",
   observacion: string,
   estado: boolean,
-  usuario_ultimo_movimiento: string,
-  fecha_ultimo_movimiento: Date
+  id_empleado_solicitud_f: string
 ): Promise<NewKardex | null> => {
   try {
     return await KardexModel.updateKardexModel(
@@ -68,8 +67,7 @@ export const updateKardexService = async (
       tipo,
       observacion,
       estado,
-      usuario_ultimo_movimiento,
-      fecha_ultimo_movimiento
+      id_empleado_solicitud_f
     );
   } catch (error) {
     logger.error("Error updating kardex", error);

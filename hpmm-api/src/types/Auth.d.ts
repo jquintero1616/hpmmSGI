@@ -1,9 +1,13 @@
 import { Request } from "express";
 
 export interface AuthResponse {
-  userId: string;
+  id_user: string;
   username: string;
   id_role: string;
+  id_employes?: string;
+  role_name?: string;
+  employe_name?: string;
+  state?: boolean;  
 }
 
 export interface CustomRequest extends Request {
@@ -11,13 +15,17 @@ export interface CustomRequest extends Request {
     id_user: string;
     username: string;
     id_role: string;
+    id_employes?: string;
+    role_name: string;
+    employe_name: string;
+    state?: boolean;
   };
 }
 
 declare global {
   namespace Express {
     interface Request {
-      user?: { id_user: string; username: string, id_role: string };
+      user?: { id_user: string; username: string, id_role: string, id_employes?: string, role_name: string, employe_name: string };
     }
   }
 }

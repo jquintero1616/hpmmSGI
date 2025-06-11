@@ -1,16 +1,18 @@
-// src/components/organisms/Products.tsx
-
 import React, { useEffect, useState } from "react";
 import { useProducts } from "../../hooks/use.Product";
 import {
   ProductInterface,
   ProductDetail,
 } from "../../interfaces/product.interface";
+import { useSubcategory } from "../../hooks/use.Subcategory";
+import { useKardex } from "../../hooks/use.Kardex";
 import Button from "../atoms/Buttons/Button";
 import GenericModal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
-import { useSubcategory } from "../../hooks/use.Subcategory";
+import Select from "../atoms/Inputs/Select";
+
+type StockFilter = "Todas" | "Bajas" | "Excedidas" | "Normales";
 
 const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
@@ -23,9 +25,11 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   } = useProducts();
 
   const { subcategory, GetSubcategoriesContext } = useSubcategory();
+  const { kardex, GetKardexContext } = useKardex();
 
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<ProductDetail[]>([]);
+  const [stockFilter, setStockFilter] = useState<StockFilter>("Todas");
 
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
@@ -33,18 +37,94 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [itemToEdit, setItemToEdit] = useState<ProductInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<ProductDetail | null>(null);
 
-  // Columnas para tu GenericTable
-  // asegúrate de tener tu componente Button
+  // 1) Fetch inicial
+  useEffect(() => {
+    Promise.all([
+      GetProductsContext(),
+      GetSubcategoriesContext(),
+      GetKardexContext(),
+    ]).finally(() => setLoading(false));
+  }, [GetProductsContext, GetSubcategoriesContext, GetKardexContext]);
 
+  // 2) Calcula stock solo con movimientos "Aprobado"
+  const computeStock = (productId: string): number => {
+    return kardex
+      .filter((k) => k.id_product === productId && k.tipo === "Aprobado")
+      .reduce((acc, k) => {
+        const qty = parseFloat(k.cantidad);
+        return acc + (k.tipo_movimiento === "Entrada" ? qty : -qty);
+      }, 0);
+  };
+
+  // 3) Refiltra cuando cambian datos, estado o filtro de stock
+  useEffect(() => {
+    let data = ProductDetail.map((d) => ({
+      ...d,
+      stock_actual: computeStock(d.id_product),
+    }));
+
+    // filtro por estado (Activo/Inactivo)
+    if (status !== "Todo") {
+      data = data.filter((d) => d.estado === (status === "Activo"));
+    }
+
+    // filtro por stock
+    if (stockFilter === "Bajas") {
+      data = data.filter(
+        (d) => d.stock_maximo > 0 && d.stock_actual / d.stock_maximo < 0.3 // menos del 30%, incluye 0
+      );
+    } else if (stockFilter === "Excedidas") {
+      data = data.filter((d) => d.stock_actual > d.stock_maximo);
+    } else if (stockFilter === "Normales") {
+      data = data.filter(
+        (d) =>
+          d.stock_maximo > 0 &&
+          d.stock_actual / d.stock_maximo >= 0.3 && // desde 30%
+          d.stock_actual <= d.stock_maximo // hasta el máximo
+      );
+    }
+
+    setFilteredData(data);
+  }, [ProductDetail, kardex, status, stockFilter]);
+
+  // Columnas
   const productColumns: Column<ProductDetail>[] = [
     { header: "Nombre", accessor: "nombre" },
     { header: "Cat.", accessor: "category_name" },
     { header: "Subcat.", accessor: "subcategory_name" },
     { header: "Desc.", accessor: "descripcion" },
-
-    { header: "Exist.", accessor: (row) => String(row.stock_actual) },
-    { header: "Máx.", accessor: (row) => String(row.stock_maximo) },
-
+    {
+      header: "Exist.",
+      accessor: (row) => {
+        const actual = row.stock_actual;
+        const max = row.stock_maximo;
+        const exceeded = actual > max;
+        const noExist = actual <= 0;
+        return (
+          <div className="flex items-center">
+            <span
+              className={exceeded ? "text-green-600 font-semibold" : undefined}
+            >
+              {actual}
+            </span>
+            {exceeded && (
+              <span className="ml-2 px-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+                MAX
+              </span>
+            )}
+            {noExist && (
+              <span className="ml-2 px-1 text-xs font-medium bg-red-100 text-red-800 rounded">
+                SIN STOCK
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      header: "Máx.",
+      accessor: (row) => String(row.stock_maximo),
+    },
     {
       header: "Vence",
       accessor: (row) => new Date(row.fecha_vencimiento).toLocaleDateString(),
@@ -56,6 +136,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
+  // Campos del formulario
   const productFieldsNoEstado: FieldConfig[] = [
     {
       name: "id_subcategory",
@@ -71,21 +152,10 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { name: "stock_actual", label: "Stock Actual", type: "number" },
     { name: "stock_maximo", label: "Stock Máximo", type: "number" },
     { name: "fecha_vencimiento", label: "Fecha Vencimiento", type: "date" },
-    { name: "numero_lote", label: "No.Lote", type: "text" },
+    { name: "numero_lote", label: "No. Lote", type: "text" },
   ];
 
-  // Carga inicial de productos
-  useEffect(() => {
-    Promise.all([GetProductsContext(), GetSubcategoriesContext()]).finally(() =>
-      setLoading(false)
-    );
-  }, [GetProductsContext, GetSubcategoriesContext]);
-
-  // Filtrar productos cada vez que cambian 'products' o 'status'
-  useEffect(() => {
-    handleTableContet(ProductDetail);
-  }, [products, status]);
-
+  // Modales y CRUD
   const closeAll = () => {
     setCreateOpen(false);
     setEditOpen(false);
@@ -95,31 +165,17 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const openEdit = (id: string) => {
-    const found = Array.isArray(products)
-      ? products.find((p) => p.id_product === id) || null
-      : null;
+    const found = products.find((p) => p.id_product === id) || null;
     setItemToEdit(found);
     setEditOpen(true);
   };
 
-  const handleTableContet = (pd: ProductDetail[]) => {
-    if (status === "Todo") {
-      setFilteredData(pd);
-    } else {
-      setFilteredData(
-        pd.filter((item) => item.estado === (status === "Activo"))
-      );
-      console.log("Filtrado por estado:", status);
-    }
-  };
-
-  // Función para abrir el modal de eliminación
   const openDelete = (id: string) => {
     const found = products.find((p) => p.id_product === id) || null;
     setItemToDelete(found);
     setDeleteOpen(true);
   };
-  // Función para manejar el cierre de todos los modales
+
   const handleCreate = async (values: any) => {
     await PostCreateProductContext({
       ...values,
@@ -129,40 +185,57 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     await GetProductsContext();
     closeAll();
   };
-  // Función para manejar la edición de un producto
+
   const handleSave = async (values: any) => {
-  if (!itemToEdit) return;
-  await PutUpdateProductContext(itemToEdit.id_product, {
-    ...itemToEdit,
-    ...values,
-  });
-  await GetProductsContext();
-  closeAll();
-};
-  // Función para confirmar la eliminación de un producto
+    if (!itemToEdit) return;
+    await PutUpdateProductContext(itemToEdit.id_product, {
+      ...itemToEdit,
+      ...values,
+    });
+    await GetProductsContext();
+    closeAll();
+  };
+
   const handleConfirmDelete = async (id: string) => {
     try {
       await DeleteProductContext(id);
       await GetProductsContext();
-    } catch (error) {
-      console.error("Error al eliminar producto:", error);
     } finally {
       closeAll();
     }
   };
 
-  if (loading) {
-    return <div>Cargando productos…</div>;
-  }
-
-  // Ahora label acepta React.ReactNode, así podemos pasar icono
+  if (loading) return <div>Cargando productos…</div>;
 
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Gestión de Productos</h2>
-      <Button onClick={() => setCreateOpen(true)}>+ Nuevo producto</Button>
 
-      {Array.isArray(filteredData) && filteredData.length > 0 ? (
+      {/* Controles: Nuevo + Filtro de stock */}
+      <div className="flex flex-wrap items-center gap-4 mb-4">
+        <Button onClick={() => setCreateOpen(true)}>+ Nuevo producto</Button>
+
+        <div className="flex items-center">
+          <label htmlFor="stockFilter" className="mr-2 font-medium">
+            Filtro de stock:
+          </label>
+          <Select
+            name="stockFilter"
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value as StockFilter)}
+            options={[
+              { label: "Todas", value: "Todas" },
+              { label: "Bajas existencias", value: "Bajas" },
+              { label: "Excedidas", value: "Excedidas" },
+              { label: "Stock normales", value: "Normales" },
+            ]}
+            placeholder="Todas"
+            className="w-48"
+          />
+        </div>
+      </div>
+
+      {filteredData.length > 0 ? (
         <GenericTable
           columns={productColumns}
           data={filteredData}
@@ -184,7 +257,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         <p className="mt-4 text-gray-600">No hay productos para mostrar.</p>
       )}
 
-      {/* Modal Crear */}
+      {/* Modales Crear / Editar / Eliminar */}
       <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
         <h3 className="text-xl font-semibold mb-4">Crear Producto</h3>
         <GenericForm
@@ -206,33 +279,29 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         />
       </GenericModal>
 
-      {/* Modal Editar */}
       <GenericModal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
-          <>
-            <GenericForm
-              initialValues={{
-                id_subcategory: itemToEdit.id_subcategory,
-                nombre: itemToEdit.nombre,
-                descripcion: itemToEdit.descripcion,
-                stock_actual: itemToEdit.stock_actual,
-                stock_maximo: itemToEdit.stock_maximo,
-                fecha_vencimiento: new Date(itemToEdit.fecha_vencimiento)
-                  .toISOString()
-                  .slice(0, 10),
-                numero_lote: itemToEdit.numero_lote,
-              }}
-              fields={productFieldsNoEstado}
-              onSubmit={handleSave}
-              onCancel={closeAll}
-              submitLabel="Guardar"
-              cancelLabel="Cancelar"
-            />
-          </>
+          <GenericForm
+            initialValues={{
+              id_subcategory: itemToEdit.id_subcategory,
+              nombre: itemToEdit.nombre,
+              descripcion: itemToEdit.descripcion,
+              stock_actual: itemToEdit.stock_actual,
+              stock_maximo: itemToEdit.stock_maximo,
+              fecha_vencimiento: new Date(itemToEdit.fecha_vencimiento)
+                .toISOString()
+                .slice(0, 10),
+              numero_lote: itemToEdit.numero_lote,
+            }}
+            fields={productFieldsNoEstado}
+            onSubmit={handleSave}
+            onCancel={closeAll}
+            submitLabel="Guardar"
+            cancelLabel="Cancelar"
+          />
         )}
       </GenericModal>
 
-      {/* Modal Eliminar */}
       <GenericModal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete ? (
           <>
@@ -240,7 +309,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               Confirmar Eliminación
             </h3>
             <p>
-              ¿Seguro que deseas borrar este producto {""}
+              ¿Seguro que deseas borrar este producto{" "}
               <strong>{itemToDelete.nombre}</strong>?
             </p>
             <GenericTable

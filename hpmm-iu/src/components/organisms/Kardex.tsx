@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useKardex } from "../../hooks/use.Kardex";
-import { KardexDetail, kardexInterface } from "../../interfaces/kardex.interface";
+import {
+  KardexDetail,
+  kardexInterface,
+} from "../../interfaces/kardex.interface";
 import Button from "../../components/atoms/Buttons/Button";
 import Modal from "../../components/molecules/GenericModal";
-import GenericForm, { FieldConfig } from "../../components/molecules/GenericForm";
+import GenericForm, {
+  FieldConfig,
+} from "../../components/molecules/GenericForm";
 import GenericTable, { Column } from "../../components/molecules/GenericTable";
 import { useProducts } from "../../hooks/use.Product";
-
 
 const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS (al inicio)
@@ -16,30 +20,38 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     GetKardexContext,
     PostCreateKardexContext,
     PutUpdateKardexContext,
-    DeleteKardexContext
+    DeleteKardexContext,
   } = useKardex();
-  const { products, GetProductsContext } = useProducts();
+  const { products, GetProductsContext, PutUpdateProductContext } = useProducts();
+  
 
   // 2. ESTADOS (agrupados por función)
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState(kardexDetail);
-  
+
   // Estados de modales
   const [isEditOpen, setEditOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-  
+
   // Estados de items seleccionados
   const [itemToEdit, setItemToEdit] = useState<kardexInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<KardexDetail | null>(null);
 
   // 3. CONFIGURACIONES (constantes que no cambian)
   const kardexColumns: Column<KardexDetail>[] = [
+    { header: "Numero de Orden", accessor: "shopping_order_id" },
     { header: "Tipo de movimiento", accessor: "tipo_movimiento" },
     { header: "Factura", accessor: "numero_factura" },
     { header: "Producto", accessor: "nombre" },
-    { header: "Nombre del Solicitante de Compra", accessor: "nombre_empleado_sc"},
-    { header: "Nombre del Solicitante de Fusion", accessor: "nombre_empleado_sf"},
+    {
+      header: "Nombre del Solicitante de Compra",
+      accessor: "nombre_empleado_sc",
+    },
+    {
+      header: "Nombre del Solicitante de Fusion",
+      accessor: "nombre_empleado_sf",
+    },
     { header: "Descripción del producto", accessor: "descripcion" },
     { header: "Nombre del Proveedor", accessor: "nombre_proveedor" },
     { header: "Vendedor", accessor: "nombre_contacto_vendedor" },
@@ -53,13 +65,25 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     { header: "Stock actual", accessor: "stock_actual" },
     { header: "Stock máximo", accessor: "stock_maximo" },
     { header: "Numero de lote", accessor: "numero_lote" },
-    
-    
+
     { header: "Estado", accessor: "tipo" },
-    { header: "Fecha de Creación de Solicitud", accessor: (row) => new Date(row.created_at).toLocaleString() },
+    {
+      header: "Fecha de Creación de Solicitud",
+      accessor: (row) => new Date(row.created_at).toLocaleString(),
+    },
   ];
   // Campos del formulario para crear/editar kardex
   const kardexFields: FieldConfig[] = [
+    {
+      name: "shopping_order_id",
+      label: "Orden de Compra",
+      type: "text",
+    },
+    {
+      name: "id_shopping",
+      label: "ID de Compra",
+      type: "text",
+    },
     {
       name: "tipo_movimiento",
       label: "Tipo de Movimiento",
@@ -67,16 +91,15 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       options: ["Entrada", "Salida"],
     },
     {
-        name: "id_product",
-        label: "Producto",
-        type: "select",
-        options: products.map(p => ({ label: p.nombre, value: p.id_product })),
-      },
-    { name: "id_shopping", label: "Compra", type: "text" },
+      name: "id_product",
+      label: "Nombre del Producto",
+      type: "select",
+      options: products.map((p) => ({ label: p.nombre, value: p.id_product })),
+    },
     { name: "anio_creacion", label: "Año Compra", type: "number" },
 
     { name: "fecha_movimiento", label: "Fecha", type: "date" },
-    { name: "numero_factura", label: "Factura", type: "text" },
+    { name: "numero_factura", label: "Numero deFactura", type: "text" },
     { name: "cantidad", label: "Cantidad", type: "number" },
     { name: "precio_unitario", label: "Precio", type: "number" },
     {
@@ -100,20 +123,21 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       options: ["true", "false"],
     },
   ];
-  
+
   // 4. EFFECTS
   useEffect(() => {
     // Carga productos y kardex al montar
-    Promise.all([GetKardexContext(), GetProductsContext()])
-      .finally(() => setLoading(false));
+    Promise.all([GetKardexContext(), GetProductsContext()]).finally(() =>
+      setLoading(false)
+    );
   }, [GetKardexContext, GetProductsContext]);
 
   useEffect(() => {
     handleTableContent(kardexDetail);
-  }, [kardexDetail, status]); 
+  }, [kardexDetail, status]);
 
   // 5. HANDLERS (agrupados por función)
-  
+
   // Handlers de UI
   const closeAll = () => {
     setEditOpen(false);
@@ -124,13 +148,13 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   };
 
   const openEdit = (kd_id: string) => {
-    const item = kardex.find(k => k.id_kardex === kd_id);
+    const item = kardex.find((k) => k.id_kardex === kd_id);
     setItemToEdit(item);
     setEditOpen(true);
   };
 
   const openDelete = (id: string) => {
-    const item = kardexDetail.find(k => k.id_kardex === id) || null;
+    const item = kardexDetail.find((k) => k.id_kardex === id) || null;
     setItemToDelete(item);
     setDeleteOpen(true);
   };
@@ -140,7 +164,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     if (status === "Todo") {
       setFilteredData(kd);
     } else {
-      setFilteredData(kd.filter(item => item.tipo === status));
+      setFilteredData(kd.filter((item) => item.tipo === status));
     }
   };
 
@@ -150,16 +174,21 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     closeAll();
   };
 
-
   const handleSave = async (values: any) => {
     if (!itemToEdit) return;
     await PutUpdateKardexContext(itemToEdit.id_kardex, values);
+    /* await PutUpdateProductContext(itemToEdit.id_product, {
+      stock_actual: itemToEdit.stock_actual + values.cantidad,
+    }); */
     await GetKardexContext();
     closeAll();
   };
 
   const handleCreate = async (values: any) => {
     await PostCreateKardexContext(values);
+    await PutUpdateProductContext(values.id_product, {
+      stock_actual: values.cantidad,
+    });
     await GetKardexContext();
     closeAll();
   };
@@ -182,8 +211,9 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Recuperar",
-            onClick: (row: KardexDetail) => changeKardexStatus(row, "Pendiente"),
-          }
+            onClick: (row: KardexDetail) =>
+              changeKardexStatus(row, "Pendiente"),
+          },
         ];
 
       case "Pendiente":
@@ -196,13 +226,14 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Cancelar",
-            onClick: (row: KardexDetail) => changeKardexStatus(row, "Cancelado"),
+            onClick: (row: KardexDetail) =>
+              changeKardexStatus(row, "Cancelado"),
           },
           {
-            header: "Acciones", 
+            header: "Acciones",
             label: "Eliminar",
             onClick: (row: KardexDetail) => openDelete(row.id_kardex),
-          }
+          },
         ];
 
       case "Aprobado":
@@ -212,21 +243,21 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             header: "Acciones",
             label: "Ver",
             onClick: (row: KardexDetail) => openEdit(row.id_kardex),
-          }
+          },
         ];
 
       default:
         return [
           {
             header: "Acciones",
-            label: "Editar", 
+            label: "Editar",
             onClick: (row: KardexDetail) => openEdit(row.id_kardex),
           },
           {
             header: "Acciones",
             label: "Eliminar",
             onClick: (row: KardexDetail) => openDelete(row.id_kardex),
-          }
+          },
         ];
     }
   };

@@ -19,16 +19,22 @@ export const login = asyncWrapper(async (req: Request, res: Response) => {
   }
 
   (req.session as any).user = {
-    id_user: auth.userId,
-    username: auth.username,
+    id_user: auth.id_user,
     id_role: auth.id_role,
+    id_employes: auth.id_employes,
+    username: auth.username,
+    role_name: auth.role_name,
+    employe_name: auth.employe_name,
   };
 
   res.json({
     msg: "Inicio de sesión exitoso",
-    userId: auth.userId,
+    id_user: auth.id_user,
+    id_role: auth.id_role,
+    id_employes: auth.id_employes,
     username: auth.username,
-    id_rol: auth.id_role,
+    role_name: auth.role_name,
+    employe_name: auth.employe_name,
   });
   // no return aquí
 });
@@ -38,9 +44,12 @@ export const checkSession = asyncWrapper(
     // Si llegamos aquí, el token ya fue validado por el middleware
     res.json({
       authenticated: true,
-      userId: req.user?.id_user,
-      username: req.user?.username,
+      id_user: req.user?.id_user,
       id_role: req.user?.id_role,
+      id_employes: req.user?.id_employes,
+      username: req.user?.username,
+      role_name: req.user?.role_name,
+      employe_name: req.user?.employe_name,
       msg: "Sesión válida",
     });
   }

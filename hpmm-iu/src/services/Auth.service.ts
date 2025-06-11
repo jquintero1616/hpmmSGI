@@ -3,16 +3,16 @@ import axiosPublic from "../helpers/axiosInstance";
 export const authenticateUser = async (
   email: string,
   password: string
-): Promise<{ username: string; id_rol: string, userId: string }> => {
+): Promise<{ username: string; id_rol: string, id_user: string, employe_name: string, role_name: string }> => {
   try {
-    // TODO: Remover esta onda.... no se te puede olvidar...
-    const email = "1@hpmm.hn";
-    const password = "123";
     const response = await axiosPublic().post("/login", { email, password });
+    
     return {
       username: response.data.username,
       id_rol: response.data.id_rol,
-      userId: response.data.userId,
+      id_user: response.data.id_user,
+      employe_name: response.data.employe_name,
+      role_name: response.data.role_name,
     };
   } catch (error) {
     console.error("Error al autenticar al usuario", error);

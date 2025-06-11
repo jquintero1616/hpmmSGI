@@ -65,12 +65,12 @@ export const createUser = async (userData: {
 
 // Actualizar datos de usuario
 export const updateUser = async (
-  userId: string,
+  id_user: string,
   updateData: Partial<UserData>
 ): Promise<boolean> => {
   try {
     const result = await knexTableName()
-      .where({ id_user: userId })
+      .where({ id_user })
       .update({
         ...updateData,
         fecha_actualizacion: new Date()

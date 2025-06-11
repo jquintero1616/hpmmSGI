@@ -14,8 +14,10 @@ import { Direction} from "./direction.interface";
 
 export interface AuthContextType {
   username?: string;
-  id_rol?: string;
+  idRol?: string;
   userId?: string;
+  roleName?: string;
+  employeName?: string;
   authenticate: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;

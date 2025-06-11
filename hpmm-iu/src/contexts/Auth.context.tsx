@@ -13,8 +13,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [username, setUsername] = useState<string | undefined>();
   const [userId, setUserId] = useState<string | undefined>();
-  const [id_rol, setIdRol] = useState<string>();
+  const [idRol, setIdRol] = useState<string>();
   const [loading, setLoading] = useState<boolean>(true);
+  const [roleName, setRoleName] = useState<string | undefined>();
+  const [employeName, setEmployeName] = useState<string | undefined>();
 
   const authenticate = async (email: string, password: string) => {
     try {
@@ -22,12 +24,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(true);
       setUsername(response.username);
       setIdRol(response.id_rol);
-      setUserId(response.userId);
+      setUserId(response.id_user);
+      setRoleName(response.role_name);
+      setEmployeName(response.employe_name);
     } catch (error) {
       setUserId(undefined);
       setIsAuthenticated(false);
       setUsername(undefined);
       setIdRol(undefined);
+      setRoleName(undefined);
+      setEmployeName(undefined);
       throw error;
     }
   };
@@ -49,10 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const response = await axiosPublic().get("/check-session");
       // El servidor confirma que la sesión existe y devuelve datos del usuario
-      const { username, id_role, userId } = response.data;
+      const { username, id_role, id_user } = response.data;
       setIsAuthenticated(true);
       setUsername(username);
-      setUserId(userId);
+      setUserId(id_user);
       setIdRol(id_role);
     } catch (error) {
       // 401 o cualquier otro error: no hay sesión válida
@@ -79,8 +85,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         isAuthenticated,
         username,
-        id_rol,
-        userId
+        idRol,
+        userId,
+        roleName,
+        employeName
       }}
     >
       {children}

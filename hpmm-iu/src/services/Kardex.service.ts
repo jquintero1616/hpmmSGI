@@ -57,7 +57,7 @@ export const PostCreateKardexService = async (
             requisicion_numero: kardexs.requisicion_numero,
             tipo: kardexs.tipo,
             observacion: kardexs.observacion,
-            estado: kardexs.estado,
+            estado: kardexs.estado
         }, {
             headers: {
                 "Content-Type": "application/json",
