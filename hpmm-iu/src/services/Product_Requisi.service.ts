@@ -5,8 +5,8 @@ export const GetRequiProductService = async (
   axiosPrivate: AxiosInstance
 ): Promise<Requi_x_ProductInterface[] | null> => {
   try {
-    const response = await axiosPrivate.get("/requisi_x_product");
-    return response.data.requi_x_product;
+    const response = await axiosPrivate.get("/requiXproduct");
+    return response.data.requisis;
   } catch (error) {
     console.error("Error fetching Requi x Product:", error);
     return null;
@@ -19,7 +19,7 @@ export const GetRequiProductByIdService = async (
 ): Promise<Requi_x_ProductInterface | undefined> => {
   try {
     const response = await axiosPrivate.get(
-      `/requisi_x_product/${id_requisi_x_product}`
+      `/requiXproduct/${id_requisi_x_product}`
     );
     return response.data.newRequisiProduct;
   } catch (error) {
@@ -36,7 +36,7 @@ export const PostRequiProductService = async (
     axiosPrivate: AxiosInstance
 ): Promise<Requi_x_ProductInterface> => {
     const response = await axiosPrivate.post(
-        `/requisi_x_product`,
+        `/requiXproduct`,
         {
           id_requisi_x_product: requiProduct.id_requisi_x_product,
           id_requisi: requiProduct.id_requisi,
@@ -61,7 +61,7 @@ export const PutRequiProductService = async (
 ): Promise<Requi_x_ProductInterface | undefined> => {
   try {
     const response = await axiosPrivate.put(
-      `/requisi_x_product/${id_requisi_x_product}`,
+      `/requiXproduct/${id_requisi_x_product}`,
       {
         id_requisi_x_product: requiProduct.id_requisi_x_product,
         id_requisi: requiProduct.id_requisi,
@@ -88,7 +88,7 @@ export const DeleteRequiProductService = async (
   axiosPrivate: AxiosInstance
 ): Promise<void> => {
   try {
-    await axiosPrivate.delete(`/requisi_x_product/${id_requisi_x_product}`);
+    await axiosPrivate.delete(`/requiXproduct/${id_requisi_x_product}`);
   } catch (error) {
     console.error(
       `Error deleting Requi x Product with ID: ${id_requisi_x_product}`,

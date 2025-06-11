@@ -8,7 +8,7 @@ import { NewUser, User } from "../types/user";
 export const getAllUsersModel = async (): Promise<NewUser[]> => {
   return db("users as u")
     .join("roles as r", "u.id_rol", "r.id_rol")
-    .select("u.id_user", "u.username", "u.email", "u.estado", "u.created_at", "u.updated_at", "r.name as role_name")  
+    .select("u.id_user", "u.username", "u.email", "u.estado", "u.created_at", "u.updated_at", "r.name as role_name", "r.id_rol as id_rol")
 }
 // User Id model
 export async function getUserByIdModel(

@@ -12,7 +12,7 @@ export const authenticateUser = async (
       "users.username as username",
       "employes.name as employe_name",
       "roles.name as role_name",
-      "users.id_rol as id_role",
+      "roles.id_rol as id_rol",
       "employes.id_employes as id_employes",
       "users.password as user_password",
       "users.estado as state",
@@ -22,7 +22,9 @@ export const authenticateUser = async (
     .where("users.email", email)
     .first();
 
-  const { id_role, id_user, username, id_employes, user_password, state, role_name, employe_name } =
+    console.log(user)
+
+  const { id_rol, id_user, username, id_employes, user_password, state, role_name, employe_name } =
     user;
 
   if (!user || !state) return null;
@@ -33,7 +35,7 @@ export const authenticateUser = async (
 
   return {
     id_user,
-    id_role,
+    id_rol,
     id_employes,
     username,
     role_name,

@@ -50,7 +50,7 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
         });
     }
   }, [isAuthenticated]);
-
+// --------------------------------------------------------------------
   useEffect(() => {
     if (isAuthenticated) {
       GetKardexDetailsContext()

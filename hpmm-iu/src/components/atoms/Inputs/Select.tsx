@@ -4,7 +4,7 @@ import React, { ChangeEvent } from 'react';
 
 export interface SelectOption {
   label: string;
-  value: string;
+  value: string | number | boolean;
 }
 
 export interface SelectProps {
@@ -14,6 +14,7 @@ export interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean; // <-- Agregado aquí
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -23,6 +24,7 @@ const Select: React.FC<SelectProps> = ({
   options,
   placeholder = 'Seleccione...',
   className = '',
+  disabled = false, // <-- Valor por defecto
 }) => (
   <div className="mb-5">
     <select
@@ -34,13 +36,15 @@ const Select: React.FC<SelectProps> = ({
         w-full h-9 px-4 border rounded-md 
         focus:outline-none focus:ring-2 focus:ring-purple-600 
         ${className}
+        ${disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
       `}
+      disabled={disabled}
     >
       <option value="" disabled>
         {placeholder}
       </option>
       {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
+        <option key={opt.value.toString()} value={opt.value.toString()}>
           {opt.label}
         </option>
       ))}

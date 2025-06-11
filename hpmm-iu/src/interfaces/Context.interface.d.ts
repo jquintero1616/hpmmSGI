@@ -12,6 +12,9 @@ import { Subdireccion } from "./subdireccion.interface";
 import { Unit } from "./unit.interface";
 import { Direction} from "./direction.interface";
 import { Shopping } from "./shopping.interface";
+import { Requi_x_Product } from "./requi_x_product.interface";
+import { Requisicion } from "./requisicion.interface";
+
 
 export interface AuthContextType {
   username?: string;
@@ -159,12 +162,23 @@ export interface ShoppingContextType {
 }
 
 export interface ProductRequisiContextType {
-  productRequisition: Requi_x_ProductInterface[];
-  GetRequiProductContext: () => Promise<Requi_x_ProductInterface[] | null>;
-  GetRequiProductByIdContext: (id_requisi_x_product: string) => Promise<Requi_x_ProductInterface | undefined>;
-  PostCreateProductRequisitionContext: (requiProduct: Requi_x_ProductInterface) => Promise<Requi_x_ProductInterface>;
-  PutUpdateProductRequisitionContext: (id_requisi_x_product: string, requiProduct: Requi_x_ProductInterface) => Promise<void>;
+  productRequisition: Requi_x_Product[];
+  GetRequiProductContext: () => Promise<Requi_x_Product[] | null>;
+  GetRequiProductByIdContext: (id_requisi_x_product: string) => Promise<Requi_x_Product | undefined>;
+  PostCreateProductRequisitionContext: (requiProduct: Requi_x_Product) => Promise<Requi_x_Product>;
+  PutUpdateProductRequisitionContext: (id_requisi_x_product: string, requiProduct: Requi_x_Product) => Promise<void>;
   DeleteProductRequisitionContext: (id_requisi_x_product: string) => Promise<void>;
+}
+
+export interface RequisicionContextType {
+  requisitions: Requisicion[];
+  requisiDetail: RequisicionDetail[];
+  GetRequisiDetailsContext: () => Promise<RequisicionDetail[] | null>;
+  GetRequisicionesContext: () => Promise<Requisicion[] | null>;
+  GetRequisicionByIdContext: (id_requisi: string) => Promise<Requisicion | undefined>;
+  PostCreateRequisicionContext: (requisicion: Requisicion) => Promise<Requisicion>;
+  PutUpdateRequisicionContext: (id_requisi: string, requisicion: Requisicion) => Promise<void>;
+  DeleteRequisicionContext: (id_requisi: string) => Promise<void>;
 }
 
 export interface ProviderProps {

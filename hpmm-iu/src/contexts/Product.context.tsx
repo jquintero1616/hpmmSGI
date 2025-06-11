@@ -33,7 +33,6 @@ export const ProductContext = createContext<ProductContextType>({
 export const ProductProvider: React.FC<ProviderProps> = ({ children }) => {
     const [products, SetProducts] = useState<ProductInterface[]>([]);
     const [ProductDetail, SetProductDetail] = useState<ProductDetail[]>([]);
-
     const axiosPrivate = useAxiosPrivate();
     const { isAuthenticated } = useAuth();
 

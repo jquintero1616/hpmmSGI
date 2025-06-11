@@ -20,7 +20,7 @@ export const login = asyncWrapper(async (req: Request, res: Response) => {
 
   (req.session as any).user = {
     id_user: auth.id_user,
-    id_role: auth.id_role,
+    id_rol: auth.id_rol,
     id_employes: auth.id_employes,
     username: auth.username,
     role_name: auth.role_name,
@@ -30,7 +30,7 @@ export const login = asyncWrapper(async (req: Request, res: Response) => {
   res.json({
     msg: "Inicio de sesión exitoso",
     id_user: auth.id_user,
-    id_role: auth.id_role,
+    id_rol: auth.id_rol,
     id_employes: auth.id_employes,
     username: auth.username,
     role_name: auth.role_name,
@@ -45,7 +45,7 @@ export const checkSession = asyncWrapper(
     res.json({
       authenticated: true,
       id_user: req.user?.id_user,
-      id_role: req.user?.id_role,
+      id_rol: req.user?.id_rol,
       id_employes: req.user?.id_employes,
       username: req.user?.username,
       role_name: req.user?.role_name,

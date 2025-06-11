@@ -1,6 +1,35 @@
 import { Request, Response } from "express";
 import * as RequisiService from "../services/requisi.service";
 import { asyncWrapper } from "../utils/errorHandler";
+import { NewRequisi } from "../types/requisi";
+
+
+
+export const getRequisiDetailsController = asyncWrapper(
+  async (req: Request, res: Response): Promise<void> => {
+    const { limit, offset } = req.pagination ?? {};
+    const raw = req.query.status;
+    const statuses = raw
+    ? Array.isArray(raw)
+    ? (raw as string[])
+    : [raw as string]
+    : ["Aprobado", "Rechazado", "Pendiente"];
+
+    const data = await RequisiService.getRequisiDetailService({
+      limit,
+      offset,
+      statuses: statuses as any,
+    });
+    res.status(200).json({
+      msg: "Detalles de Requisiciones obtenidos",
+      page: req.pagination?.page,
+      limit,
+      count: data.length,
+      data,
+    });
+  }
+);
+
 
 export const getAllRequisiController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
@@ -32,11 +61,11 @@ export const getRequisiByController = asyncWrapper(
 
 export const createRequisiController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
-    const payload = req.body;
-    const newRequisi = await RequisiService.createRequiService(payload);
+    const data: NewRequisi = req.body;
+    const requisi = await RequisiService.createRequiService(data);
     res.status(201).json({
-      msg: "Requisicion creada correctamente",
-      newRequisi,
+      msg: `Requisicion creada correctamente con id_requisi}`,
+      requisi,
     });
   }
 );
@@ -60,7 +89,7 @@ export const UpdateRequisiController = asyncWrapper(
       .json({ msg: "Requisicion actualizada correctamente", updatedRequisi });
   }
 );
-/*
+
 export const deleteRequisiController = asyncWrapper(
     async (req: Request, res: Response): Promise<void> => {
         const id_requisi = (req.params.id || "").trim();
@@ -70,8 +99,9 @@ export const deleteRequisiController = asyncWrapper(
             res.status(404).json({ msg: "Requisicion no encontrada" });
             return;
         }
-    
-        res.status(200).json({ msg: "Requisicion eliminada correctamente", deletedRequisi });
+
+        res.status(200).json({ msg: `Requisicion eliminada correctamente con id_requisi ${id_requisi}`,
+        deletedRequisi,
+        });
     }
-)
-*/
+);  

@@ -8,9 +8,9 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { useUser } from "../../hooks/use.User";
-// import { useUnits } from "../../hooks/use.Units"; // Necesitas crear este hook
-// import { useSubdireccion } from "../../hooks/use.Subdireccion"; // Necesitas crear este hook  
-// import { useDirection } from "../../hooks/use.Direction"; // Necesitas crear este hook
+import { useUnit } from "../../hooks/use.Unit"; // Necesitas crear este hook
+import { useSubdireccion } from "../../hooks/use.subdireccion"; // Necesitas crear este hook  
+import { useDirection } from "../../hooks/use.Direction"; // Necesitas crear este hook
 
 const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
@@ -22,9 +22,9 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   } = useEmploye();
 
   const { users, GetUsersContext } = useUser();
-  // const { units, GetUnitsContext } = useUnits(); // Agregar
-  // const { subdirecciones, GetSubdireccionesContext } = useSubdireccion(); // Agregar
-  // const { directions, GetDirectionsContext } = useDirection(); // Agregar
+  const { units, GetUnitsContext } = useUnit(); // Agregar
+  const { subdireccion, GetSubdireccionesContext } = useSubdireccion(); // Agregar
+  const { directions, GetDirectionsContext } = useDirection(); // Agregar
 
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<EmployesInterface[]>([]);
@@ -68,56 +68,61 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const employeeFields: FieldConfig[] = React.useMemo(
     () => [
       {
-        name: "id_user",
+        name: "usuario",
         label: "Usuario",
         type: "select",
         options: users.map((user) => ({
-          label: user.username || user.nombre, // Ajustar según tu interface
+          label: user.username,
           value: user.id_user,
         })),
+        required: true,
       },
-      // {
-      //   name: "id_units",
-      //   label: "Unidad",
-      //   type: "select", 
-      //   options: units.map((unit) => ({
-      //     label: unit.name,
-      //     value: unit.id_units,
-      //   })),
-      // },
-      // {
-      //   name: "id_subdireccion",
-      //   label: "Subdirección",
-      //   type: "select",
-      //   options: subdirecciones.map((sub) => ({
-      //     label: sub.nombre,
-      //     value: sub.id_subdireccion,
-      //   })),
-      // },
-      // {
-      //   name: "id_direction",
-      //   label: "Dirección", 
-      //   type: "select",
-      //   options: directions.map((dir) => ({
-      //     label: dir.nombre,
-      //     value: dir.id_direction,
-      //   })),
-      // },
-      { name: "name", label: "Nombre", type: "text" },
-      { name: "email", label: "Email", type: "email" },
-      { name: "telefono", label: "Teléfono", type: "text" },
-      { name: "puesto", label: "Puesto", type: "text" },
+      {
+        name: "unidad",
+        label: "Unidad",
+        type: "select",
+        options: units.map((unit) => ({
+          label: unit.name,
+          value: unit.name, // O el valor que corresponda a 'unidad'
+        })),
+        required: true,
+      },
+      {
+        name: "subdireccion",
+        label: "Subdirección",
+        type: "select",
+        options: subdireccion.map((sub) => ({
+          label: sub.nombre,
+          value: sub.nombre, // O el valor que corresponda a 'subdireccion'
+        })),
+        required: true,
+      },
+      {
+        name: "direccion",
+        label: "Dirección",
+        type: "select",
+        options: directions.map((dir) => ({
+          label: dir.nombre,
+          value: dir.nombre, // O el valor que corresponda a 'direccion'
+        })),
+        required: true,
+      },
+      { name: "name", label: "Nombre", type: "text", required: true },
+      { name: "email", label: "Email", type: "email", required: true },
+      { name: "telefono", label: "Teléfono", type: "tel", required: true, pattern: "^[0-9+\\-()\\s]{7,}$" },
+      { name: "puesto", label: "Puesto", type: "text", required: true },
       {
         name: "estado",
         label: "Estado",
         type: "select",
         options: [
-          { label: "Activo", value: true }, // Usar boolean
+          { label: "Activo", value: true },
           { label: "Inactivo", value: false },
         ],
+        required: true,
       },
     ],
-    [users] // Todas las dependencias
+    [users, units, subdireccion, directions]
   );
 
   useEffect(() => {
@@ -270,9 +275,9 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           <GenericForm<Partial<EmployesInterface>>
             initialValues={{
               usuario: itemToEdit.usuario || "",
-              //id_units: itemToEdit.id_units || "",
-              //id_subdireccion: itemToEdit.id_subdireccion || "",
-              //id_direction: itemToEdit.id_direction || "",
+              unidad: itemToEdit.unidad || "",
+              subdireccion: itemToEdit.subdireccion || "",
+              direccion: itemToEdit.direccion || "",
               name: itemToEdit.name || "",
               email: itemToEdit.email || "",
               telefono: itemToEdit.telefono || "",
@@ -293,14 +298,14 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         <GenericForm<Partial<EmployesInterface>>
           initialValues={{
             usuario: "",
-            //id_units: "",
-            //id_subdireccion: "",
-            //id_direction: "",
+            unidad: "",
+            subdireccion: "",
+            direccion: "",
             name: "",
             email: "",
             telefono: "",
             puesto: "",
-            estado: true, // Boolean, no string
+            estado: true,
           }}
           fields={employeeFields}
           onSubmit={handleCreate}

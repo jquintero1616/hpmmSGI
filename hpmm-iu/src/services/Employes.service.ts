@@ -36,10 +36,10 @@ export const PostCreateEmployeService = async (
     const response = await axiosPrivate.post<EmployesInterface>(
       `employes`,
       {
-        id_user: employe.id_user,
-        id_units: employe.id_units,
-        id_subdireccion: employe.id_subdireccion,
-        id_direction: employe.id_direction,
+        usuario: employe.usuario,
+        unidad: employe.unidad,
+        subdireccion: employe.subdireccion,
+        direccion: employe.direccion,
         name: employe.name,
         email: employe.email,
         telefono: employe.telefono,

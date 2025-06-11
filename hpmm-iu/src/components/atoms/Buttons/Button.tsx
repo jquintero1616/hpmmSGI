@@ -1,17 +1,17 @@
 // src/components/atoms/buttons/Button.tsx
 
-import React from 'react';
+import React from "react";
 
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   isPrimary?: boolean;
   isDanger?: boolean; // ← Nueva prop
-  size?: 'small' | 'medium' | 'large';
-  variant?: 'filled' | 'text';
+  size?: "small" | "medium" | "large";
+  variant?: "filled" | "text";
   style?: React.CSSProperties;
   disabled?: boolean;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
   className?: string;
 }
 
@@ -20,28 +20,28 @@ const Button: React.FC<ButtonProps> = ({
   onClick,
   isPrimary = false,
   isDanger = false, // ← Nueva prop
-  size = 'small',
-  variant = 'filled',
+  size = "small",
+  variant = "filled",
   style,
   disabled = false,
-  type = 'button',
-  className = '',
+  type = "button",
+  className = "",
 }) => {
   // estilos de padding y font según tamaño
   const padding = {
-    small: 'py-1 px-2',
-    medium: 'py-2 px-4',
-    large: 'py-3 px-6',
+    small: "py-1 px-2",
+    medium: "py-2 px-4",
+    large: "py-3 px-6",
   }[size];
 
   const fontSize = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-lg',
+    small: "text-sm",
+    medium: "text-base",
+    large: "text-lg",
   }[size];
 
   // si es sólo texto, anulamos bg, borde y padding
-  if (variant === 'text') {
+  if (variant === "text") {
     return (
       <button
         type={type}
@@ -57,9 +57,11 @@ const Button: React.FC<ButtonProps> = ({
 
   // caso "filled" con mejores colores
   const getButtonColors = () => {
-    if (isDanger) return 'bg-red-500 hover:bg-red-700';
-    if (isPrimary) return 'bg-blue-500 hover:bg-blue-700';
-    return 'bg-hpmm-morado-oscuro hover:bg-hpmm-morado-claro text-gray-800';
+    // Si el usuario ya pasa clases de color, no agregamos ninguna por defecto
+    if (className.match(/bg-|hover:bg-|text-/)) return "";
+    if (isDanger) return "bg-red-500 hover:bg-red-700";
+    if (isPrimary) return "bg-blue-500 hover:bg-blue-700";
+    return "bg-hpmm-morado-oscuro hover:bg-hpmm-morado-claro text-gray-800";
   };
 
   return (
@@ -67,7 +69,7 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${getButtonColors()} text-white mb-1   font-bold rounded focus:outline-none focus:shadow-outline ${padding} ${fontSize} ${className}`}
+      className={`${getButtonColors()} text-white mb-1 font-bold rounded focus:outline-none focus:shadow-outline ${padding} ${fontSize} ${className}`}
       style={style}
     >
       {children}

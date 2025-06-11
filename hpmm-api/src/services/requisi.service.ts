@@ -1,6 +1,19 @@
 import * as RequiModel from "../models/requisi.model";
-import { NewRequisi } from "../types/requisi";
+import { NewRequisi, RequisiFilter, RequisiDetail } from "../types/requisi";
 import logger from "../utils/loggers";
+
+
+
+export const getRequisiDetailService = async (
+    filter: RequisiFilter
+  ): Promise <RequisiDetail[]> => {
+    try {
+        return await RequiModel.getRequisiDetailsModel(filter);
+    } catch (error) {
+        logger.error("Error getting requisition details", error);
+        throw error;
+    }
+  }
 
 export const getAllRequiService = async (): Promise<NewRequisi[]> => {
     try {
@@ -59,3 +72,5 @@ export const updateRequisiService = async (
     const desactivatedRequisi = await RequiModel.deleteRequisiModel(id_requisi);
     return desactivatedRequisi;        
   }
+
+  

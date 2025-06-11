@@ -159,18 +159,18 @@ export function Sidebar() {
       ],
       requisitions: [
         {
-          label: "Pendientes",
-          path: "/requisiciones/pendientes",
+          label: "Pendiente",
+          path: "/requisicionPendiente",
           icon: ClipboardDocumentListIcon,
         },
         {
-          label: "Aprobadas",
-          path: "/requisiciones/aprobadas",
+          label: "Aprobado",
+          path: "/requisicionAprobado",
           icon: ClipboardDocumentListIcon,
         },
         {
-          label: "Rechazadas",
-          path: "/requisiciones/rechazadas",
+          label: "Rechazado",
+          path: "/requisicionRechazado",
           icon: ClipboardDocumentListIcon,
         },
         {

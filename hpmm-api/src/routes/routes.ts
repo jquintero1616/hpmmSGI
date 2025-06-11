@@ -227,6 +227,13 @@ router.delete(
 );
 
 // create router requisi
+
+router.get(
+  "/requisi/detail",
+  authenticateSession,
+  pagination(20, 100),
+  RequisiControllers.getRequisiDetailsController
+);
 router.get(
   "/requisi",
   authenticateSession,

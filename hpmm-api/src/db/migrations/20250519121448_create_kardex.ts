@@ -16,7 +16,7 @@ export async function up(knex: Knex): Promise<void> {
     table.enu("tipo_solicitud", ["Requisicion", "Pacto"]);
     table.string("requisicion_numero").notNullable();
     table.enu("tipo", ["Aprobado", "Rechazado", "Pendiente", "Cancelado"]);
-    table.string("observacion").notNullable();
+    table.string("observacion");
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
     table.uuid("id_empleado_solicitud_f");

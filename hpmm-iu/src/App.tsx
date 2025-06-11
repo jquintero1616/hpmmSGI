@@ -17,6 +17,8 @@ import { DirectionProvider } from "./contexts/Direction.context";
 import { SubdireccionProvider } from "./contexts/Subdireccion.context";
 import { UnitProvider } from "./contexts/Unit.context";
 import { ShoppingProvider } from "./contexts/Shopping.context";
+import { ProductRequisitionProvider } from "./contexts/Product_requisi.context";
+import { RequisicionProvider } from "./contexts/Requisicion.contex";
 
 function AppRoutes() {
   const location = useLocation();
@@ -67,9 +69,13 @@ export default function App() {
                         <SubdireccionProvider>  
                           <UnitProvider>
                             <ShoppingProvider>
-                              <Router>
-                                <AppRoutes />
-                              </Router>
+                              <ProductRequisitionProvider>
+                                <RequisicionProvider>
+                                  <Router>
+                                    <AppRoutes />
+                                  </Router>
+                                </RequisicionProvider>
+                              </ProductRequisitionProvider>
                             </ShoppingProvider>
                           </UnitProvider>
                         </SubdireccionProvider>

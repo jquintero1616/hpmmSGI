@@ -12,6 +12,7 @@ import GenericForm, {
 } from "../../components/molecules/GenericForm";
 import GenericTable, { Column } from "../../components/molecules/GenericTable";
 import { useProducts } from "../../hooks/use.Product";
+import { useShopping } from "../../hooks/use.Shopping";
 
 type KardexRow = KardexDetail & { calculado_stock?: number };
 
@@ -24,6 +25,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     PutUpdateKardexContext,
     DeleteKardexContext,
   } = useKardex();
+  const { shopping, GetShoppingContext } = useShopping();
   const { products, GetProductsContext, PutUpdateProductContext } = useProducts();
 
 
@@ -106,7 +108,11 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     {
       name: "id_shopping",
       label: "ID de Compra",
-      type: "text",
+      type: "select",
+      options: shopping.map((shopping) => ({
+          label: shopping.shopping_order_id,
+          value: shopping.id_shopping,
+        })),
     },
     {
       name: "tipo_movimiento",
@@ -151,7 +157,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 4. EFFECTS
   useEffect(() => {
     // Carga productos y kardex al montar
-    Promise.all([GetKardexContext(), GetProductsContext()]).finally(() =>
+    Promise.all([GetKardexContext(), GetProductsContext(),GetShoppingContext]).finally(() =>
       setLoading(false)
     );
   }, []);
@@ -225,7 +231,9 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // Handlers específicos
   // Función helper para cambiar estado del kardex
-  const changeKardexStatus = (row: KardexDetail, newStatus: string) => {
+  const changeKardexStatus = (
+    row: KardexDetail, 
+    newStatus: string) => {
     const item = kardex.find((k) => k.id_kardex === row.id_kardex);
     if (item) {
       setItemToEdit({ ...item, tipo: newStatus });

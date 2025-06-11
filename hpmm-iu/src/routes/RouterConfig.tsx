@@ -18,7 +18,8 @@ import Subdireccion from "../components/organisms/Subdireccion";
 import Unit from "../components/organisms/Unit";
 import Direction from "../components/organisms/Direction";
 import Shopping from "../components/organisms/Shopping";
-
+import Requisicion from "../components/organisms/Requisicion";
+import Product_requisi from "../components/organisms/Product_requisi";
 
 export const routes = [
   // Ruta pública de login
@@ -45,7 +46,7 @@ export const routes = [
             "Jefe Almacen",
             "Tecnico Almacen",
             "Super Admin",
-            "Jefe de Logistica"
+            "Jefe de Logistica",
           ],
         },
       },
@@ -112,7 +113,7 @@ export const routes = [
           </GenericPage>
         ),
       },
-//------------------------------------------------------------------------------
+      //------------------------------------------------------------------------------
       // Rutas de Kardex con diferentes estados
       {
         path: "kardex",
@@ -164,7 +165,7 @@ export const routes = [
         ),
       },
 
-      // ---------------------------------------------------------------------------------- 
+      // ----------------------------------------------------------------------------------
 
       {
         path: "vendedor",
@@ -174,7 +175,7 @@ export const routes = [
           </GenericPage>
         ),
       },
-     // ----------------------------------------------------------------------------------
+      // ----------------------------------------------------------------------------------
       {
         path: "subdireccion",
         element: (
@@ -194,7 +195,7 @@ export const routes = [
         ),
       },
       // ----------------------------------------------------------------------------------
-       {
+      {
         path: "unit",
         element: (
           <GenericPage title="Gestión de Unidades">
@@ -211,7 +212,50 @@ export const routes = [
           </GenericPage>
         ),
       },
+      // ----------------------------------------------------------------------------------
+      {
+        path: "product_requisi",
+        element: (
+          <GenericPage title="Gestión de Requisiciones de Productos">
+            <Product_requisi status={"Todo"} />
+          </GenericPage>
+        ),
+      },
 
+      // ----------------------------------------------------------------------------------
+      {
+        path: "requisicionAprobado",
+        element: (
+          <GenericPage title="Gestión de Kardex">
+            <Requisicion status={"Aprobado"} />
+          </GenericPage>
+        ),
+      },
+      {
+        path: "requisicionPendiente",
+        element: (
+          <GenericPage title="Gestión de Requisiciones Pendientes">
+            <Requisicion status={"Pendiente"} />
+          </GenericPage>
+        ),
+      },
+      {
+        path: "requisicionRechazado",
+        element: (
+          <GenericPage title="Requisiciones Rechazadas">
+            <Requisicion status={"Rechazado"} />
+          </GenericPage>
+        ),
+      },
+      {
+        path: "requisicionHistorico",
+        element: (
+          <GenericPage title="Requisicion Histórico">
+            <Requisicion status={"Todo"} />
+          </GenericPage>
+        ),
+      },
+     
     ],
   },
 ];

@@ -269,7 +269,6 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
       {/* Modales Crear / Editar / Eliminar */}
       <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
-        <h3 className="text-xl font-semibold mb-4">Crear Producto</h3>
         <GenericForm
           initialValues={{
             id_subcategory: "",
