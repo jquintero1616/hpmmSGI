@@ -30,6 +30,7 @@ export interface KardexFilter {
 
 export interface KardexDetail {
   id_kardex: string;
+  id_product: string;
   name: string;               // nombre del empleado
   fecha_movimiento: Date;
   tipo_movimiento: "Entrada" | "Salida";

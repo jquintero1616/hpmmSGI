@@ -1,3 +1,4 @@
+// src/components/pages/Kardex.tsx
 import React, { useEffect, useState } from "react";
 import { useKardex } from "../../hooks/use.Kardex";
 import {
@@ -12,8 +13,9 @@ import GenericForm, {
 import GenericTable, { Column } from "../../components/molecules/GenericTable";
 import { useProducts } from "../../hooks/use.Product";
 
+type KardexRow = KardexDetail & { calculado_stock?: number };
+
 const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
-  // 1. HOOKS (al inicio)
   const {
     kardex,
     kardexDetail,
@@ -23,11 +25,11 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     DeleteKardexContext,
   } = useKardex();
   const { products, GetProductsContext, PutUpdateProductContext } = useProducts();
-  
+
 
   // 2. ESTADOS (agrupados por función)
   const [loading, setLoading] = useState(true);
-  const [filteredData, setFilteredData] = useState(kardexDetail);
+  const [displayData, setDisplayData] = useState<KardexRow[]>([]);
 
   // Estados de modales
   const [isEditOpen, setEditOpen] = useState(false);
@@ -39,7 +41,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [itemToDelete, setItemToDelete] = useState<KardexDetail | null>(null);
 
   // 3. CONFIGURACIONES (constantes que no cambian)
-  const kardexColumns: Column<KardexDetail>[] = [
+  const kardexColumns: Column<KardexRow>[] = [
     { header: "Numero de Orden", accessor: "shopping_order_id" },
     { header: "Tipo de movimiento", accessor: "tipo_movimiento" },
     { header: "Factura", accessor: "numero_factura" },
@@ -59,20 +61,42 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       header: "Fecha de Ingreso",
       accessor: (row) => new Date(row.fecha_movimiento).toLocaleString(),
     },
-    { header: "Tipo de solicitud", accessor: "tipo_solicitud" },
-    { header: "Cantidad", accessor: "cantidad" },
-    { header: "Precio unitario", accessor: "precio_unitario" },
-    { header: "Stock actual", accessor: "stock_actual" },
-    { header: "Stock máximo", accessor: "stock_maximo" },
-    { header: "Numero de lote", accessor: "numero_lote" },
-
-    { header: "Estado", accessor: "tipo" },
     {
-      header: "Fecha de Creación de Solicitud",
-      accessor: (row) => new Date(row.created_at).toLocaleString(),
+      header: "Cantidad Ingresada",
+      accessor: (row) => {
+        const quantity = Number(row.cantidad);
+        return <span className="font-medium">{quantity.toFixed(2)}</span>;
+      },
     },
+    {
+      header: "Precio Unitario",
+      accessor: (row) => {
+        const price = Number(row.precio_unitario);
+        return <span className="font-medium">{`L.${price.toFixed(2)}`}</span>;
+      },
+    },
+    {
+      header: "Monto Total",
+      accessor: (row) => {
+        const total = Number(row.cantidad) * Number(row.precio_unitario);
+        return (
+          <span className="font-semibold text-blue-600">{`L.${total.toFixed(
+            2
+          )}`}</span>
+        );
+      },
+    },
+    {
+      header: "Existencias",
+      accessor: (row) => (
+        <span className="font-semibold text-green-600">
+          {row.calculado_stock?.toFixed(2)}
+        </span>
+      ),
+    },
+    { header: "Acciones", accessor: () => null },
   ];
-  // Campos del formulario para crear/editar kardex
+
   const kardexFields: FieldConfig[] = [
     {
       name: "shopping_order_id",
@@ -130,13 +154,28 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     Promise.all([GetKardexContext(), GetProductsContext()]).finally(() =>
       setLoading(false)
     );
-  }, [GetKardexContext, GetProductsContext]);
+  }, []);
 
+  // Procesar datos: filtrar, ordenar y calcular stock y total
   useEffect(() => {
-    handleTableContent(kardexDetail);
-  }, [kardexDetail, status]);
+    let data = [...kardexDetail];
+    if (status !== "Todo") data = data.filter(item => item.tipo === status);
+    data.sort((a, b) => new Date(a.fecha_movimiento).getTime() - new Date(b.fecha_movimiento).getTime());
 
-  // 5. HANDLERS (agrupados por función)
+    const runningStock: Record<string, number> = {};
+    const processed: KardexRow[] = data.map(row => {
+      const key = `${row.id_product}-${row.shopping_order_id}`;
+      if (runningStock[key] === undefined) runningStock[key] = 0;
+      const qty = Number(row.cantidad);
+      const delta = row.tipo_movimiento === 'Entrada' ? qty : -qty;
+      runningStock[key] += delta;
+      return { ...row, calculado_stock: runningStock[key] };
+    });
+
+    setDisplayData(processed);
+  }, [kardexDetail, status]); 
+
+  if (loading) return <div>Cargando kardex…</div>;
 
   // Handlers de UI
   const closeAll = () => {
@@ -157,15 +196,6 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     const item = kardexDetail.find((k) => k.id_kardex === id) || null;
     setItemToDelete(item);
     setDeleteOpen(true);
-  };
-
-  // Handlers de datos
-  const handleTableContent = (kd: KardexDetail[]) => {
-    if (status === "Todo") {
-      setFilteredData(kd);
-    } else {
-      setFilteredData(kd.filter((item) => item.tipo === status));
-    }
   };
 
   const handleConfirmDelete = async (id: string) => {
@@ -272,8 +302,8 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       <Button onClick={() => setCreateOpen(true)}>+ Nuevo movimiento</Button>
 
       <GenericTable
-        columns={kardexColumns}
-        data={filteredData}
+        columns={kardexColumns as Column<KardexDetail>[]}
+        data={displayData}
         rowKey={(row) => row.id_kardex}
         actions={getActionsForStatus(status)}
       />
@@ -327,7 +357,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             <p>¿Seguro que deseas borrar este registro?</p>
             <GenericTable
               columns={kardexColumns}
-              data={[itemToDelete]}
+              data={[itemToDelete as KardexDetail]}
               rowKey={(row) => row.id_kardex}
             />
             <div className="mt-4 text-right">

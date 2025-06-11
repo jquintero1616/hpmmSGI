@@ -20,6 +20,7 @@ export interface kardexInterface {
 
 export interface KardexDetail {
   id_kardex: string;
+  id_product: string;         // ID del producto
   shopping_order_id: string; // ID de la orden de compra
   name: string;               // nombre del empleado
   fecha_movimiento: Date;
