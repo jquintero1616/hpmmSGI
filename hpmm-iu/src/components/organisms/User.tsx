@@ -34,7 +34,7 @@ const User: React.FC<{ status?: string }> = ({ status ="Todo"}) => {
 // 1) Columnas de la tabla
 const userColumns: Column<userInterface>[] = [
   { header: "Usuario", accessor: "username" },
-  { header: "Correo", accessor: "email" },
+  { header: "Correo Electrónico", accessor: "email" },
   { header: "Rol", accessor: "role_name" },
   {
     header: "Estado",
@@ -55,7 +55,7 @@ const userColumns: Column<userInterface>[] = [
 // 2) Campos fijos para el formulario (usa solo userInterface)
 const userFields: FieldConfig[] = [
   { name: "username", label: "Nombre completo", type: "text" },
-  { name: "email", label: "Correo", type: "text" },
+  { name: "email", label: "Correo Electrónico", type: "text" },
   { name: "password", label: "Contraseña", type: "password" },
   // Si quieres id_rol con select, necesitas cargar roles; por ahora lo dejamos como text
   {

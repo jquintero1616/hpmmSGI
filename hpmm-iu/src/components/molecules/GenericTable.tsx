@@ -120,7 +120,7 @@ const GenericTable = <T extends Record<string, any>>({
                   colSpan={columns.length + actions.length}
                   className="text-center py-6"
                 >
-                  No data available.
+                  No hay datos disponibles.
                 </td>
               </tr>
             )}

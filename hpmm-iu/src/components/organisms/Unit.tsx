@@ -5,7 +5,7 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { UnitInterface } from "../../interfaces/Units.interface";
-
+import { useSubdireccion } from "../../hooks/use.subdireccion";
 
 const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
@@ -16,6 +16,7 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     DeleteUnitContext,
   } = useUnit();
 
+  const { subdireccion, GetSubdireccionesContext } = useSubdireccion();
   // Estados locales para manejar la UI
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<UnitInterface[]>([]);
@@ -27,9 +28,9 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   // 1) Columnas de la tabla
   const unitColumns: Column<UnitInterface>[] = [
-     { header: "Subdireccion", accessor: "id_subdireccion" },
+    { header: "Subdireccion", accessor: "id_subdireccion" },
     { header: "Nombre", accessor: "name" },
-    
+
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
@@ -46,11 +47,20 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-  // 2) Campos para el formulario - Memo para evitar recreaciones innecesarias
   const unitFields: FieldConfig[] = React.useMemo(
     () => [
       { name: "name", label: "Nombre", type: "text" },
-       { name: "id_subdireccion", label: "Subdirección", type: "text" },
+      
+     
+      {
+        name: "id_subdireccion",
+        label: "subdireccion",
+        type: "select",
+        options: subdireccion.map((c) => ({ label: c.nombre, value: c.id_subdireccion })),
+      },
+
+
+
       {
         name: "estado",
         label: "Estado",
@@ -61,7 +71,7 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         ],
       },
     ],
-    []
+    [subdireccion]
   );
 
   // Cargar datos iniciales
@@ -69,7 +79,7 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await GetUnitsContext();
+        await Promise.all([GetUnitsContext(), GetSubdireccionesContext()]);
       } catch (error) {
         console.error("Error cargando datos:", error);
       } finally {
@@ -78,7 +88,7 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     };
 
     loadData();
-  }, [GetUnitsContext]);
+  }, [GetUnitsContext, GetSubdireccionesContext]);
 
   // Filtrar datos cuando cambie el status o units
   useEffect(() => {
@@ -300,4 +310,3 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 };
 
 export default Unit;
-

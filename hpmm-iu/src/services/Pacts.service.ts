@@ -31,16 +31,16 @@ export const PostCreatePactService = async (
   axiosPrivate: AxiosInstance
 ): Promise<PactInterface> => {
   const response = await axiosPrivate.post(
-    `pact`,
+    `pacts`,
     {
       name: pact.name,
       tipo: pact.tipo,
-      estado: pact.estado,
+      estado: pact.estado
     },
     { headers: { "Content-Type": "application/json" } }
   );
 
-  return response.data.pacts;
+  return response.data.pact;
 };
 
 export const PutUpdatePactService = async (
@@ -58,6 +58,10 @@ export const PutUpdatePactService = async (
     { headers: { "Content-Type": "application/json" } }
   );
 };
-export const DeletePactService = async (id_pacts: string, axiosPrivate: AxiosInstance): Promise<void> => {
+
+export const DeletePactService = async (
+  id_pacts: string, 
+  axiosPrivate: AxiosInstance
+): Promise<void> => {
   await axiosPrivate.delete(`/pacts/${id_pacts}`);
 };

@@ -16,6 +16,7 @@ import { VendedorProvider } from "./contexts/Vendedor.context";
 import { DirectionProvider } from "./contexts/Direction.context";
 import { SubdireccionProvider } from "./contexts/Subdireccion.context";
 import { UnitProvider } from "./contexts/Unit.context";
+import { ShoppingProvider } from "./contexts/Shopping.context";
 
 function AppRoutes() {
   const location = useLocation();
@@ -65,9 +66,11 @@ export default function App() {
                         <DirectionProvider>
                         <SubdireccionProvider>  
                           <UnitProvider>
-                            <Router>
-                              <AppRoutes />
-                            </Router>
+                            <ShoppingProvider>
+                              <Router>
+                                <AppRoutes />
+                              </Router>
+                            </ShoppingProvider>
                           </UnitProvider>
                         </SubdireccionProvider>
                         </DirectionProvider>

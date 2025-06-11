@@ -17,6 +17,7 @@ import Vendedor from "../components/organisms/Vendedor";
 import Subdireccion from "../components/organisms/Subdireccion";
 import Unit from "../components/organisms/Unit";
 import Direction from "../components/organisms/Direction";
+import Shopping from "../components/organisms/Shopping";
 
 
 export const routes = [
@@ -198,6 +199,15 @@ export const routes = [
         element: (
           <GenericPage title="Gestión de Unidades">
             <Unit status={"Todo"} />
+          </GenericPage>
+        ),
+      },
+      // ----------------------------------------------------------------------------------
+      {
+        path: "shopping",
+        element: (
+          <GenericPage title="Gestión de Compras">
+            <Shopping status={"Todo"} />
           </GenericPage>
         ),
       },

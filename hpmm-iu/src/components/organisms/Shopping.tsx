@@ -1,41 +1,50 @@
 import React, { useEffect, useState } from "react";
-import { useCategory } from "../../hooks/use.Category";
+import { useVendedor } from "../../hooks/use.vendedor";
 import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 // 
-import { useSubcategory } from "../../hooks/use.Subcategory";
-import { SubcategoryInterface } from "../../interfaces/subcategory.interface";
+import { useShopping } from "../../hooks/use.Shopping";
+import { ShoppingInterface } from "../../interfaces/shopping.interface";
 
-const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
+
+const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
-    subcategory,
-    GetSubcategoriesContext,
-    PostCreateSubcategoryContext,
-    PutUpdateSubcategoryContext,
-    DeleteSubcategoryContext,
-  } = useSubcategory();
+    shopping,
+    GetShoppingContext,
+    PostShoppingContext,
+    PutShoppingContext,
+    DeleteShoppingContext,
+  } = useShopping();
 
-  const { category, GetCategoriesContext } = useCategory();
+  const { vendedor, GetVendedorContext } = useVendedor();
 
   // Estados locales para manejar la UI
   const [loading, setLoading] = useState(true);
-  const [filteredData, setFilteredData] = useState<SubcategoryInterface[]>([]);
+  const [filteredData, setFilteredData] = useState<ShoppingInterface[]>([]);
   const [isEditOpen, setEditOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-  const [itemToEdit, setItemToEdit] = useState<SubcategoryInterface | null>(
+  const [itemToEdit, setItemToEdit] = useState<ShoppingInterface | null>(
     null
   );
-  const [itemToDelete, setItemToDelete] = useState<SubcategoryInterface | null>(
+  const [itemToDelete, setItemToDelete] = useState<ShoppingInterface | null>(
     null
   );
 
   // 1) Columnas de la tabla
-  const subcategoryColumns: Column<SubcategoryInterface>[] = [
-    { header: "Nombre", accessor: "nombre" },
-    { header: "Categoria", accessor: "category_name" },
+  const shoppingColumns: Column<ShoppingInterface>[] = [
+    
+    { header: "ID Solicitud", accessor: "id_scompra" },
+    { header: "Vendedor", accessor: "vendedor_nombre" },
+    {
+      header: "Fecha Compra",
+      accessor: (row) =>
+        row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : ""
+    },
+    { header: "Numero Orden", accessor: "shopping_order_id" },
+    { header: "Total", accessor: "total" },
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
@@ -53,15 +62,18 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   ];
 
   // 2) Campos para el formulario - Memo para evitar recreaciones innecesarias
-  const subcategoryFields: FieldConfig[] = React.useMemo(
+  const shoppingFields: FieldConfig[] = React.useMemo(
     () => [
-      { name: "nombre", label: "Nombre", type: "text" },
+      { name: "id_scompra", label: "Solicitud de compra", type: "text" },
       {
-        name: "id_category",
-        label: "Categoria",
+        name: "id_vendedor",
+        label: "Vendedor",
         type: "select",
-        options: category.map((c) => ({ label: c.name, value: c.id_category })),
+        options: vendedor.map((v) => ({ label: v.nombre_contacto, value: v.id_vendedor })),
       },
+      { name: "fecha_compra", label: "Fecha Compra", type: "date" },
+      { name: "shopping_order_id", label: "Numero Orden", type: "text" },
+      { name: "total", label: "Total", type: "number" },
       {
         name: "estado",
         label: "Estado",
@@ -72,7 +84,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         ],
       },
     ],
-    [category]
+    [vendedor]
   );
 
   // Cargar datos iniciales
@@ -80,7 +92,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await Promise.all([GetSubcategoriesContext(), GetCategoriesContext()]);
+        await Promise.all([GetShoppingContext(), GetVendedorContext()]);
       } catch (error) {
         console.error("Error cargando datos:", error);
       } finally {
@@ -89,23 +101,24 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     };
 
     loadData();
-  }, [GetSubcategoriesContext, GetCategoriesContext]);
+  }, [GetShoppingContext, GetVendedorContext]);
 
-  // Filtrar datos cuando cambie el status o subcategory
+  // Filtrar datos cuando cambie el status o shopping
   useEffect(() => {
-    if (!subcategory || subcategory.length === 0) {
+    if (!shopping || shopping.length === 0) {
       setFilteredData([]);
       return;
     }
 
     // Filtrar elementos válidos antes de procesar
-    const validSubcategories = subcategory.filter(
+    const validShoppings = shopping.filter(
       (item) =>
-        item && item.id_subcategory && typeof item.id_subcategory === "string"
+        item && item.id_shopping && typeof item.id_shopping === "string"
     );
 
-    handleTableContent(validSubcategories);
-  }, [status, subcategory]);
+    handleTableContent(validShoppings);
+  }, [status, shopping]);
+
 // ------------------------------------------------------------------------------------
   const closeAll = () => {
     setEditOpen(false);
@@ -115,13 +128,13 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setItemToDelete(null);
   };
   // ------------------------------------------------------------------------------------
-  const openEdit = (id_subcategory: string) => {
-    if (!subcategory || subcategory.length === 0) {
+  const openEdit = (id_shopping: string) => {
+    if (!shopping || shopping.length === 0) {
       return;
     }
 
-    const item = subcategory.find(
-      (item) => item && item.id_subcategory === id_subcategory
+    const item = shopping.find(
+      (item) => item && item.id_shopping === id_shopping
     );
 
     if (item) {
@@ -129,42 +142,42 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       setItemToEdit(item);
       setEditOpen(true);
     } else {
-      console.error("No se encontró la subcategoría con ID:", id_subcategory);
+      console.error("No se encontró la compra con ID:", id_shopping);
     }
   };
 
-  const openDelete = (id_subcategory: string) => {
-    if (!subcategory || subcategory.length === 0) {
+  const openDelete = (id_shopping: string) => {
+    if (!shopping || shopping.length === 0) {
       return;
     }
 
-    const item = subcategory.find(
-      (item) => item && item.id_subcategory === id_subcategory
+    const item = shopping.find(
+      (item) => item && item.id_shopping === id_shopping
     );
 
     if (item) {
       setItemToDelete(item);
       setDeleteOpen(true);
     } else {
-      console.error("No se encontró la subcategoría con ID:", id_subcategory);
+      console.error("No se encontró la compra con ID:", id_shopping);
     }
   };
   //-----------------------------------------------------------------------------------------
-  const handleConfirmDelete = async (id_subcategory: string) => {
+  const handleConfirmDelete = async (id_shopping: string) => {
     try {
-      await DeleteSubcategoryContext(id_subcategory);
-      await GetSubcategoriesContext();
+      await DeleteShoppingContext(id_shopping);
+      await GetShoppingContext();
       closeAll();
     } catch (error) {
-      console.error("Error eliminando subcategoría:", error);
+      console.error("Error eliminando compra:", error);
     }
   };
 
-  const handleTableContent = (list: SubcategoryInterface[]) => {
+  const handleTableContent = (list: ShoppingInterface[]) => {
     // Asegurar que todos los elementos sean válidos
     const validList = list.filter(
       (item) =>
-        item && item.id_subcategory && typeof item.id_subcategory === "string"
+        item && item.id_shopping && typeof item.id_shopping === "string"
     );
 
     if (status === "Todo") {
@@ -188,22 +201,24 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
     try {
       // Arma el objeto de actualización
-      const payload: Partial<SubcategoryInterface> = {
+      const payload: Partial<ShoppingInterface> = {
         ...itemToEdit,
         ...values,
         estado: values.estado === "true" || values.estado === true,
+        total: parseFloat(values.total) || 0,
+        fecha_compra: new Date(values.fecha_compra),
       };
 
       console.log("Payload para actualizar:", payload);
 
-      await PutUpdateSubcategoryContext(
-        itemToEdit.id_subcategory,
-        payload as SubcategoryInterface
+      await PutShoppingContext(
+        itemToEdit.id_shopping,
+        payload as ShoppingInterface
       );
-      await GetSubcategoriesContext();
+      await GetShoppingContext();
       closeAll();
     } catch (error) {
-      console.error("Error actualizando subcategoría:", error);
+      console.error("Error actualizando compra:", error);
     }
   };
 
@@ -212,43 +227,45 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       const payload = {
         ...values,
         estado: values.estado === "true" || values.estado === true,
+        total: parseFloat(values.total) || 0,
+        fecha_compra: new Date(values.fecha_compra),
       };
 
       console.log("Payload para crear:", payload);
 
-      await PostCreateSubcategoryContext(payload as SubcategoryInterface);
-      await GetSubcategoriesContext();
+      await PostShoppingContext(payload as ShoppingInterface);
+      await GetShoppingContext();
       closeAll();
     } catch (error) {
-      console.error("Error creando subcategoría:", error);
+      console.error("Error creando compra:", error);
     }
   };
 
   if (loading) {
-    return <div>Cargando Subcategorías...</div>;
+    return <div>Cargando Compras...</div>;
   }
 
   return (
     <div>
-      <h1>Lista de Subcategorías</h1>
-      <Button onClick={() => setCreateOpen(true)}>+ Nueva Subcategoría</Button>
+      <h1>Lista de Compras</h1>
+      <Button onClick={() => setCreateOpen(true)}>+ Nueva Compra</Button>
 
       <GenericTable
-        columns={subcategoryColumns}
-        data={filteredData.filter((item) => item && item.id_subcategory)} // Filtro adicional de seguridad
-        rowKey={(row) => row?.id_subcategory || ""}
+        columns={shoppingColumns}
+        data={filteredData.filter((item) => item && item.id_shopping)} // Filtro adicional de seguridad
+        rowKey={(row) => row?.id_shopping || ""}
         actions={[
           {
             header: "Editar",
             label: "Editar",
             onClick: (row) =>
-              row?.id_subcategory && openEdit(row.id_subcategory),
+              row?.id_shopping && openEdit(row.id_shopping),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
             onClick: (row) =>
-              row?.id_subcategory && openDelete(row.id_subcategory),
+              row?.id_shopping && openDelete(row.id_shopping),
           },
         ]}
       />
@@ -256,13 +273,16 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modal Editar */}
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
-          <GenericForm<Partial<SubcategoryInterface>>
+          <GenericForm<Partial<ShoppingInterface>>
             initialValues={{
-              nombre: itemToEdit.nombre || "",
-              id_category: itemToEdit.id_category || "",
+              id_scompra: itemToEdit.id_scompra || "",
+              id_vendedor: itemToEdit.id_vendedor || "",
+              fecha_compra: itemToEdit.fecha_compra || new Date(),
+              shopping_order_id: itemToEdit.shopping_order_id || "",
+              total: itemToEdit.total || 0,
               estado: itemToEdit.estado,
             }}
-            fields={subcategoryFields}
+            fields={shoppingFields}
             onSubmit={handleSave}
             onCancel={closeAll}
             submitLabel="Guardar"
@@ -273,13 +293,16 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
-        <GenericForm<Partial<SubcategoryInterface>>
+        <GenericForm<Partial<ShoppingInterface>>
           initialValues={{
-            id_category: "",
-            nombre: "",
-            estado: true, // Cambié de true a "true" para consistencia
+            id_scompra: "",
+            id_vendedor: "",
+            fecha_compra: new Date(),
+            shopping_order_id: "",
+            total: 0,
+            estado: true,
           }}
-          fields={subcategoryFields}
+          fields={shoppingFields}
           onSubmit={handleCreate}
           onCancel={closeAll}
           submitLabel="Crear"
@@ -294,11 +317,11 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             <h3 className="text-xl font-semibold mb-4">
               Confirmar Eliminación
             </h3>
-            <p>¿Seguro que deseas borrar esta subcategoría?</p>
+            <p>¿Seguro que deseas borrar esta compra?</p>
             <GenericTable
-              columns={subcategoryColumns}
+              columns={shoppingColumns}
               data={[itemToDelete]}
-              rowKey={(row) => row.id_subcategory}
+              rowKey={(row) => row.id_shopping}
             />
             <div className="mt-4 text-right">
               <Button onClick={closeAll} className="mr-2">
@@ -306,7 +329,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               </Button>
               <Button
                 isPrimary
-                onClick={() => handleConfirmDelete(itemToDelete.id_subcategory)}
+                onClick={() => handleConfirmDelete(itemToDelete.id_shopping)}
               >
                 Eliminar
               </Button>
@@ -318,4 +341,4 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   );
 };
 
-export default Subcategory;
+export default Shopping;

@@ -1,12 +1,25 @@
-import knex from "knex";
 import db from "../db";
 import { NewShopping } from "../types/shopping";
 import { randomUUID } from "crypto";
 
 
 export const getAllshoppingModel = async (): Promise<NewShopping[]> => {
-    return await knexTableName().select("*");
-} 
+       return db("shopping as s")
+        .join("vendedor as v", "s.id_vendedor", "v.id_vendedor")
+        .select(
+            "s.id_shopping",
+            "s.id_scompra",
+            "s.id_vendedor",
+            "v.nombre_contacto as vendedor_nombre",
+            "s.fecha_compra",
+            "s.shopping_order_id",
+            "s.total",
+            "s.estado",
+            "s.created_at",
+            "s.updated_at"
+        );
+};
+
 
 
 export async function getShoppingByIdModel(

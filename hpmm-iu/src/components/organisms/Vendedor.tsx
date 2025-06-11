@@ -30,7 +30,7 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const vendedorColumns: Column<vendedorInterface>[] = [
     { header: "Proveedor", accessor: "supplier_name" },
     { header: "Nombre Contacto", accessor: "nombre_contacto" },
-    { header: "Correo", accessor: "correo" },
+    { header: "Correo Electrónico", accessor: "correo" },
     {
       header: "Fecha Creación",
       accessor: (row) =>
@@ -51,7 +51,7 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         })),
       },
       { name: "nombre_contacto", label: "Nombre Contacto", type: "text" },
-      { name: "correo", label: "Correo", type: "email" },
+      { name: "correo", label: "Correo Electrónico", type: "email" },
       {
         name: "estado",
         label: "Estado",

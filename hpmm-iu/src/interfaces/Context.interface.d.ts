@@ -11,6 +11,7 @@ import { Subcategory } from "./subcategory.interface";
 import { Subdireccion } from "./subdireccion.interface";
 import { Unit } from "./unit.interface";
 import { Direction} from "./direction.interface";
+import { Shopping } from "./shopping.interface";
 
 export interface AuthContextType {
   username?: string;
@@ -146,6 +147,24 @@ export interface DirectionContextType {
   PostCreateDirectionContext: (direction: Direction) => Promise<Direction>;
   PutUpdateDirectionContext: (id_direction: string, direction: Direction) => Promise<void>;
   DeleteDirectionContext: (id_direction: string) => Promise<void>;
+}
+
+export interface ShoppingContextType {
+  shopping: Shopping[];
+  GetShoppingContext: () => Promise<Shopping[] | null>;
+  GetShoppingByIdContext: (id_shopping: string) => Promise<Shopping | undefined>;
+  PostShoppingContext: (shopping: Shopping) => Promise<Shopping>;
+  PutShoppingContext: (id_shopping: string, shopping: Shopping) => Promise<void>;
+  DeleteShoppingContext: (id_shopping: string) => Promise<void>;
+}
+
+export interface ProductRequisiContextType {
+  productRequisition: Requi_x_ProductInterface[];
+  GetRequiProductContext: () => Promise<Requi_x_ProductInterface[] | null>;
+  GetRequiProductByIdContext: (id_requisi_x_product: string) => Promise<Requi_x_ProductInterface | undefined>;
+  PostCreateProductRequisitionContext: (requiProduct: Requi_x_ProductInterface) => Promise<Requi_x_ProductInterface>;
+  PutUpdateProductRequisitionContext: (id_requisi_x_product: string, requiProduct: Requi_x_ProductInterface) => Promise<void>;
+  DeleteProductRequisitionContext: (id_requisi_x_product: string) => Promise<void>;
 }
 
 export interface ProviderProps {

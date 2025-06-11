@@ -158,7 +158,7 @@ const Roles: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
       {/* Modal Crear */}
       <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
-        <h3 className="text-xl font-semibold mb-4">Crear Rol</h3>
+        
         <GenericForm
           initialValues={{ 
             name: "", 

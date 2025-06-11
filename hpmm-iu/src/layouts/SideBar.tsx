@@ -23,30 +23,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/solid";
-import {
-  ChevronDownIcon,
-
-} from "@heroicons/react/24/outline";
-// import { useAuth } from "../hooks/use.Auth";
-
-
-
-// function getRoleAbbrev(role: string) {
-//   switch (role) {
-//     case "Super Admin":
-//       return "Super Admin";
-//     case "Jefe Almacén":
-//       return "Jefe Alm.";
-//     case "Técnico Almacén":
-//       return "Técnico .Alm.";
-//     case "Administrador":
-//       return "Administrador.";
-//     case "Jefe Logística":
-//       return "Jefe Log.";
-//     default:
-//       return role;
-//   }
-
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 interface MenuItemProps {
   icon: React.ComponentType<any>;
@@ -116,7 +93,6 @@ interface SidebarState {
   collapsed: boolean;
 }
 
-// Reducer para manejar el estado del sidebar
 const sidebarReducer = (
   state: SidebarState,
   action: { type: string; payload?: any }
@@ -139,10 +115,9 @@ export function Sidebar() {
     open: 0,
     collapsed: false,
   });
- 
+
   const navigate = useNavigate();
 
-  // Memoizar los arrays de elementos para evitar re-renders innecesarios
   const menuItems = useMemo(
     () => ({
       inventario: [
@@ -203,7 +178,7 @@ export function Sidebar() {
           path: "/solicitudes-compra",
           icon: ShoppingCartIcon,
         },
-        { label: "Compras", path: "/compras", icon: CreditCardIcon },
+        { label: "Compras", path: "/shopping", icon: CreditCardIcon },
       ],
       providers: [
         {
@@ -238,25 +213,28 @@ export function Sidebar() {
         { label: "Unidades", path: "/unit", icon: IdentificationIcon },
       ],
       finance: [
-        { label: "Caja General", path: "/caja", icon: BanknotesIcon },
+        { label: "Caja & Finanzas", path: "/caja", icon: BanknotesIcon },
         {
           label: "Transacciones",
           path: "/transacciones",
           icon: ArrowsUpDownIcon,
         },
-        { label: "Histórico", path: "/historial-caja", icon: ClockIcon },
+        {
+          label: "Histórico de Caja",
+          path: "/historial-caja",
+          icon: ClockIcon,
+        },
       ],
+      audit: [{ label: "Bitácora", path: "/bitacora", icon: ArchiveBoxIcon }],
     }),
     []
   );
 
-  // Actualizar CSS variable cuando cambie el estado collapsed
   useEffect(() => {
     const sidebarWidth = collapsed ? "64px" : "256px";
     document.documentElement.style.setProperty("--sidebar-width", sidebarWidth);
   }, [collapsed]);
 
-  // Usar useCallback para las funciones que se pasan como props
   const handleOpen = useCallback(
     (value: number) => {
       if (collapsed) {
@@ -268,60 +246,32 @@ export function Sidebar() {
     [collapsed, open]
   );
 
-  // const handleLogout = useCallback(() => {
-  //   logout();
-  //   navigate("/");
-  // }, [logout, navigate]);
-
   const toggleCollapsed = useCallback(
     () => dispatch({ type: "TOGGLE_COLLAPSED" }),
     []
   );
 
-  // Ajustamos ancho según collapsed
   const containerWidth = collapsed ? "w-16" : "w-64";
-  const textHidden = collapsed ? "hidden" : "block";
-
-  // Cambiamos los estilos del contenedor para que ocupe toda la altura
   const CONTAINER_STYLES = `h-full ${containerWidth} flex-shrink-0 p-2 shadow-lg bg-white flex flex-col overflow-y-auto transition-all duration-300 border-r border-gray-200 min-h-screen`;
-
   const isActiveRoute = useCallback(
-    (path: string) => {
-      return location.pathname === path;
-    },
+    (path: string) => location.pathname === path,
     [location.pathname]
-  );
-
-  // Actualizar ITEM_STYLES para incluir estado activo
-  const getItemStyles = useCallback(
-    (path?: string) => {
-      const isActive = path && isActiveRoute(path);
-      const baseStyles = `flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer transition text-sm ${
-        collapsed ? "justify-center" : ""
-      }`;
-
-      return isActive
-        ? `${baseStyles} bg-purple-100 text-purple-700 border-r-2 border-purple-700`
-        : `${baseStyles} hover:bg-gray-100 text-gray-700`;
-    },
-    [collapsed, isActiveRoute]
   );
 
   return (
     <div className={CONTAINER_STYLES}>
-      {/* Botón para colapsar/expandir */}
       <div
         className={`flex ${collapsed ? "justify-center" : "justify-end"} mb-2`}
       >
         <button
           onClick={toggleCollapsed}
-          className="p-1 hover:bg-gray-200 rounded transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 border border-gray-200 hover:border-gray-300"
           title={collapsed ? "Expandir sidebar" : "Contraer sidebar"}
         >
           {collapsed ? (
-            <ChevronRightIcon className="h-5 w-5 text-gray-600" />
+            <ChevronRightIcon className="h-4 w-4 text-gray-600 hover:text-gray-800 transition-colors duration-150" />
           ) : (
-            <ChevronLeftIcon className="h-5 w-5 text-gray-600" />
+            <ChevronLeftIcon className="h-4 w-4 text-gray-600 hover:text-gray-800 transition-colors duration-150" />
           )}
         </button>
       </div>
@@ -329,7 +279,6 @@ export function Sidebar() {
       <hr className="my-1 border-gray-300" />
 
       <ul className="flex-1 space-y-1">
-        {/* Inicio */}
         <MenuItem
           icon={HomeIcon}
           label="Inicio"
@@ -337,12 +286,11 @@ export function Sidebar() {
           onClick={() => navigate("/home")}
         />
 
-        {/* Inventario */}
         <MenuItem
           icon={ArchiveBoxIcon}
           label="Inventario"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 2}
           onClick={() => handleOpen(2)}
         />
@@ -350,12 +298,11 @@ export function Sidebar() {
           <SubMenu items={menuItems.inventario} onNavigate={navigate} />
         )}
 
-        {/* Kardex */}
         <MenuItem
           icon={ArrowsRightLeftIcon}
           label="Kardex"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 3}
           onClick={() => handleOpen(3)}
         />
@@ -363,12 +310,11 @@ export function Sidebar() {
           <SubMenu items={menuItems.kardex} onNavigate={navigate} />
         )}
 
-        {/* Requisiciones & Compras */}
         <MenuItem
           icon={ClipboardDocumentListIcon}
           label="Requisiciones & Compras"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 4}
           onClick={() => handleOpen(4)}
         />
@@ -376,12 +322,11 @@ export function Sidebar() {
           <SubMenu items={menuItems.requisitions} onNavigate={navigate} />
         )}
 
-        {/* Proveedores */}
         <MenuItem
           icon={BuildingStorefrontIcon}
           label="Proveedores"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 5}
           onClick={() => handleOpen(5)}
         />
@@ -389,12 +334,11 @@ export function Sidebar() {
           <SubMenu items={menuItems.providers} onNavigate={navigate} />
         )}
 
-        {/* Pactos */}
         <MenuItem
           icon={DocumentDuplicateIcon}
           label="Pactos"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 6}
           onClick={() => handleOpen(6)}
         />
@@ -402,12 +346,11 @@ export function Sidebar() {
           <SubMenu items={menuItems.pacts} onNavigate={navigate} />
         )}
 
-        {/* Usuarios & Roles */}
         <MenuItem
           icon={UserGroupIcon}
           label="Usuarios & Roles"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 7}
           onClick={() => handleOpen(7)}
         />
@@ -415,12 +358,11 @@ export function Sidebar() {
           <SubMenu items={menuItems.usersRoles} onNavigate={navigate} />
         )}
 
-        {/* Caja & Finanzas */}
         <MenuItem
           icon={BanknotesIcon}
           label="Caja & Finanzas"
           isCollapsed={collapsed}
-          hasSubmenu={true}
+          hasSubmenu
           isOpen={open === 8}
           onClick={() => handleOpen(8)}
         />
@@ -428,13 +370,24 @@ export function Sidebar() {
           <SubMenu items={menuItems.finance} onNavigate={navigate} />
         )}
 
-        {/* Reportes */}
         <MenuItem
           icon={ChartPieIcon}
           label="Reportes"
           isCollapsed={collapsed}
           onClick={() => navigate("/reportes")}
         />
+
+        <MenuItem
+          icon={ArchiveBoxIcon}
+          label="Auditoría"
+          isCollapsed={collapsed}
+          hasSubmenu
+          isOpen={open === 9}
+          onClick={() => handleOpen(9)}
+        />
+        {open === 9 && !collapsed && (
+          <SubMenu items={menuItems.audit} onNavigate={navigate} />
+        )}
       </ul>
     </div>
   );

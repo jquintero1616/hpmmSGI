@@ -11,7 +11,7 @@ import { suppliersInterface } from "../../interfaces/supplier.interface";
 const supplierColumns: Column<suppliersInterface>[] = [
   { header: "Nombre", accessor: "nombre" },
   { header: "Teléfono", accessor: "numero_contacto" },
-  { header: "Correo", accessor: "correo" },
+  { header: "Correo Electrónico", accessor: "correo" },
   { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
   {
     header: "Fecha Creación",
@@ -29,7 +29,7 @@ const supplierColumns: Column<suppliersInterface>[] = [
 const supplierFields: FieldConfig[] = [
   { name: "nombre", label: "Nombre", type: "text" },
   { name: "numero_contacto", label: "Teléfono", type: "text" },
-  { name: "correo", label: "Correo", type: "text" },
+  { name: "correo", label: "Correo Electrónico", type: "text" },
 ];
 
 const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {

@@ -9,24 +9,36 @@ import GenericTable, { Column } from "../molecules/GenericTable";
 
 const pactColumns: Column<PactInterface>[] = [
   { header: "Nombre", accessor: "name" },
-  { header: "Tipo", accessor: (row) => row.tipo, },
-  { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo"),},
+  { header: "Tipo", accessor: (row) => row.tipo },
+  { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
   {
-      header: "Fecha Creación",
-      accessor: (row) =>
-        row.created_at ? new Date(row.created_at).toLocaleString() : "",
-    },
-    {
-      header: "Fecha Actualización",
-      accessor: (row) =>
-        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
-    },
+    header: "Fecha Creación",
+    accessor: (row) =>
+      row.created_at ? new Date(row.created_at).toLocaleString() : "",
+  },
+  {
+    header: "Fecha Actualización",
+    accessor: (row) =>
+      row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
+  },
 ];
 
 const pactFields: FieldConfig[] = [
   { name: "name", label: "Nombre", type: "text" },
-  { name: "tipo", label: "Tipo", type: "select", options: ["Diario", "Quincenal", "Mensual", "Trimestral"],},
-  { name: "estado", label: "Estado", type: "select", options: ["true", "false"],
+  {
+    name: "tipo",
+    label: "Tipo",
+    type: "select",
+    options: ["Diario", "Quincenal", "Mensual", "Trimestral"],
+  },
+  {
+    name: "estado",
+    label: "Estado",
+    type: "select",
+    options: [
+      { label: "Activo", value: "true" },
+      { label: "Inactivo", value: "false" },
+    ],
   },
 ];
 
@@ -49,8 +61,7 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   useEffect(() => {
     setLoading(true);
-    GetPactsContext()
-    .finally(() => setLoading(false));
+    GetPactsContext().finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -66,13 +77,13 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const openEdit = (id: string) => {
-    const pact = pacts.find(p => p.id_pacts === id) || null;
+    const pact = pacts.find((p) => p.id_pacts === id) || null;
     setItemToEdit(pact);
     setEditOpen(true);
   };
 
   const openDelete = (id: string) => {
-    const pact = pacts.find(p => p.id_pacts === id) || null;
+    const pact = pacts.find((p) => p.id_pacts === id) || null;
     setItemToDelete(pact);
     setDeleteOpen(true);
   };
@@ -101,14 +112,13 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     await GetPactsContext();
     closeAll();
   };
-   const handleTableContent = (pacts: PactInterface[]) => {
+  const handleTableContent = (pacts: PactInterface[]) => {
     if (status === "Todo") {
       setFilteredData(pacts);
     } else {
-      setFilteredData(pacts.filter(pact => String(pact.estado) === status));
+      setFilteredData(pacts.filter((pact) => String(pact.estado) === status));
     }
-  }
-    
+  };
 
   if (loading) return <div>Cargando pactos…</div>;
 
@@ -120,10 +130,18 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <GenericTable
         columns={pactColumns}
         data={filteredData}
-        rowKey={row => row.id_pacts}
+        rowKey={(row) => row.id_pacts}
         actions={[
-          { header: "Acciones", label: "Editar", onClick: row => openEdit(row.id_pacts) },
-          { header: "", label: "Eliminar", onClick: row => openDelete(row.id_pacts) },
+          {
+            header: "Acciones",
+            label: "Editar",
+            onClick: (row) => openEdit(row.id_pacts),
+          },
+          {
+            header: "",
+            label: "Eliminar",
+            onClick: (row) => openDelete(row.id_pacts),
+          },
         ]}
       />
 
@@ -165,16 +183,23 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete && (
           <>
-            <h3 className="text-xl font-semibold mb-4">Confirmar Eliminación</h3>
+            <h3 className="text-xl font-semibold mb-4">
+              Confirmar Eliminación
+            </h3>
             <p>¿Seguro que deseas borrar este pacto?</p>
             <GenericTable
               columns={pactColumns}
               data={[itemToDelete]}
-              rowKey={row => row.id_pacts}
+              rowKey={(row) => row.id_pacts}
             />
             <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">Cancelar</Button>
-              <Button isPrimary onClick={() => handleConfirmDelete(itemToDelete.id_pacts)}>
+              <Button onClick={closeAll} className="mr-2">
+                Cancelar
+              </Button>
+              <Button
+                isPrimary
+                onClick={() => handleConfirmDelete(itemToDelete.id_pacts)}
+              >
                 Eliminar
               </Button>
             </div>

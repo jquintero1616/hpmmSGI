@@ -134,6 +134,16 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
     },
+    {
+      header: "Fecha Creación",
+      accessor: (row) =>
+        row.created_at ? new Date(row.created_at).toLocaleString() : "",
+    },
+    {
+      header: "Fecha Actualización",
+      accessor: (row) =>
+        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
+    },
   ];
 
   // Campos del formulario

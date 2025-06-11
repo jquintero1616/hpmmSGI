@@ -127,9 +127,6 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         await Promise.all([
           GetEmployeContext(),
           GetUsersContext(),
-        //   GetUnitsContext(),
-        //   GetSubdireccionesContext(), 
-        //   GetDirectionsContext()
         ]);
       } catch (error) {
         console.error("Error cargando datos:", error);
@@ -139,13 +136,22 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     };
 
     loadData();
-  }, [GetEmployeContext, GetUsersContext]);
+  }, []); // <- Quita las dependencias GetEmployeContext, GetUsersContext
 
   useEffect(() => {
-    if (employes && employes.length > 0) {
-      handleTableContent(employes);
+    if (!employes || employes.length === 0) {
+      setFilteredData([]);
+      return;
     }
-  }, [employes, status]);
+
+    // Filtrar elementos válidos antes de procesar
+    const validEmployees = employes.filter(
+      (item) =>
+        item && item.id_employes && typeof item.id_employes === "string"
+    );
+
+    handleTableContent(validEmployees);
+  }, [status, employes]); // <- Mantén solo estas dependencias
 
   const closeAll = () => {
     setEditOpen(false);

@@ -11,6 +11,7 @@ export const baseProductQuery = () => {
       "s.id_category       as id_category",
       "p.nombre            as nombre",
       "p.created_at        as created_at",
+      "p.updated_at        as updated_at", 
       "p.descripcion       as descripcion",
       "p.stock_actual      as stock_actual",
       "p.stock_maximo      as stock_maximo",
@@ -22,9 +23,10 @@ export const baseProductQuery = () => {
     )
     .join("subcategory as s", "p.id_subcategory", "s.id_subcategory")
     .join("category    as c", "s.id_category",    "c.id_category")
-    // Ordena por fecha de creación, de más nuevo a más antiguo
     .orderBy("p.created_at", "desc");
 };
+
+
 
 
 export const getProductDetailModel = async (

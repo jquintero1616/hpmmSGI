@@ -15,7 +15,7 @@ const GenericTitle: React.FC<GenericTitleProps> = ({
         form: 'text-lg font-medium text-gray-800',     // Para formularios
         section: 'text-base font-semibold text-gray-700', // Para secciones
         card: 'text-sm font-medium text-gray-600',     // Para tarjetas
-        modal: 'text-xl font-semibold text-gray-800 text-center',  // Para modales - centrado
+        modal: 'text-xl font-semibold text-gray-800',  // Para modales
     };
 
     return (
