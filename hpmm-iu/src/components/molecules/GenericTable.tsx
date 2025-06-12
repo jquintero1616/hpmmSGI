@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import Button from "../atoms/Buttons/Button";
 import Pagination from "../molecules/Pagination";
 import { FaSort, FaSortUp, FaSortDown, FaSearch } from "react-icons/fa"; // Instala react-icons si no lo tienes
+import { useAuth } from "../../hooks/use.Auth";
 
 type SortDirection = "asc" | "desc" | null;
 
@@ -42,6 +43,8 @@ const GenericTable = <T extends Record<string, any>>({
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const filterRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+  const { roleName } = useAuth();
+
   // ───> Aquí: cada vez que cambie `data`, vuelvo a página 1:
   useEffect(() => {
     setCurrentPage(1);
@@ -59,11 +62,7 @@ const GenericTable = <T extends Record<string, any>>({
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       Object.entries(filterRefs.current).forEach(([key, ref]) => {
-        if (
-          ref &&
-          showFilter[key] &&
-          !ref.contains(event.target as Node)
-        ) {
+        if (ref && showFilter[key] && !ref.contains(event.target as Node)) {
           setShowFilter((prev) => ({ ...prev, [key]: false }));
         }
       });
@@ -178,25 +177,50 @@ const GenericTable = <T extends Record<string, any>>({
                 return (
                   <th
                     key={`column-${idx}`}
-                    className="border border-gray-300 px-4 py-2 text-left bg-gray-50 whitespace-nowrap relative cursor-pointer"
-                    onClick={() => handleHeaderClick(col)}
+                    className="border border-gray-300 px-4 py-2 text-left bg-gray-50 whitespace-nowrap relative"
                   >
                     <div className="flex items-center gap-1">
-                      {isSorted ? (
-                        sortDirection === "asc" ? (
-                          <FaSortUp className="inline" />
-                        ) : sortDirection === "desc" ? (
-                          <FaSortDown className="inline" />
+                      <span
+                        className="flex items-center cursor-pointer select-none"
+                        onClick={() => {
+                          // Solo ordenar aquí
+                          const key =
+                            typeof col.accessor === "string"
+                              ? col.accessor
+                              : col.header;
+                          if (sortBy === key) {
+                            setSortDirection((prev) =>
+                              prev === "asc"
+                                ? "desc"
+                                : prev === "desc"
+                                ? null
+                                : "asc"
+                            );
+                            if (sortDirection === "desc") setSortBy(null);
+                          } else {
+                            setSortBy(key as string);
+                            setSortDirection("asc");
+                          }
+                        }}
+                      >
+                        {isSorted ? (
+                          sortDirection === "asc" ? (
+                            <FaSortUp className="inline" />
+                          ) : sortDirection === "desc" ? (
+                            <FaSortDown className="inline" />
+                          ) : (
+                            <FaSort className="inline" />
+                          )
                         ) : (
                           <FaSort className="inline" />
-                        )
-                      ) : (
-                        <FaSort className="inline" />
-                      )}
-                      {col.header}
+                        )}
+                        {col.header}
+                      </span>
                       <span className="relative">
                         <FaSearch
-                          className={`inline ml-1 ${isFiltered ? "text-blue-600" : "text-gray-400"}`}
+                          className={`inline ml-1 cursor-pointer ${
+                            isFiltered ? "text-blue-600" : "text-gray-400"
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowFilter((prev) => ({
@@ -214,26 +238,47 @@ const GenericTable = <T extends Record<string, any>>({
                       </span>
                     </div>
                     {showFilter[key as string] && (
-                      <input
-                        ref={el => (filterRefs.current[key as string] = el)}
-                        type="text"
-                        className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-xs absolute left-0 z-10 bg-white"
+                      <div
+                        className="flex items-center mt-1 w-full absolute left-0 z-10 bg-white"
                         style={{ minWidth: "120px" }}
-                        placeholder={`Filtrar...`}
-                        value={filters[key as string] || ""}
-                        onChange={(e) =>
-                          handleFilterChange(key as string, e.target.value)
-                        }
-                        onClick={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
+                      >
+                        <input
+                          ref={(el) => (filterRefs.current[key as string] = el)}
+                          type="text"
+                          className="border border-gray-300 rounded-l px-2 py-1 text-xs w-full"
+                          placeholder={`Filtrar...`}
+                          value={filters[key as string] || ""}
+                          onChange={(e) =>
+                            handleFilterChange(key as string, e.target.value)
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                          style={{ borderRight: "none" }}
+                        />
+                        <button
+                          type="button"
+                          className="h-full px-3 border border-gray-300 border-l-0 rounded-r text-gray-400 hover:text-gray-700 text-lg flex items-center justify-center"
+                          onClick={() => {
+                            handleFilterChange(key as string, "");
+                            // Si quieres cerrar el input al limpiar, descomenta la siguiente línea:
+                            // setShowFilter((prev) => ({ ...prev, [key as string]: false }));
+                          }}
+                          tabIndex={-1}
+                          aria-label="Limpiar filtro"
+                          style={{ minHeight: "32px" }}
+                        >
+                          ×
+                        </button>
+                      </div>
                     )}
                   </th>
                 );
               })}
-              <th className="border border-gray-300 px-4 py-2 text-left bg-gray-50 whitespace-nowrap">
-                Acciones
-              </th>
+              {(roleName === "Jefe Almacen" || roleName === "Super Admin") && (
+                <th className="border border-gray-300 px-4 py-2 text-left bg-gray-50 whitespace-nowrap">
+                  Acciones
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="text-sm">
@@ -259,21 +304,24 @@ const GenericTable = <T extends Record<string, any>>({
                       </td>
                     );
                   })}
-                  <td className="border border-gray-200 px-4 py-2 whitespace-nowrap gap-2 flex">
-                    {actions.map((act, idx) => (
-                      <Button
-                        key={`${uniqueRowKey}-action-${idx}`}
-                        className={`size-small ${
-                          act.label === "Eliminar"
-                            ? "bg-hpmm-rojo-claro text-white hover:bg-hpmm-rojo-oscuro"
-                            : "bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro"
-                        }`}
-                        onClick={() => act.onClick(row)}
-                      >
-                        {act.label}
-                      </Button>
-                    ))}
-                  </td>
+                  {(roleName === "Jefe Almacen" ||
+                    roleName === "Super Admin") && (
+                    <td className="border border-gray-200 px-4 py-2 whitespace-nowrap gap-2 flex">
+                      {actions.map((act, idx) => (
+                        <Button
+                          key={`${uniqueRowKey}-action-${idx}`}
+                          className={`size-small ${
+                            act.label === "Eliminar"
+                              ? "bg-hpmm-rojo-claro text-white hover:bg-hpmm-rojo-oscuro"
+                              : "bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro"
+                          }`}
+                          onClick={() => act.onClick(row)}
+                        >
+                          {act.label}
+                        </Button>
+                      ))}
+                    </td>
+                  )}
                 </tr>
               );
             })}

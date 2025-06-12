@@ -6,6 +6,7 @@ import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
+import { useAuth } from "../../hooks/use.Auth"; // <-- Agrega este import
 
 const pactColumns: Column<PactInterface>[] = [
   { header: "Nombre", accessor: "name" },
@@ -50,6 +51,8 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     PutUpdatePactContext,
     DeletePactContext,
   } = usePacts();
+
+  const { roleName } = useAuth(); // <-- Obtén el rol
 
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<PactInterface[]>([]);
@@ -125,7 +128,10 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <h2>Gestión de Pactos</h2>
-      <Button onClick={() => setCreateOpen(true)}>+ Nuevo pacto</Button>
+      {/* Solo mostrar el botón si es Jefe Almacén */}
+      {(roleName === "Jefe Almacén" || roleName === "Super Admin") && (
+        <Button onClick={() => setCreateOpen(true)}>+ Nuevo pacto</Button>
+      )}
 
       <GenericTable
         columns={pactColumns}

@@ -11,7 +11,8 @@ export const getAllSubcategoryModel = async (): Promise<NewSubcategory[]> => {
       "sb.estado",
       "sb.created_at",
       "sb.updated_at",
-      "c.name as category_name"
+      "c.name as category_name",
+      "c.id_category as id_category"
     );
 };
 

@@ -59,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // El servidor confirma que la sesión existe y devuelve datos del usuario
       const { username, id_rol, id_user, role_name, employe_name } =
         response.data;
+        
       setIsAuthenticated(true);
       setUsername(username);
       setIdRol(id_rol);

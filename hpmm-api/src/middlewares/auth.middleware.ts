@@ -13,8 +13,8 @@ export const authenticateSession = (
   }
 
   // Extrae los datos del usuario de la sesión
-  const { id_user, id_role, id_employes, employe_name, role_name, username } = (req.session as any).user;
-  (req as any).user = { id_user, id_role, id_employes, employe_name, role_name, username };
+  const { id_user, id_rol, id_employes, employe_name, role_name, username } = (req.session as any).user;
+  (req as any).user = { id_user, id_rol, id_employes, employe_name, role_name, username };
 
   next();
 };

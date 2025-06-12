@@ -10,6 +10,7 @@ interface PrivateRouteProps {
 
 const PrivateRouteValidation: React.FC<PrivateRouteProps> = ({ children, validRoles }) => {
   const auth = useContext(AuthContext);
+
   const location = useLocation();
 
   if (!auth) {
@@ -23,7 +24,7 @@ const PrivateRouteValidation: React.FC<PrivateRouteProps> = ({ children, validRo
   }
 
   // 2) ¿Tu rol está en la lista de permitidos?
-  if (validRoles && auth.id_rol && !validRoles.includes(auth.id_rol)) {
+  if (validRoles && auth.roleName && !validRoles.includes(auth.roleName)) {
     // quizá mostrar página de "No tienes permiso"
     return <Navigate to="/home" replace />;
   }

@@ -19,18 +19,51 @@ import { UnitProvider } from "./contexts/Unit.context";
 import { ShoppingProvider } from "./contexts/Shopping.context";
 import { ProductRequisitionProvider } from "./contexts/Product_requisi.context";
 import { RequisicionProvider } from "./contexts/Requisicion.contex";
+import PrivateRouteValidation from "./routes/PrivateRoute";
 
 function AppRoutes() {
   const location = useLocation();
 
   const renderRoute = (route: any) => {
+    // Si la ruta tiene hijos (children)
     if (route.children) {
       return (
         <Route key={route.path} path={route.path} element={route.element}>
-          {route.children.map((child: any) => (
-            <Route key={child.path} path={child.path} element={child.element} />
-          ))}
+          {route.children.map((child: any) => {
+            // Si la ruta hija tiene roles válidos, envuelve con PrivateRouteValidation
+            if (child.valid && child.valid.roles) {
+              return (
+                <Route
+                  key={child.path}
+                  path={child.path}
+                  element={
+                    <PrivateRouteValidation validRoles={child.valid.roles}>
+                      {child.element}
+                    </PrivateRouteValidation>
+                  }
+                />
+              );
+            }
+            // Si no, solo renderiza normalmente
+            return (
+              <Route key={child.path} path={child.path} element={child.element} />
+            );
+          })}
         </Route>
+      );
+    }
+    // Para rutas sin hijos, igual verifica roles
+    if (route.valid && route.valid.roles) {
+      return (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
+            <PrivateRouteValidation validRoles={route.valid.roles}>
+              {route.element}
+            </PrivateRouteValidation>
+          }
+        />
       );
     }
     return (

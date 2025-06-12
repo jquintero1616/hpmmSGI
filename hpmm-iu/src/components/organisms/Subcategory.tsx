@@ -35,7 +35,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // 1) Columnas de la tabla
   const subcategoryColumns: Column<SubcategoryInterface>[] = [
     { header: "Nombre", accessor: "nombre" },
-    { header: "Categoria", accessor: "category_name" },
+    { header: "Categoria", accessor: (row) => category.find((c) => c.id_category === row.id_category)?.name || "" },
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),

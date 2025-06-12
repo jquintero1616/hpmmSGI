@@ -24,6 +24,7 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/solid";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "../hooks/use.Auth"; // Agrega este import
 
 interface MenuItemProps {
   icon: React.ComponentType<any>;
@@ -117,6 +118,7 @@ export function Sidebar() {
   });
 
   const navigate = useNavigate();
+  const { roleName } = useAuth();
 
   const menuItems = useMemo(
     () => ({
@@ -258,6 +260,8 @@ export function Sidebar() {
     [location.pathname]
   );
 
+  const isTecnicoAlmacen = roleName === "Tecnico Almacen";
+
   return (
     <div className={CONTAINER_STYLES}>
       <div
@@ -279,25 +283,97 @@ export function Sidebar() {
       <hr className="my-1 border-gray-300" />
 
       <ul className="flex-1 space-y-1">
-        <MenuItem
-          icon={HomeIcon}
-          label="Inicio"
-          isCollapsed={collapsed}
-          onClick={() => navigate("/home")}
-        />
+        {!isTecnicoAlmacen && (
+          <>
+            <MenuItem
+              icon={HomeIcon}
+              label="Inicio"
+              isCollapsed={collapsed}
+              onClick={() => navigate("/home")}
+            />
 
-        <MenuItem
-          icon={ArchiveBoxIcon}
-          label="Inventario"
-          isCollapsed={collapsed}
-          hasSubmenu
-          isOpen={open === 2}
-          onClick={() => handleOpen(2)}
-        />
-        {open === 2 && !collapsed && (
-          <SubMenu items={menuItems.inventario} onNavigate={navigate} />
+            <MenuItem
+              icon={ArchiveBoxIcon}
+              label="Inventario"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 2}
+              onClick={() => handleOpen(2)}
+            />
+            {open === 2 && !collapsed && (
+              <SubMenu items={menuItems.inventario} onNavigate={navigate} />
+            )}
+
+            <MenuItem
+              icon={ClipboardDocumentListIcon}
+              label="Requisiciones & Compras"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 4}
+              onClick={() => handleOpen(4)}
+            />
+            {open === 4 && !collapsed && (
+              <SubMenu items={menuItems.requisitions} onNavigate={navigate} />
+            )}
+
+            <MenuItem
+              icon={BuildingStorefrontIcon}
+              label="Proveedores"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 5}
+              onClick={() => handleOpen(5)}
+            />
+            {open === 5 && !collapsed && (
+              <SubMenu items={menuItems.providers} onNavigate={navigate} />
+            )}
+
+            <MenuItem
+              icon={UserGroupIcon}
+              label="Usuarios & Roles"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 7}
+              onClick={() => handleOpen(7)}
+            />
+            {open === 7 && !collapsed && (
+              <SubMenu items={menuItems.usersRoles} onNavigate={navigate} />
+            )}
+
+            <MenuItem
+              icon={BanknotesIcon}
+              label="Caja & Finanzas"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 8}
+              onClick={() => handleOpen(8)}
+            />
+            {open === 8 && !collapsed && (
+              <SubMenu items={menuItems.finance} onNavigate={navigate} />
+            )}
+
+            <MenuItem
+              icon={ChartPieIcon}
+              label="Reportes"
+              isCollapsed={collapsed}
+              onClick={() => navigate("/reportes")}
+            />
+
+            <MenuItem
+              icon={ArchiveBoxIcon}
+              label="Auditoría"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 9}
+              onClick={() => handleOpen(9)}
+            />
+            {open === 9 && !collapsed && (
+              <SubMenu items={menuItems.audit} onNavigate={navigate} />
+            )}
+          </>
         )}
 
+        {/* Siempre mostrar Kardex y Pactos para Técnico Almacén */}
         <MenuItem
           icon={ArrowsRightLeftIcon}
           label="Kardex"
@@ -311,30 +387,6 @@ export function Sidebar() {
         )}
 
         <MenuItem
-          icon={ClipboardDocumentListIcon}
-          label="Requisiciones & Compras"
-          isCollapsed={collapsed}
-          hasSubmenu
-          isOpen={open === 4}
-          onClick={() => handleOpen(4)}
-        />
-        {open === 4 && !collapsed && (
-          <SubMenu items={menuItems.requisitions} onNavigate={navigate} />
-        )}
-
-        <MenuItem
-          icon={BuildingStorefrontIcon}
-          label="Proveedores"
-          isCollapsed={collapsed}
-          hasSubmenu
-          isOpen={open === 5}
-          onClick={() => handleOpen(5)}
-        />
-        {open === 5 && !collapsed && (
-          <SubMenu items={menuItems.providers} onNavigate={navigate} />
-        )}
-
-        <MenuItem
           icon={DocumentDuplicateIcon}
           label="Pactos"
           isCollapsed={collapsed}
@@ -344,49 +396,6 @@ export function Sidebar() {
         />
         {open === 6 && !collapsed && (
           <SubMenu items={menuItems.pacts} onNavigate={navigate} />
-        )}
-
-        <MenuItem
-          icon={UserGroupIcon}
-          label="Usuarios & Roles"
-          isCollapsed={collapsed}
-          hasSubmenu
-          isOpen={open === 7}
-          onClick={() => handleOpen(7)}
-        />
-        {open === 7 && !collapsed && (
-          <SubMenu items={menuItems.usersRoles} onNavigate={navigate} />
-        )}
-
-        <MenuItem
-          icon={BanknotesIcon}
-          label="Caja & Finanzas"
-          isCollapsed={collapsed}
-          hasSubmenu
-          isOpen={open === 8}
-          onClick={() => handleOpen(8)}
-        />
-        {open === 8 && !collapsed && (
-          <SubMenu items={menuItems.finance} onNavigate={navigate} />
-        )}
-
-        <MenuItem
-          icon={ChartPieIcon}
-          label="Reportes"
-          isCollapsed={collapsed}
-          onClick={() => navigate("/reportes")}
-        />
-
-        <MenuItem
-          icon={ArchiveBoxIcon}
-          label="Auditoría"
-          isCollapsed={collapsed}
-          hasSubmenu
-          isOpen={open === 9}
-          onClick={() => handleOpen(9)}
-        />
-        {open === 9 && !collapsed && (
-          <SubMenu items={menuItems.audit} onNavigate={navigate} />
         )}
       </ul>
     </div>

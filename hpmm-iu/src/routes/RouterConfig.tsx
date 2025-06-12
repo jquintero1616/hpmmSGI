@@ -1,5 +1,4 @@
 import PrivateRouteValidation from "./PrivateRoute";
-// Path: src/routes/RouterConfig.tsx
 import Layout from "../layouts/Layout";
 import LoginPage from "../components/pages/Login.page";
 import GenericPage from "../components/pages/Generic.page";
@@ -50,71 +49,7 @@ export const routes = [
           ],
         },
       },
-      // Rutas de usuarios con diferentes estados
-      {
-        path: "users",
-        element: (
-          <GenericPage title="Gestión de Usuarios">
-            {<User status={"Todo"} />}
-          </GenericPage>
-        ),
-      },
-      // Rutas de pactos con diferentes estados
-      {
-        path: "pacts",
-        element: (
-          <GenericPage title="Gestión de Pactos">
-            <Pacts status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // Rutas de productos con diferentes estados
-      {
-        path: "products",
-        element: (
-          <GenericPage title="Gestión de Productos">
-            <Products status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // Rutas de categorías con diferentes estados
-      {
-        path: "category",
-        element: (
-          <GenericPage title="Gestión de Categorías">
-            <Category status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // Rutas de proveedores con diferentes estados
-      {
-        path: "suppliers",
-        element: (
-          <GenericPage title="Gestión de Proveedores">
-            <Suppliers status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // Rutas de empleados con diferentes estados
-      {
-        path: "roles",
-        element: (
-          <GenericPage title="Gestión de Roles">
-            <Roles status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // Rutas de empleados con diferentes estados
-      {
-        path: "employees",
-        element: (
-          <GenericPage title="Gestión de Empleados">
-            <Employe status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      //------------------------------------------------------------------------------
-      // Rutas de Kardex con diferentes estados
+      // Solo para Técnico Almacen: Kardex y Pactos
       {
         path: "kardex",
         element: (
@@ -122,6 +57,7 @@ export const routes = [
             <Kardex status={"Aprobado"} />
           </GenericPage>
         ),
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
       },
       {
         path: "kardexPendiente",
@@ -130,6 +66,7 @@ export const routes = [
             <Kardex status={"Pendiente"} />
           </GenericPage>
         ),
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
       },
       {
         path: "kardexRechazadas",
@@ -138,6 +75,7 @@ export const routes = [
             <Kardex status={"Rechazado"} />
           </GenericPage>
         ),
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
       },
       {
         path: "kardexHistorico",
@@ -146,6 +84,7 @@ export const routes = [
             <Kardex status={"Todo"} />
           </GenericPage>
         ),
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
       },
       {
         path: "kardexCancelada",
@@ -154,108 +93,166 @@ export const routes = [
             <Kardex status={"Cancelado"} />
           </GenericPage>
         ),
-      },
-      //------------------------------------------------------------------------------
-      {
-        path: "subcategory",
-        element: (
-          <GenericPage title="Gestión de Subcategorías">
-            <Subcategory status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-
-      // ----------------------------------------------------------------------------------
-
-      {
-        path: "vendedor",
-        element: (
-          <GenericPage title="Gestión de Vendedores">
-            <Vendedor status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // ----------------------------------------------------------------------------------
-      {
-        path: "subdireccion",
-        element: (
-          <GenericPage title="Gestión de subdirecciones">
-            <Subdireccion status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      //-----------------------------------------------------------------------------------
-
-      {
-        path: "direction",
-        element: (
-          <GenericPage title="Gestión de Direcciones">
-            <Direction status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // ----------------------------------------------------------------------------------
-      {
-        path: "unit",
-        element: (
-          <GenericPage title="Gestión de Unidades">
-            <Unit status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // ----------------------------------------------------------------------------------
-      {
-        path: "shopping",
-        element: (
-          <GenericPage title="Gestión de Compras">
-            <Shopping status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-      // ----------------------------------------------------------------------------------
-      {
-        path: "product_requisi",
-        element: (
-          <GenericPage title="Gestión de Requisiciones de Productos">
-            <Product_requisi status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-
-      // ----------------------------------------------------------------------------------
-      {
-        path: "requisicionAprobado",
-        element: (
-          <GenericPage title="Gestión de Kardex">
-            <Requisicion status={"Aprobado"} />
-          </GenericPage>
-        ),
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
       },
       {
-        path: "requisicionPendiente",
+        path: "pacts",
         element: (
-          <GenericPage title="Gestión de Requisiciones Pendientes">
-            <Requisicion status={"Pendiente"} />
+          <GenericPage title="Gestión de Pactos">
+            <Pacts status={"Todo"} />
           </GenericPage>
         ),
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
       },
-      {
-        path: "requisicionRechazado",
-        element: (
-          <GenericPage title="Requisiciones Rechazadas">
-            <Requisicion status={"Rechazado"} />
-          </GenericPage>
-        ),
-      },
-      {
-        path: "requisicionHistorico",
-        element: (
-          <GenericPage title="Requisicion Histórico">
-            <Requisicion status={"Todo"} />
-          </GenericPage>
-        ),
-      },
-     
+      // El resto de rutas solo para roles distintos a "Tecnico Almacen"
+      ...[
+        {
+          path: "users",
+          element: (
+            <GenericPage title="Gestión de Usuarios">
+              {<User status={"Todo"} />}
+            </GenericPage>
+          ),
+        },
+        {
+          path: "products",
+          element: (
+            <GenericPage title="Gestión de Productos">
+              <Products status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "category",
+          element: (
+            <GenericPage title="Gestión de Categorías">
+              <Category status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "suppliers",
+          element: (
+            <GenericPage title="Gestión de Proveedores">
+              <Suppliers status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "roles",
+          element: (
+            <GenericPage title="Gestión de Roles">
+              <Roles status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "employees",
+          element: (
+            <GenericPage title="Gestión de Empleados">
+              <Employe status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "subcategory",
+          element: (
+            <GenericPage title="Gestión de Subcategorías">
+              <Subcategory status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "vendedor",
+          element: (
+            <GenericPage title="Gestión de Vendedores">
+              <Vendedor status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "subdireccion",
+          element: (
+            <GenericPage title="Gestión de subdirecciones">
+              <Subdireccion status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "direction",
+          element: (
+            <GenericPage title="Gestión de Direcciones">
+              <Direction status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "unit",
+          element: (
+            <GenericPage title="Gestión de Unidades">
+              <Unit status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "shopping",
+          element: (
+            <GenericPage title="Gestión de Compras">
+              <Shopping status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "product_requisi",
+          element: (
+            <GenericPage title="Gestión de Requisiciones de Productos">
+              <Product_requisi status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "requisicionAprobado",
+          element: (
+            <GenericPage title="Gestión de Kardex">
+              <Requisicion status={"Aprobado"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "requisicionPendiente",
+          element: (
+            <GenericPage title="Gestión de Requisiciones Pendientes">
+              <Requisicion status={"Pendiente"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "requisicionRechazado",
+          element: (
+            <GenericPage title="Requisiciones Rechazadas">
+              <Requisicion status={"Rechazado"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "requisicionHistorico",
+          element: (
+            <GenericPage title="Requisicion Histórico">
+              <Requisicion status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+      ].map((route) => ({
+        ...route,
+        valid: {
+          roles: [
+            "Administrador",
+            "Jefe Almacen",
+            "Super Admin",
+            "Jefe de Logistica",
+          ], // OJO: excluye "Tecnico Almacen"
+        },
+      })),
     ],
   },
 ];
