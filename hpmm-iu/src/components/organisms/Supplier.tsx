@@ -2,37 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { useSupplier } from "../../hooks/use.Supplier";
+import { suppliersInterface } from "../../interfaces/supplier.interface";
 import Button from "../atoms/Buttons/Button";
-import GenericModal from "../molecules/GenericModal";
+import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
-import { suppliersInterface } from "../../interfaces/supplier.interface";
-
-const supplierColumns: Column<suppliersInterface>[] = [
-  { header: "Nombre", accessor: "nombre" },
-  { header: "Teléfono", accessor: "numero_contacto" },
-  { header: "Correo Electrónico", accessor: "correo" },
-  { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
-  {
-    header: "Fecha Creación",
-    accessor: (row) =>
-      // Cambia "created_at" si tu API usa otro nombre
-      row.created_at ? new Date(row.created_at).toLocaleString() : "",
-  },
-  {
-    header: "Fecha Actualización",
-    accessor: (row) =>
-      row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
-  },
-];
-
-const supplierFields: FieldConfig[] = [
-  { name: "nombre", label: "Nombre", type: "text" },
-  { name: "numero_contacto", label: "Teléfono", type: "text" },
-  { name: "correo", label: "Correo Electrónico", type: "text" },
-];
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
+  // Hooks
   const {
     suppliers,
     GetSuppliersContext,
@@ -41,52 +20,119 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     DeleteSupplierContext,
   } = useSupplier();
 
+  // Estados locales
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<suppliersInterface[]>([]);
-
-  const [isCreateOpen, setCreateOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
+  const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<suppliersInterface | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<suppliersInterface | null>(
-    null
-  );
+  const [itemToDelete, setItemToDelete] = useState<suppliersInterface | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    GetSuppliersContext()
-    .finally(() => setLoading(false));
-  }, [GetSuppliersContext]);
-      
-  
+  // Estado local para el filtro
+  const [estadoFiltro] = useState<string>("Todo");
 
-  useEffect(() => {
-    if (suppliers && suppliers.length > 0) {
-      handleTableContent(suppliers);
-    }
-  }, [status, suppliers]);
-
-  const closeAll = () => {
-    setCreateOpen(false);
-    setEditOpen(false);
-    setDeleteOpen(false);
-    setItemToEdit(null);
-    setItemToDelete(null);
+  // Funciones de validación
+  const isEmailTaken = (email: string, excludeSupplierId?: string) => {
+    return suppliers.some(
+      (s) =>
+        s.correo.trim().toLowerCase() === email.trim().toLowerCase() &&
+        (!excludeSupplierId || s.id_supplier !== excludeSupplierId)
+    );
   };
 
-  const handleTableContent = (emp: suppliersInterface[]) => {
-    // Verificar que emp existe y tiene elementos
-    if (!emp || emp.length === 0) {
+  const validateCreate = (values: any) => {
+    const errors: any = {};
+    if (isEmailTaken(values.correo)) {
+      errors.correo = "El correo ya está registrado en otro proveedor.";
+    }
+    return errors;
+  };
+
+  const validateEdit = (values: any) => {
+    const errors: any = {};
+    if (
+      itemToEdit &&
+      values.correo.trim().toLowerCase() !==
+        itemToEdit.correo.trim().toLowerCase() &&
+      isEmailTaken(values.correo, itemToEdit.id_supplier)
+    ) {
+      errors.correo = "El correo ya está registrado en otro proveedor.";
+    }
+    return errors;
+  };
+
+  // Configuración de columnas y campos
+  const supplierColumns: Column<suppliersInterface>[] = [
+    { header: "Nombre", accessor: "nombre" },
+    { header: "Teléfono", accessor: "numero_contacto" },
+    { header: "Correo Electrónico", accessor: "correo" },
+    { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
+    {
+      header: "Fecha Creación",
+      accessor: (row) =>
+        row.created_at ? new Date(row.created_at).toLocaleString() : "",
+    },
+    {
+      header: "Fecha Actualización",
+      accessor: (row) =>
+        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
+    },
+  ];
+
+  const supplierFields: FieldConfig[] = [
+    { name: "nombre", label: "Nombre", type: "text", required: true },
+    { name: "numero_contacto", label: "Teléfono", type: "text", required: true },
+    { 
+      name: "correo", 
+      label: "Correo Electrónico", 
+      type: "email", 
+      required: true,
+      pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      options: [
+        { label: "Activo", value: true },
+        { label: "Inactivo", value: false },
+      ],
+      required: true,
+    },
+  ];
+
+  // Función handleTableContent
+  const handleTableContent = (list: suppliersInterface[]) => {
+    // Asegurar que list sea un array válido
+    if (!Array.isArray(list)) {
       setFilteredData([]);
       return;
     }
 
-    const rowContent = emp.filter((item) => {
-      // Verificar que el item existe y tiene la propiedad estado
-      return (
-        item && item.estado !== undefined && item.estado === (status === "Todo")
-      );
-    });
-    setFilteredData(rowContent);
+    // Filtrar elementos undefined o null
+    let filtrados = list.filter(supplier => supplier && supplier.id_supplier);
+    
+    if (estadoFiltro === "Activos") {
+      filtrados = filtrados.filter((s) => s.estado === true);
+    } else if (estadoFiltro === "Inactivos") {
+      filtrados = filtrados.filter((s) => s.estado === false);
+    }
+    // Ordenar por nombre
+    const ordenados = filtrados.sort((a, b) =>
+      a.nombre.localeCompare(b.nombre)
+    );
+    setFilteredData(ordenados);
+  };
+
+  // Funciones de manejo de modales
+  const closeAll = () => {
+    setEditOpen(false);
+    setCreateOpen(false);
+    setDeleteOpen(false);
+    setItemToEdit(null);
+    setItemToDelete(null);
   };
 
   const openEdit = (id: string) => {
@@ -105,165 +151,257 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setDeleteOpen(true);
   };
 
-  // ───── 3) Crear proveedor ─────
+  // Handlers de CRUD
   const handleCreate = async (values: any) => {
+    // Validar si el correo ya existe
+    if (isEmailTaken(values.correo)) {
+      toast.error("El correo ya está registrado en otro proveedor.");
+      return;
+    }
+
+    setSaving(true);
     try {
-      setLoading(true);
       await PostCreateSupplierContext({
         nombre: values.nombre,
         numero_contacto: values.numero_contacto,
         correo: values.correo,
-        estado: true, 
+        estado: true,
       });
       
       await GetSuppliersContext();
+      toast.success(`Proveedor ${values.nombre} creado correctamente`);
+      closeAll();
     } catch (error) {
       console.error("Error al crear proveedor:", error);
+      toast.error("Error al crear el proveedor");
     } finally {
-      setLoading(false);
-      closeAll();
+      setSaving(false);
     }
   };
 
-  
   const handleSave = async (values: any) => {
     if (!itemToEdit) return;
 
+    // Validar si hay cambios
+    const hasChanges =
+      values.nombre !== itemToEdit.nombre ||
+      values.numero_contacto !== itemToEdit.numero_contacto ||
+      values.correo !== itemToEdit.correo ||
+      values.estado !== itemToEdit.estado;
+
+    if (!hasChanges) {
+      toast.error("No se detectaron cambios para guardar.");
+      return;
+    }
+
+    // Solo validar si el correo cambió
+    if (
+      values.correo.trim().toLowerCase() !==
+        itemToEdit.correo.trim().toLowerCase() &&
+      isEmailTaken(values.correo, itemToEdit.id_supplier)
+    ) {
+      toast.error("El correo ya está registrado en otro proveedor.");
+      return;
+    }
+
+    setSaving(true);
     try {
-      setLoading(true);
       await PutUpdateSupplierContext(itemToEdit.id_supplier, {
         ...itemToEdit,
         nombre: values.nombre,
         numero_contacto: values.numero_contacto,
         correo: values.correo,
-        estado: itemToEdit.estado,
+        estado: values.estado === true,
       });
 
       await GetSuppliersContext();
+      toast.success(`Proveedor ${values.nombre} actualizado correctamente`);
+      closeAll();
     } catch (error) {
       console.error("Error al actualizar proveedor:", error);
+      toast.error("Error al actualizar el proveedor");
     } finally {
-      setLoading(false);
-      closeAll();
+      setSaving(false);
     }
   };
 
-  // ───── 5) Desactivar (soft‐delete) ─────
   const handleConfirmDelete = async (id: string) => {
     try {
-      setLoading(true);
-      await DeleteSupplierContext(id); 
+      setSaving(true);
+      await DeleteSupplierContext(id);
       await GetSuppliersContext();
+      toast.success("Proveedor desactivado correctamente");
+      closeAll();
     } catch (error) {
       console.error("Error al desactivar proveedor:", error);
+      toast.error("Error al desactivar el proveedor");
     } finally {
-      setLoading(false);
-      closeAll();
+      setSaving(false);
     }
   };
 
-  // ───── Mientras está “loading” no mostramos la tabla ─────
+  // Effects
+  useEffect(() => {
+    setLoading(true);
+    GetSuppliersContext().finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    handleTableContent(suppliers);
+  }, [status, suppliers]);
+
+  useEffect(() => {
+    handleTableContent(suppliers);
+  }, [estadoFiltro, suppliers]);
+
+  // Render condicional
   if (loading) {
     return <div>Cargando proveedores…</div>;
   }
 
+  // Render principal
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Gestión de Proveedores</h2>
-      <Button onClick={() => setCreateOpen(true)}>+ Nuevo proveedor</Button>
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Proveedores</h1>
 
-      {filteredData.length > 0 ? (
-        <GenericTable
-          columns={supplierColumns}
-          data={filteredData}
-          rowKey={(row) => row.id_supplier}
-          actions={[
-            {
-              header: "Acciones",
-              label: "Editar",
-              onClick: (row) => openEdit(row.id_supplier),
-            },
-            {
-              header: "Eliminar",
-              label: "Eliminar",
-              onClick: (row) => openDelete(row.id_supplier),
-            },
-          ]}
-        />
-      ) : (
-        <p className="mt-4 text-gray-600">No hay proveedores activos.</p>
-      )}
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nuevo proveedor
+        </Button>
+      </div>
 
-      {/* ─── Modal Crear Proveedor ─── */}
-      <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
-        <h3 className="text-xl font-semibold mb-4">Crear Proveedor</h3>
-        <GenericForm
+      <GenericTable
+        columns={supplierColumns}
+        data={filteredData}
+        rowKey={(row) => row?.id_supplier || ''}
+        actions={[
+          {
+            header: "Editar",
+            label: "Editar",
+            onClick: (row) => openEdit(row.id_supplier),
+          },
+          {
+            header: "Eliminar",
+            label: "Eliminar",
+            onClick: (row) => openDelete(row.id_supplier),
+          },
+        ]}
+        rowClassName={(row) =>
+          row?.estado === false ? "opacity-40 line-through" : ""
+        }
+      />
+
+      {/* Modal Crear */}
+      <Modal isOpen={isCreateOpen} onClose={closeAll}>
+        <GenericForm<Partial<suppliersInterface>>
           initialValues={{
             nombre: "",
             numero_contacto: "",
             correo: "",
             estado: true,
           }}
-          fields={supplierFields}
+          fields={supplierFields.map((f) =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validateCreate}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          title="Crear Proveedor"
+          submitDisabled={saving}
         />
-      </GenericModal>
+      </Modal>
 
-      {/* ─── Modal Editar Proveedor ─── */}
-      <GenericModal isOpen={isEditOpen} onClose={closeAll}>
+      {/* Modal Editar */}
+      <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
-          <>
-            <h3 className="text-xl font-semibold mb-4">Editar Proveedor</h3>
-            <GenericForm
-              initialValues={{
-                nombre: itemToEdit.nombre,
-                numero_contacto: itemToEdit.numero_contacto,
-                correo: itemToEdit.correo,
-                estado: itemToEdit.estado ? "true" : "false",
-              }}
-              fields={supplierFields}
-              onSubmit={handleSave}
-              onCancel={closeAll}
-              submitLabel="Guardar"
-              cancelLabel="Cancelar"
-            />
-          </>
+          <GenericForm<Partial<suppliersInterface>>
+            initialValues={{
+              nombre: itemToEdit.nombre ?? "",
+              numero_contacto: itemToEdit.numero_contacto ?? "",
+              correo: itemToEdit.correo ?? "",
+              estado: true,
+            }}
+            fields={supplierFields}
+            onSubmit={handleSave}
+            onCancel={closeAll}
+            validate={validateEdit}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
+            cancelLabel="Cancelar"
+            title="Editar Proveedor"
+            submitDisabled={saving}
+          />
         )}
-      </GenericModal>
+      </Modal>
 
-      {/* ─── Modal Desactivar Proveedor ─── */}
-      <GenericModal isOpen={isDeleteOpen} onClose={closeAll}>
+      {/* Modal Eliminar */}
+      <Modal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete && (
           <>
             <h3 className="text-xl font-semibold mb-4">
               Confirmar Desactivación
             </h3>
+
             <p>
-              ¿Seguro que deseas desactivar el proveedor{" "}
+              ¿Seguro que deseas Eliminar el proveedor{" "}
               <strong>{itemToDelete.nombre}</strong>?
             </p>
+
             <GenericTable
               columns={supplierColumns}
               data={[itemToDelete]}
-              rowKey={(row) => row.id_supplier}
+              rowKey={(row) => row?.id_supplier || 'delete-item'}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">
-                Cancelar
+
+            <div className="mt-4 text-right gap-2 flex justify-center">
+              <Button
+                onClick={() => handleConfirmDelete(itemToDelete.id_supplier)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
+                disabled={saving}
+              >
+                {saving ? (
+                  <span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    Desactivando...
+                  </span>
+                ) : (
+                  "Eliminar"
+                )}
               </Button>
               <Button
-                isPrimary
-                onClick={() => handleConfirmDelete(itemToDelete.id_supplier)}
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+                disabled={saving}
               >
-                Desactivar
+                Cancelar
               </Button>
             </div>
           </>
         )}
-      </GenericModal>
+      </Modal>
     </div>
   );
 };

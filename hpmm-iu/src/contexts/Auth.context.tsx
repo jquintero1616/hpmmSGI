@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // El servidor confirma que la sesión existe y devuelve datos del usuario
       const { username, id_rol, id_user, role_name, employe_name } =
         response.data;
-        
+
       setIsAuthenticated(true);
       setUsername(username);
       setIdRol(id_rol);
@@ -84,7 +84,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   if (loading) {
-    return <div>Cargando autenticacion...</div>; // O un spinner de carga
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+          <span className="text-purple-700 font-semibold">Autenticando...</span>
+        </div>
+      </div>
+    );
   }
 
   return (

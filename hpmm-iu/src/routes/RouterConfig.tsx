@@ -19,7 +19,7 @@ import Direction from "../components/organisms/Direction";
 import Shopping from "../components/organisms/Shopping";
 import Requisicion from "../components/organisms/Requisicion";
 import Product_requisi from "../components/organisms/Product_requisi";
-
+import Bitacora from "../components/organisms/Bitacora";
 export const routes = [
   // Ruta pública de login
   {
@@ -239,6 +239,14 @@ export const routes = [
           element: (
             <GenericPage title="Requisicion Histórico">
               <Requisicion status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+        {
+          path: "bitacora",
+          element: (
+            <GenericPage title="Bitácora del Sistema">
+              <Bitacora />
             </GenericPage>
           ),
         },

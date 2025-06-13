@@ -37,7 +37,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [newRoleName, setNewRoleName] = useState(""); // Opcional, para seleccionar el nuevo rol
 
   // Estado local para el filtro
-  const [estadoFiltro, setEstadoFiltro] = useState<string>("Todo");
+  const [estadoFiltro] = useState<string>("Todo");
 
   // 1) Columnas de la tabla
   const userColumns: Column<userInterface>[] = [
@@ -60,7 +60,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-  // 2) Campos fijos para el formulario (usa solo userInterface)
+  // 2) Campos fijos para el formulario 
   const userFields: FieldConfig[] = [
     {
       name: "username",
@@ -71,10 +71,16 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     {
       name: "email",
       label: "Correo Electrónico",
-      type: "text",
+      type: "email",
+      required: true,
+      pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+    },
+    {
+      name: "password",
+      label: "Contraseña",
+      type: "password",
       required: true,
     },
-    { name: "password", label: "Contraseña", type: "password", required: true },
     {
       name: "id_rol",
       label: "Rol",
@@ -86,8 +92,11 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       name: "estado",
       label: "Estado",
       type: "select",
-      options: ["true", "false"],
-      // Si lo deshabilitas, no pongas required
+      options: [
+        { label: "Activo", value: true },
+        { label: "Inactivo", value: false },
+      ],
+      required: true,
     },
   ];
 
@@ -188,6 +197,19 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   const handleSave = async (values: any) => {
     if (!itemToEdit) return;
+
+    // Validar si hay cambios
+    const hasChanges =
+      values.username !== itemToEdit.username ||
+      values.email !== itemToEdit.email ||
+      (values.password && values.password.length > 0) ||
+      values.id_rol !== itemToEdit.id_rol ||
+      values.estado !== itemToEdit.estado;
+
+    if (!hasChanges) {
+      toast.error("No se detectaron cambios para guardar.");
+      return;
+    }
 
     // Solo validar si el correo cambió
     if (

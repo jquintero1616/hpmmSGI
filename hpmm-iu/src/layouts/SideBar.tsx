@@ -214,19 +214,6 @@ export function Sidebar() {
         },
         { label: "Unidades", path: "/unit", icon: IdentificationIcon },
       ],
-      finance: [
-        { label: "Caja & Finanzas", path: "/caja", icon: BanknotesIcon },
-        {
-          label: "Transacciones",
-          path: "/transacciones",
-          icon: ArrowsUpDownIcon,
-        },
-        {
-          label: "Histórico de Caja",
-          path: "/historial-caja",
-          icon: ClockIcon,
-        },
-      ],
       audit: [{ label: "Bitácora", path: "/bitacora", icon: ArchiveBoxIcon }],
     }),
     []
@@ -283,6 +270,8 @@ export function Sidebar() {
       <hr className="my-1 border-gray-300" />
 
       <ul className="flex-1 space-y-1">
+
+        
         {!isTecnicoAlmacen && (
           <>
             <MenuItem
@@ -291,6 +280,7 @@ export function Sidebar() {
               isCollapsed={collapsed}
               onClick={() => navigate("/home")}
             />
+            
 
             <MenuItem
               icon={ArchiveBoxIcon}
@@ -338,18 +328,6 @@ export function Sidebar() {
             />
             {open === 7 && !collapsed && (
               <SubMenu items={menuItems.usersRoles} onNavigate={navigate} />
-            )}
-
-            <MenuItem
-              icon={BanknotesIcon}
-              label="Caja & Finanzas"
-              isCollapsed={collapsed}
-              hasSubmenu
-              isOpen={open === 8}
-              onClick={() => handleOpen(8)}
-            />
-            {open === 8 && !collapsed && (
-              <SubMenu items={menuItems.finance} onNavigate={navigate} />
             )}
 
             <MenuItem

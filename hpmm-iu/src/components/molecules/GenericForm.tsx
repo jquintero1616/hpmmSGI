@@ -73,6 +73,8 @@ const GenericForm = <T extends Record<string, any>>({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const errorTimeouts = useRef<Record<string, number>>({});
 
+
+  
   useEffect(() => {
     // Limpiar timeouts al desmontar
     return () => {
@@ -134,50 +136,53 @@ const GenericForm = <T extends Record<string, any>>({
   const validateAll = () => {
     let newErrors: Record<string, string> = {};
 
+    // 1. Validar campos requeridos y formato SIEMPRE
+    fields.forEach((field) => {
+      const value = values[field.name];
+      const fieldValue = value?.toString().trim();
+
+      if (field.required && (!value || fieldValue === "")) {
+        newErrors[field.name] = `${field.label} es requerido`;
+        return;
+      }
+
+      if (fieldValue) {
+        switch (field.type) {
+          case "email":
+            if (!validateEmail(fieldValue)) {
+              newErrors[field.name] = "Ingrese un email válido";
+            }
+            break;
+          case "number":
+            const numValue = Number(value);
+            if (isNaN(numValue)) {
+              newErrors[field.name] = "Debe ser un número válido";
+            } else {
+              if (field.min !== undefined && numValue < field.min) {
+                newErrors[field.name] = `Mínimo valor: ${field.min}`;
+              }
+              if (field.max !== undefined && numValue > field.max) {
+                newErrors[field.name] = `Máximo valor: ${field.max}`;
+              }
+            }
+            break;
+          case "password":
+            if (fieldValue.length < 6) {
+              newErrors[field.name] =
+                "La contraseña debe tener al menos 6 caracteres";
+            }
+            break;
+        }
+        if (field.pattern && !new RegExp(field.pattern).test(fieldValue)) {
+          newErrors[field.name] = `Formato inválido para ${field.label}`;
+        }
+      }
+    });
+
+    // 2. Si hay función validate personalizada, combinar errores
     if (validate) {
-      newErrors = validate(values);
-    } else {
-      fields.forEach((field) => {
-        const value = values[field.name];
-        const fieldValue = value?.toString().trim();
-
-        if (field.required && (!value || fieldValue === "")) {
-          newErrors[field.name] = `${field.label} es requerido`;
-          return;
-        }
-
-        if (fieldValue) {
-          switch (field.type) {
-            case "email":
-              if (!validateEmail(fieldValue)) {
-                newErrors[field.name] = "Ingrese un email válido";
-              }
-              break;
-            case "number":
-              const numValue = Number(value);
-              if (isNaN(numValue)) {
-                newErrors[field.name] = "Debe ser un número válido";
-              } else {
-                if (field.min !== undefined && numValue < field.min) {
-                  newErrors[field.name] = `Mínimo valor: ${field.min}`;
-                }
-                if (field.max !== undefined && numValue > field.max) {
-                  newErrors[field.name] = `Máximo valor: ${field.max}`;
-                }
-              }
-              break;
-            case "password":
-              if (fieldValue.length < 6) {
-                newErrors[field.name] =
-                  "La contraseña debe tener al menos 6 caracteres";
-              }
-              break;
-          }
-          if (field.pattern && !new RegExp(field.pattern).test(fieldValue)) {
-            newErrors[field.name] = `Formato inválido para ${field.label}`;
-          }
-        }
-      });
+      const customErrors = validate(values);
+      newErrors = { ...newErrors, ...customErrors };
     }
 
     setErrors(newErrors);
@@ -316,7 +321,7 @@ const GenericForm = <T extends Record<string, any>>({
               {/* Ayuda contextual */}
               {field.type === "email" && !errors[field.name] && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Ej: usuario@hpmm.com
+                 
                 </p>
               )}
               {field.type === "number" &&

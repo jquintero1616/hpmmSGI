@@ -5,8 +5,11 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { DirectionInterface } from "../../interfaces/direction.interface";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
+  // 1. Hooks
   const {
     directions,
     GetDirectionsContext,
@@ -15,20 +18,50 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     DeleteDirectionContext,
   } = useDirection();
 
-  // Estados locales para manejar la UI
+  // 2. Estados locales para manejar la UI
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<DirectionInterface[]>([]);
   const [isEditOpen, setEditOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-  const [itemToEdit, setItemToEdit] = useState<DirectionInterface | null>(
-    null
-  );
-  const [itemToDelete, setItemToDelete] = useState<DirectionInterface | null>(
-    null
-  );
+  const [itemToEdit, setItemToEdit] = useState<DirectionInterface | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<DirectionInterface | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // 1) Columnas de la tabla
+  // Estado local para el filtro
+  const [estadoFiltro] = useState<string>("Todo");
+
+  // 3. Funciones de validación
+  const isNombreTaken = (nombre: string, excludeDirectionId?: string) => {
+    return directions.some(
+      (d) =>
+        d.nombre.trim().toLowerCase() === nombre.trim().toLowerCase() &&
+        (!excludeDirectionId || d.id_direction !== excludeDirectionId)
+    );
+  };
+
+  const validateCreate = (values: any) => {
+    const errors: any = {};
+    if (isNombreTaken(values.nombre)) {
+      errors.nombre = "El nombre de dirección ya está registrado.";
+    }
+    return errors;
+  };
+
+  const validateEdit = (values: any) => {
+    const errors: any = {};
+    if (
+      itemToEdit &&
+      values.nombre.trim().toLowerCase() !==
+        itemToEdit.nombre.trim().toLowerCase() &&
+      isNombreTaken(values.nombre, itemToEdit.id_direction)
+    ) {
+      errors.nombre = "El nombre de dirección ya está registrado.";
+    }
+    return errors;
+  };
+
+  // 4. Configuración de columnas y campos
   const directionColumns: Column<DirectionInterface>[] = [
     { header: "Nombre", accessor: "nombre" },
     {
@@ -47,56 +80,48 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-  // 2) Campos para el formulario - Memo para evitar recreaciones innecesarias
-  const directionFields: FieldConfig[] = React.useMemo(
-    () => [
-      { name: "nombre", label: "Nombre", type: "text" },
-      {
-        name: "estado",
-        label: "Estado",
-        type: "select",
-        options: [
-          { label: "Activo", value: "true" },
-          { label: "Inactivo", value: "false" },
-        ],
-      },
-    ],
-    []
-  );
+  const directionFields: FieldConfig[] = [
+    {
+      name: "nombre",
+      label: "Nombre",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      options: [
+        { label: "Activo", value: true },
+        { label: "Inactivo", value: false },
+      ],
+      required: true,
+    },
+  ];
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await GetDirectionsContext();
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [GetDirectionsContext]);
-
-  // Filtrar datos cuando cambie el status o directions
-  useEffect(() => {
-    if (!directions || directions.length === 0) {
-      setFilteredData([]);
-      return;
-    }
-
+  // 5. Función handleTableContent
+  const handleTableContent = (list: DirectionInterface[]) => {
     // Filtrar elementos válidos antes de procesar
-    const validDirections = directions.filter(
+    const validDirections = list.filter(
       (item) =>
         item && item.id_direction && typeof item.id_direction === "string"
     );
 
-    handleTableContent(validDirections);
-  }, [status, directions]);
+    let filtrados = validDirections;
+    if (status === "Activos") {
+      filtrados = validDirections.filter((d) => d.estado === true);
+    } else if (status === "Inactivos") {
+      filtrados = validDirections.filter((d) => d.estado === false);
+    }
 
-// ------------------------------------------------------------------------------------
+    // Ordenar por nombre
+    const ordenados = filtrados.sort((a, b) =>
+      a.nombre.localeCompare(b.nombre)
+    );
+    setFilteredData(ordenados);
+  };
+
+  // 6. Funciones de manejo de modales
   const closeAll = () => {
     setEditOpen(false);
     setCreateOpen(false);
@@ -104,19 +129,13 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setItemToEdit(null);
     setItemToDelete(null);
   };
-  
-// ------------------------------------------------------------------------------------
-  const openEdit = (id_direction: string) => {
-    if (!directions || directions.length === 0) {
-      return;
-    }
 
+  const openEdit = (id_direction: string) => {
     const item = directions.find(
       (item) => item && item.id_direction === id_direction
     );
 
     if (item) {
-      console.log("Item a editar:", item);
       setItemToEdit(item);
       setEditOpen(true);
     } else {
@@ -125,10 +144,6 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const openDelete = (id_direction: string) => {
-    if (!directions || directions.length === 0) {
-      return;
-    }
-
     const item = directions.find(
       (item) => item && item.id_direction === id_direction
     );
@@ -141,93 +156,130 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     }
   };
 
-  //-----------------------------------------------------------------------------------------
+  // 7. Handlers de CRUD
   const handleConfirmDelete = async (id_direction: string) => {
     try {
       await DeleteDirectionContext(id_direction);
       await GetDirectionsContext();
+      toast.success("Dirección eliminada correctamente");
       closeAll();
     } catch (error) {
       console.error("Error eliminando dirección:", error);
-    }
-  };
-
-  const handleTableContent = (list: DirectionInterface[]) => {
-    // Asegurar que todos los elementos sean válidos
-    const validList = list.filter(
-      (item) =>
-        item && item.id_direction && typeof item.id_direction === "string"
-    );
-
-    if (status === "Todo") {
-      setFilteredData(validList);
-    } else {
-      // Filtrar solo activos
-      const activeItems = validList.filter((item) => item.estado === true);
-      console.log("Items activos filtrados:", activeItems);
-      setFilteredData(activeItems);
+      toast.error("Error al eliminar la dirección");
     }
   };
 
   const handleSave = async (values: any) => {
-    if (!itemToEdit) {
-      console.error("No hay item para editar");
+    if (!itemToEdit) return;
+
+    // Validar si hay cambios
+    const hasChanges =
+      values.nombre !== itemToEdit.nombre ||
+      values.estado !== itemToEdit.estado;
+
+    if (!hasChanges) {
+      toast.error("No se detectaron cambios para guardar.");
       return;
     }
 
-    console.log("Valores del formulario:", values);
-    console.log("Item original:", itemToEdit);
+    // Validar si el nombre cambió y ya existe
+    if (
+      values.nombre.trim().toLowerCase() !==
+        itemToEdit.nombre.trim().toLowerCase() &&
+      isNombreTaken(values.nombre, itemToEdit.id_direction)
+    ) {
+      toast.error("El nombre de dirección ya está registrado.");
+      return;
+    }
 
+    setSaving(true);
     try {
-      // Arma el objeto de actualización
       const payload: Partial<DirectionInterface> = {
         ...itemToEdit,
         ...values,
-        estado: values.estado === "true" || values.estado === true,
+        estado: values.estado === true,
       };
-
-      console.log("Payload para actualizar:", payload);
 
       await PutUpdateDirectionContext(
         itemToEdit.id_direction,
         payload as DirectionInterface
       );
       await GetDirectionsContext();
+      toast.success(`Dirección ${values.nombre} actualizada correctamente`);
       closeAll();
     } catch (error) {
       console.error("Error actualizando dirección:", error);
+      toast.error("Error al actualizar la dirección");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleCreate = async (values: any) => {
+    // Validar si el nombre ya existe
+    if (isNombreTaken(values.nombre)) {
+      toast.error("El nombre de dirección ya está registrado.");
+      return;
+    }
+
+    setSaving(true);
     try {
       const payload = {
         ...values,
-        estado: values.estado === "true" || values.estado === true,
+        estado: values.estado === true,
       };
-
-      console.log("Payload para crear:", payload);
 
       await PostCreateDirectionContext(payload as DirectionInterface);
       await GetDirectionsContext();
+      toast.success(`Dirección ${values.nombre} creada correctamente`);
       closeAll();
     } catch (error) {
       console.error("Error creando dirección:", error);
+      toast.error("Error al crear la dirección");
+    } finally {
+      setSaving(false);
     }
   };
 
+  // 8. Effects
+  useEffect(() => {
+    setLoading(true);
+    GetDirectionsContext().finally(() => setLoading(false));
+  }, []);
+
+  // Filtra cada vez que cambien directions o status
+  useEffect(() => {
+    handleTableContent(directions);
+  }, [status, directions]);
+
+  // Actualiza el filtro cuando cambie
+  useEffect(() => {
+    handleTableContent(directions);
+  }, [estadoFiltro, directions]);
+
+  // 9. Render condicional
   if (loading) {
     return <div>Cargando Direcciones...</div>;
   }
 
+  // 10. Render principal
   return (
     <div>
-      <h1>Lista de Direcciones</h1>
-      <Button onClick={() => setCreateOpen(true)}>+ Nueva Dirección</Button>
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Direcciones</h1>
+
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nueva Dirección
+        </Button>
+      </div>
 
       <GenericTable
         columns={directionColumns}
-        data={filteredData.filter((item) => item && item.id_direction)} // Filtro adicional de seguridad
+        data={filteredData}
         rowKey={(row) => row?.id_direction || ""}
         actions={[
           {
@@ -243,6 +295,9 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               row?.id_direction && openDelete(row.id_direction),
           },
         ]}
+        rowClassName={(row) =>
+          row.estado === false ? "opacity-40 line-through" : ""
+        }
       />
 
       {/* Modal Editar */}
@@ -250,14 +305,26 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         {itemToEdit && (
           <GenericForm<Partial<DirectionInterface>>
             initialValues={{
-              nombre: itemToEdit.nombre || "",
-              estado: itemToEdit.estado,
+              nombre: itemToEdit.nombre,
+              estado: true,
             }}
             fields={directionFields}
             onSubmit={handleSave}
             onCancel={closeAll}
-            submitLabel="Guardar"
+            validate={validateEdit}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
             cancelLabel="Cancelar"
+            title="Editar Dirección"
+            submitDisabled={saving}
           />
         )}
       </Modal>
@@ -269,11 +336,25 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             nombre: "",
             estado: true,
           }}
-          fields={directionFields}
+          fields={directionFields.map((f) =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validateCreate}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          title="Crear Dirección"
+          submitDisabled={saving}
         />
       </Modal>
 
@@ -284,21 +365,27 @@ const Direction: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             <h3 className="text-xl font-semibold mb-4">
               Confirmar Eliminación
             </h3>
+
             <p>¿Seguro que deseas borrar esta dirección?</p>
+
             <GenericTable
               columns={directionColumns}
               data={[itemToDelete]}
               rowKey={(row) => row.id_direction}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">
-                Cancelar
-              </Button>
+
+            <div className="mt-4 text-right gap-2 flex justify-center">
               <Button
-                isPrimary
                 onClick={() => handleConfirmDelete(itemToDelete.id_direction)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
               >
                 Eliminar
+              </Button>
+              <Button
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancelar
               </Button>
             </div>
           </>

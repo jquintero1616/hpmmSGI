@@ -45,10 +45,12 @@ export const DirectionProvider: React.FC<ProviderProps> = ({ children }) => {
   }, [isAuthenticated]);
 
   const GetDirectionsContext = async (): Promise<
-    DirectionInterface[] | null
-  > => {
+    DirectionInterface[] | null> => {
     try {
       const directions = await GetDirectionService(axiosPrivate);
+      if (directions !== null) {
+        setDirections(directions);
+      }
       return directions;
     } catch (error) {
       console.error("Error al recuperar las direcciones", error);

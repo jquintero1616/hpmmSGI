@@ -48,6 +48,9 @@ export const ShoppingProvider: React.FC<ProviderProps> = ({ children }) => {
    const GetShoppingContext = async (): Promise<ShoppingInterface[] | null> => {
         try {
             const shoppingData = await GetShoppingService(axiosPrivate);
+            if (shoppingData !== null) {
+                setShopping(shoppingData);
+            }
             return shoppingData;
         } catch (error) {
             console.error('Error al recuperar las compras', error);

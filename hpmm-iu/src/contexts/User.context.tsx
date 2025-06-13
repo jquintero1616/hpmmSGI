@@ -57,7 +57,8 @@ export const UserProvider: React.FC<ProviderProps> = ({ children }) => {
     }
   };
 
-  const GetUsersContext = async (): Promise<userInterface[] | null> => {
+  const GetUsersContext = async (): 
+  Promise<userInterface[] | null> => {
     try {
       const users = await GetUsersService(axiosPrivate);
       if (users !== null) {
@@ -71,7 +72,9 @@ export const UserProvider: React.FC<ProviderProps> = ({ children }) => {
   };
 
 
-  const PostCreateUserContext = async (user: userInterface): Promise<void> => {
+  const PostCreateUserContext = async (
+    user: userInterface
+  ): Promise<void> => {
     try {
       const created = await PostCreateUserService(user, axiosPrivate);
       SetUser((prev) => [created, ...prev]); 
@@ -92,7 +95,7 @@ export const UserProvider: React.FC<ProviderProps> = ({ children }) => {
       );
     } catch (error) {
       console.error("Error al actualizar el usuario", error);
-      throw error; // Re-lanzamos el error para que pueda ser manejado por el componente que llama a esta función
+      throw error; 
     }
   };
 

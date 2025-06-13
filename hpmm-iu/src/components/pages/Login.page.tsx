@@ -4,34 +4,34 @@ import { useAuth } from "../../hooks/use.Auth";
 import axios from "axios";
 import LoginForm from "../molecules/LoginForm";
 import LoginFormProps from "../organisms/Login";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { authenticate } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginError(""); // Limpia el error anterior
 
     // Validación previa
     if (!email || !password) {
-      setLoginError("Debes ingresar correo y contraseña.");
+      toast.warn("Por favor, ingresa tu correo y contraseña.", { position: "top-right" });
       return;
     }
 
     setLoading(true);
     try {
       await authenticate(email, password);
-      navigate("/home");
+      navigate("/home", { state: { showWelcome: true } });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        setLoginError("* Credenciales incorrectas.");
+        toast.error("Tus credenciales son incorrectas.", { position: "top-right" });
       } else {
-        setLoginError("* Error al iniciar sesión.");
+        toast.error("Ocurrió un error al iniciar sesión.", { position: "top-right" });
       }
     } finally {
       setLoading(false);
@@ -42,13 +42,7 @@ const LoginPage: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-white-100">
       <LoginFormProps>
         <div className="w-full max-w-xs mx-auto">
-          {/* Mensaje de error estático, sin animación */}
-          {loginError && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-red-100 border border-red-300 text-red-700 text-sm">
-              {loginError}
-            </div>
-          )}
-
+          
           {loading ? (
             <div className="flex justify-center items-center h-40">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
@@ -57,7 +51,7 @@ const LoginPage: React.FC = () => {
             <LoginForm
               email={email}
               password={password}
-              error="" // Ya mostramos el error arriba
+              error=""
               onEmailChange={(e) => setEmail(e.target.value)}
               onPasswordChange={(e) => setPassword(e.target.value)}
               onSubmit={handleLogin}
@@ -65,6 +59,7 @@ const LoginPage: React.FC = () => {
           )}
         </div>
       </LoginFormProps>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

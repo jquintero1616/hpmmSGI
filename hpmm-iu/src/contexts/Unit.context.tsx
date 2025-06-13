@@ -42,9 +42,13 @@ export const UnitProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }, [isAuthenticated]);
 
-    const GetUnitsContext = async (): Promise<UnitInterface[] | null> => {
+    const GetUnitsContext = async ():
+     Promise<UnitInterface[] | null> => {
         try {
             const units = await GetUnitsService(axiosPrivate);
+            if (units !== null) {
+                setUnits(units);
+            }
             return units;
         } catch (error) {
             console.error('Error al recuperar las unidades', error);
@@ -73,7 +77,10 @@ export const UnitProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     };
 
-    const PutUpdateUnitContext = async (id_unit: string, unit: UnitInterface): Promise<void> => {
+    const PutUpdateUnitContext = async (
+        id_unit: string, 
+        unit: UnitInterface
+    ): Promise<void> => {
         try {
             await PutUnitService(id_unit, unit, axiosPrivate);
             setUnits((prevUnits) =>

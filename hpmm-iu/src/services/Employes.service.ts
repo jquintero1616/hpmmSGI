@@ -36,10 +36,10 @@ export const PostCreateEmployeService = async (
     const response = await axiosPrivate.post<EmployesInterface>(
       `employes`,
       {
-        usuario: employe.usuario,
-        unidad: employe.unidad,
-        subdireccion: employe.subdireccion,
-        direccion: employe.direccion,
+        id_user: employe.id_user,
+        id_units: employe.id_units,
+        id_subdireccion: employe.id_subdireccion,
+        id_direction: employe.id_direction,
         name: employe.name,
         email: employe.email,
         telefono: employe.telefono,
@@ -64,9 +64,19 @@ export const PutUpdateEmployeService = async (
   axiosPrivate: AxiosInstance
 ): Promise<void> => {
   try {
-    await axiosPrivate.put<EmployesInterface>(
-      `employes/${id_employes}`,
-      employe
+    const { id_user, id_units, id_subdireccion, id_direction, name, email, telefono, puesto, estado } = employe;
+    await axiosPrivate.put( `employes/${id_employes}`,
+      {
+        id_user,
+        id_units,
+        id_subdireccion,
+        id_direction,
+        name,
+        email,
+        telefono,
+        puesto,
+        estado
+      }
     );
   } catch (error) {
     console.error(`Error al actualizar el empleado: ${error}`);

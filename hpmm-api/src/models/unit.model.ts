@@ -1,12 +1,12 @@
-import knex from "knex";
 import db from "../db";
 import { NewUnit } from "../types/units";
 import { randomUUID } from "crypto";
-
+ 
 export const getAllUnitsModel = async (): Promise<NewUnit[] | []> => {
-  return knexTableName().select("*");
+  return knexTableName()
+    .select("*")
+    .orderBy("created_at", "desc");  
 }
-
 export async function getUnitByIdModel(id_units: string): Promise<NewUnit | null> {
   const unit = await knexTableName().where({ id_units }).first();
   return unit || null;

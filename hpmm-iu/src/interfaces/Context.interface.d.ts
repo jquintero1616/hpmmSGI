@@ -14,6 +14,7 @@ import { Direction} from "./direction.interface";
 import { Shopping } from "./shopping.interface";
 import { Requi_x_Product } from "./requi_x_product.interface";
 import { Requisicion } from "./requisicion.interface";
+import { Bitacora } from "../contexts/Bitacora.context";
 
 
 export interface AuthContextType {
@@ -92,10 +93,10 @@ export interface SupplierContextType {
 export interface RoleContextType {
   roles: Role[];
   GetRolesContext: () => Promise<Role[] | null>;
-  GetRoleByIdContext: (id_role: string) => Promise<Role | undefined>;
+  GetRoleByIdContext: (id_rol: string) => Promise<Role | undefined>;
   PostCreateRoleContext: (role: Role) => Promise<Role>;
-  PutUpdateRoleContext: (id_role: string, role: Role) => Promise<void>;
-  DeleteRoleContext: (id_role: string) => Promise<void>;
+  PutUpdateRoleContext: (id_rol: string, role: Role) => Promise<void>;
+  DeleteRoleContext: (id_rol: string) => Promise<void>;
 }
 
 export interface EmployeeContextType {
@@ -179,6 +180,12 @@ export interface RequisicionContextType {
   PostCreateRequisicionContext: (requisicion: Requisicion) => Promise<Requisicion>;
   PutUpdateRequisicionContext: (id_requisi: string, requisicion: Requisicion) => Promise<void>;
   DeleteRequisicionContext: (id_requisi: string) => Promise<void>;
+}
+
+export interface BitacoraContextType {
+  bitacoras: Bitacora[];
+  GetBitacorasContext: () => Promise<Bitacora[] | null>;
+  GetBitacoraByIdContext: (id_bitacora: string) => Promise<Bitacora | undefined>;
 }
 
 export interface ProviderProps {

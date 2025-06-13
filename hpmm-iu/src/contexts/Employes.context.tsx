@@ -51,6 +51,10 @@ export const EmployeProvider: React.FC<ProviderProps> = ({ children }) => {
   const GetEmployeContext = async (): Promise<EmployesInterface[] | null> => {
     try {
       const employes = await GetEmployesService(axiosPrivate);
+      if ( employes !== null) {
+        // IMPORTANTE! aqui actualizamos el estado de los empleados al momento de la llamada
+        setEmployes(employes);
+      }
       return employes;
     } catch (error) {
       console.error("Error al recuperar los empleados", error);

@@ -44,6 +44,9 @@ export const SupplierProvider: React.FC<ProviderProps> = ({ children }) => {
     const GetSuppliersContext = async (): Promise<suppliersInterface[] | null> => {
         try {
             const suppliers = await GetSuppliersService(axiosPrivate);
+            if (suppliers !== null) {
+                setSuppliers(suppliers);
+            }
             return suppliers;
         } catch (error) {
             console.error("Error al recuperar los proveedores", error);

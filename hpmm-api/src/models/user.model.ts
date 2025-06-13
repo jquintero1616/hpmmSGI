@@ -1,22 +1,36 @@
-
 import db from "../db";
 import { NewUser, User } from "../types/user";
-
-
 
 // Get all users model
 export const getAllUsersModel = async (): Promise<NewUser[]> => {
   return db("users as u")
     .join("roles as r", "u.id_rol", "r.id_rol")
-    .select("u.id_user", "u.username", "u.email", "u.estado", "u.created_at", "u.updated_at", "r.name as role_name", "r.id_rol as id_rol")
-}
+    .select(
+      "u.id_user",
+      "u.username",
+      "u.email",
+      "u.estado",
+      "u.created_at",
+      "u.updated_at",
+      "r.name as role_name",
+      "r.id_rol as id_rol"
+    );
+};
 // User Id model
 export async function getUserByIdModel(
   id_user: string
 ): Promise<NewUser | null> {
   const user = await db("users as u")
     .join("roles as r", "u.id_rol", "r.id_rol")
-    .select("u.id_user", "u.username", "u.email", "u.estado", "u.created_at", "u.updated_at", "r.name as role_name")
+    .select(
+      "u.id_user",
+      "u.username",
+      "u.email",
+      "u.estado",
+      "u.created_at",
+      "u.updated_at",
+      "r.name as role_name"
+    )
     .where({ id_user })
     .first();
   return user || null;
@@ -24,12 +38,9 @@ export async function getUserByIdModel(
 
 // Create User
 export const createUserModel = async (payload: User): Promise<User> => {
-  const [created] = await db("users")
-    .insert(payload)
-    .returning("*");
+  const [created] = await db("users").insert(payload).returning("*");
   return created;
 };
-
 
 // Update User
 export const updateUserModel = async (

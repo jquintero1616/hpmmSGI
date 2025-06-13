@@ -43,14 +43,19 @@ export const SubdireccionProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }, [isAuthenticated]);
 
-    const GetSubdireccionesContext = async (): Promise<SubdireccionInterface[] | null> => {
-        try {
-            const subdirecciones = await GetSubdireccionesService(axiosPrivate);
-            return subdirecciones;
-        } catch (error) {
-            console.error('Error al recuperar las subdirecciones', error);
-            return null;
+    const GetSubdireccionesContext = async (): Promise<
+      SubdireccionInterface[] | null
+    > => {
+      try {
+        const subdirecciones = await GetSubdireccionesService(axiosPrivate);
+        if (subdirecciones !== null) {
+          setSubdireccion(subdirecciones);
         }
+        return subdirecciones;
+      } catch (error) {
+        console.error("Error al recuperar las subdirecciones", error);
+        return null;
+      }
     };
 
     const GetSubdireccionByIdContext = async (id_subdireccion: string): Promise<SubdireccionInterface | undefined> => {

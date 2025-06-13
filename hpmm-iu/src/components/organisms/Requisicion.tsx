@@ -9,8 +9,11 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { useEmploye } from "../../hooks/use.Employe";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
+  // 1. HOOKS
   const {
     requisitions,
     requisiDetail,
@@ -22,24 +25,34 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   const { employes, GetEmployeContext } = useEmploye();
 
-  // 2. ESTADOS (agrupados por función)
+  // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
-  const [displayData, setDisplayData] = useState<RequisiDetail[]>([]);
-
-  // Estados de modales
+  const [filteredData, setFilteredData] = useState<RequisiDetail[]>([]);
   const [isEditOpen, setEditOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-
-  // Estados de items seleccionados
   const [itemToEdit, setItemToEdit] = useState<RequisiInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<RequisiDetail | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // 3. CONFIGURACIONES (constantes que no cambian)
+  // 3. FUNCIONES DE VALIDACIÓN
+  const validateCreate = (values: any) => {
+    const errors: any = {};
+    // Aquí puedes agregar validaciones específicas si necesitas
+    // Por ejemplo, validar fechas o lógica de negocio
+    return errors;
+  };
+
+  const validateEdit = (values: any) => {
+    const errors: any = {};
+    // Aquí puedes agregar validaciones específicas si necesitas
+    return errors;
+  };
+
+  // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const requisicionColumns: Column<RequisiDetail>[] = [
     { header: "Empleado", accessor: "employee_name" },
     { header: "Cantidad", accessor: "cantidad" },
-
     {
       header: "Fecha de ingreso",
       accessor: (row) => new Date(row.fecha).toLocaleDateString(),
@@ -55,7 +68,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       accessor: (row) =>
         row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
     },
-    { header: "Acciones", accessor: () => null },
   ];
 
   const requisicionFields: FieldConfig[] = [
@@ -69,8 +81,14 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           label: e.name || e.employee_name || "Sin nombre",
           value: e.id_employes, 
         })),
+      required: true,
     },
-    { name: "fecha", label: "Fecha", type: "date" },
+    { 
+      name: "fecha", 
+      label: "Fecha", 
+      type: "date",
+      required: true,
+    },
     {
       name: "estado",
       label: "Estado",
@@ -80,44 +98,47 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         { label: "Aprobado", value: "Aprobado" },
         { label: "Rechazado", value: "Rechazado" },
       ],
+      required: true,
+    },
+    {
+      name: "cantidad",
+      label: "Cantidad",
+      type: "number",
+      required: true,
     },
   ];
 
-  // 4. EFFECTS
-  useEffect(() => {
-    // Carga empleados y requisiciones al montar
-    Promise.all([GetRequisicionesContext(), GetEmployeContext()]).finally(() =>
-      setLoading(false)
-    );
-  }, []);
-
-  // Procesar datos: filtrar por estado
-  useEffect(() => {
-    let data = [...requisiDetail];
+  // 5. FUNCIÓN PARA MANEJAR EL CONTENIDO DE LA TABLA
+  const handleTableContent = (list: RequisiDetail[]) => {
+    let filtrados = [...list];
 
     // Verificar IDs duplicados
-    const ids = data.map((item) => item.id_requisi);
+    const ids = filtrados.map((item) => item.id_requisi);
     const uniqueIds = [...new Set(ids)];
     if (ids.length !== uniqueIds.length) {
       // Filtrar duplicados manteniendo solo el primero
-      data = data.filter(
+      filtrados = filtrados.filter(
         (item, index, self) =>
           index === self.findIndex((t) => t.id_requisi === item.id_requisi)
       );
     }
 
+    // Filtrar por estado
     if (status !== "Todo") {
-      data = data.filter((item) => item.estado === status);
+      filtrados = filtrados.filter((item) => item.estado === status);
     }
-    data.sort(
+
+    // Ordenar por fecha de creación (más recientes primero)
+    const ordenados = filtrados.sort(
       (a, b) =>
         new Date(b.created_at || 0).getTime() -
         new Date(a.created_at || 0).getTime()
     );
-    setDisplayData(data);
-  }, [requisiDetail, status]);
 
-  // Handlers de UI
+    setFilteredData(ordenados);
+  };
+
+  // 6. FUNCIONES DE MANEJO DE MODALES
   const closeAll = () => {
     setEditOpen(false);
     setCreateOpen(false);
@@ -138,35 +159,80 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     setDeleteOpen(true);
   };
 
+  // 7. HANDLERS DE CRUD
   const handleConfirmDelete = async (id_requisi: string) => {
-    await DeleteRequisicionContext(id_requisi);
-    await GetRequisicionesContext();
-    closeAll();
+    setSaving(true);
+    try {
+      await DeleteRequisicionContext(id_requisi);
+      await GetRequisicionesContext();
+      toast.success("Requisición eliminada correctamente");
+      closeAll();
+    } catch (error) {
+      toast.error("Error al eliminar la requisición");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSave = async (values: any) => {
     if (!itemToEdit) return;
-    await PutUpdateRequisicionContext(itemToEdit.id_requisi, values);
-    await GetRequisicionesContext();
-    closeAll();
+
+    // Validar si hay cambios
+    const hasChanges =
+      values.id_employes !== itemToEdit.id_employes ||
+      values.fecha !== itemToEdit.fecha ||
+      values.estado !== itemToEdit.estado ||
+      values.cantidad !== itemToEdit.cantidad;
+
+    if (!hasChanges) {
+      toast.error("No se detectaron cambios para guardar.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await PutUpdateRequisicionContext(itemToEdit.id_requisi, values);
+      await GetRequisicionesContext();
+      toast.success("Requisición actualizada correctamente");
+      closeAll();
+    } catch (error) {
+      toast.error("Error al actualizar la requisición");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCreate = async (values: any) => {
-    await PostCreateRequisicionContext(values);
-    await GetRequisicionesContext();
-    closeAll();
+    setSaving(true);
+    try {
+      await PostCreateRequisicionContext(values);
+      await GetRequisicionesContext();
+      toast.success("Requisición creada correctamente");
+      closeAll();
+    } catch (error) {
+      toast.error("Error al crear la requisición");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Handlers específicos para cambiar estado
   const changeRequisicionStatus = async (row: RequisiDetail, newStatus: string) => {
     const item = requisitions.find((r) => r.id_requisi === row.id_requisi);
     if (item) {
-      // ✅ Actualizar directamente sin abrir modal
-      await PutUpdateRequisicionContext(item.id_requisi, {
-        ...item,
-        estado: newStatus as "Pendiente" | "Aprobado" | "Rechazado",
-      });
-      await GetRequisicionesContext(); // Recargar datos
+      setSaving(true);
+      try {
+        await PutUpdateRequisicionContext(item.id_requisi, {
+          ...item,
+          estado: newStatus as "Pendiente" | "Aprobado" | "Rechazado",
+        });
+        await GetRequisicionesContext();
+        toast.success(`Estado cambiado a ${newStatus}`);
+      } catch (error) {
+        toast.error("Error al cambiar el estado");
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -179,7 +245,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             header: "Acciones",
             label: "Recuperar",
             onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Pendiente"), // ✅ Cambiar a Pendiente
+              changeRequisicionStatus(row, "Pendiente"),
           },
         ];
 
@@ -194,13 +260,13 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             header: "Acciones",
             label: "Aprobar",
             onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Aprobado"), // ✅ Cambiar a Aprobado
+              changeRequisicionStatus(row, "Aprobado"),
           },
           {
             header: "Acciones",
             label: "Rechazar",
             onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Rechazado"), // ✅ Cambiar a Rechazado
+              changeRequisicionStatus(row, "Rechazado"),
           },
         ];
 
@@ -215,7 +281,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             header: "Acciones",
             label: "Rechazar",
             onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Rechazado"), // ✅ Cambiar a Rechazado
+              changeRequisicionStatus(row, "Rechazado"),
           },
         ];
 
@@ -235,55 +301,107 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     }
   };
 
-  // 6. EARLY RETURNS
-  if (loading) return <div>Cargando requisiciones...</div>;
+  // 8. EFFECTS
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([GetRequisicionesContext(), GetEmployeContext()]).finally(() =>
+      setLoading(false)
+    );
+  }, []);
 
-  // 7. RENDER
+  useEffect(() => {
+    handleTableContent(requisiDetail);
+  }, [requisiDetail, status]);
+
+  // 9. RENDER CONDICIONAL
+  if (loading) {
+    return <div>Cargando requisiciones...</div>;
+  }
+
+  // 10. RENDER PRINCIPAL
   return (
     <div>
-      <h2>Gestión de Requisiciones</h2>
-      <Button onClick={() => setCreateOpen(true)}>+ Nueva Requisición</Button>
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Requisiciones</h1>
+
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nueva Requisición
+        </Button>
+      </div>
 
       <GenericTable
         columns={requisicionColumns as Column<RequisiDetail>[]}
-        data={displayData}
+        data={filteredData}
         rowKey={(row) => row.id_requisi}
         actions={getActionsForStatus(status)}
+        rowClassName={(row) =>
+          row.estado === "Rechazado" ? "opacity-40 line-through" : ""
+        }
       />
 
       {/* Modal Editar */}
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
-          <GenericForm
+          <GenericForm<Partial<RequisiInterface>>
             initialValues={{
-              id_employes: itemToEdit.id_employes || "",
-              fecha: itemToEdit.fecha
-                ? new Date(itemToEdit.fecha).toISOString().split("T")[0]
-                : "",
-              estado: itemToEdit.estado || "Pendiente",
+              id_employes: itemToEdit.id_employes ?? "",
+              fecha: itemToEdit.fecha ? new Date(itemToEdit.fecha) : new Date(),
+              estado: itemToEdit.estado ?? "Pendiente",
+              cantidad: itemToEdit.cantidad ?? 0,
             }}
             fields={requisicionFields}
             onSubmit={handleSave}
             onCancel={closeAll}
-            submitLabel="Guardar"
+            validate={validateEdit}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
             cancelLabel="Cancelar"
+            title="Editar Requisición"
+            submitDisabled={saving}
           />
         )}
       </Modal>
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
-        <GenericForm
+        <GenericForm<Partial<RequisiInterface>>
           initialValues={{
             id_employes: "",
-            fecha: new Date().toISOString().slice(0, 10),
+            fecha: itemToEdit?.fecha ? new Date(itemToEdit.fecha) : new Date(),
             estado: "Pendiente",
+            cantidad: 1,
           }}
-          fields={requisicionFields}
+          fields={requisicionFields.map((f) =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validateCreate}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          title="Crear Requisición"
+          submitDisabled={saving}
         />
       </Modal>
 
@@ -294,21 +412,36 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             <h3 className="text-xl font-semibold mb-4">
               Confirmar Eliminación
             </h3>
+
             <p>¿Seguro que deseas borrar esta requisición?</p>
+
             <GenericTable
               columns={requisicionColumns}
               data={[itemToDelete]}
               rowKey={(row) => row.id_requisi}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">
-                Cancelar
+
+            <div className="mt-4 text-right gap-2 flex justify-center">
+              <Button
+                onClick={() => handleConfirmDelete(itemToDelete.id_requisi)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
+                disabled={saving}
+              >
+                {saving ? (
+                  <span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    Eliminando...
+                  </span>
+                ) : (
+                  "Eliminar"
+                )}
               </Button>
               <Button
-                isPrimary
-                onClick={() => handleConfirmDelete(itemToDelete.id_requisi)}
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+                disabled={saving}
               >
-                Eliminar
+                Cancelar
               </Button>
             </div>
           </>

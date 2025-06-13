@@ -56,10 +56,13 @@ export const PutUpdateUser = async (
 ): Promise<void> => {
   try {
     const { id_rol, username, email, password, estado } = user;
-    await axiosPrivate.put(
-      `users/${id_user}`,
-      { id_rol, username, email, password, estado } // todos los campos directos
-    );
+    await axiosPrivate.put(`users/${id_user}`, {
+      id_rol,
+      username,
+      email,
+      password,
+      estado,
+    });
   } catch (error) {
     console.error(`Error al actualizar el usuario con id ${id_user}`, error);
     throw error;

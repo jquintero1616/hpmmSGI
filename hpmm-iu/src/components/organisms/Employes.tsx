@@ -8,11 +8,14 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { useUser } from "../../hooks/use.User";
-import { useUnit } from "../../hooks/use.Unit"; // Necesitas crear este hook
-import { useSubdireccion } from "../../hooks/use.subdireccion"; // Necesitas crear este hook  
-import { useDirection } from "../../hooks/use.Direction"; // Necesitas crear este hook
+import { useUnit } from "../../hooks/use.Unit";
+import { useSubdireccion } from "../../hooks/use.subdireccion";
+import { useDirection } from "../../hooks/use.Direction";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
+  // 1. HOOKS
   const {
     employes,
     GetEmployeContext,
@@ -22,24 +25,51 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   } = useEmploye();
 
   const { users, GetUsersContext } = useUser();
-  const { units, GetUnitsContext } = useUnit(); // Agregar
-  const { subdireccion, GetSubdireccionesContext } = useSubdireccion(); // Agregar
-  const { directions, GetDirectionsContext } = useDirection(); // Agregar
+  const { units, GetUnitsContext } = useUnit();
+  const { subdireccion, GetSubdireccionesContext } = useSubdireccion();
+  const { directions, GetDirectionsContext } = useDirection();
 
+  // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<EmployesInterface[]>([]);
-
-  // Para formularios
   const [isEditOpen, setEditOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<EmployesInterface | null>(null);
-
   const [isCreateOpen, setCreateOpen] = useState(false);
-
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<EmployesInterface | null>(
-    null
-  );
+  const [itemToDelete, setItemToDelete] = useState<EmployesInterface | null>(null);
+  const [saving, setSaving] = useState(false);
 
+  // 3. FUNCIONES DE VALIDACIÓN
+  const isEmailTaken = (email: string, excludeId?: string) => {
+    return employes.some(
+      (e) =>
+        e.email.trim().toLowerCase() === email.trim().toLowerCase() &&
+        (!excludeId || e.id_employes !== excludeId)
+    );
+  };
+
+  const validateCreate = (values: any) => {
+    const errors: any = {};
+    if (isEmailTaken(values.email)) {
+      errors.email = "El correo ya está registrado en otro empleado.";
+    }
+    return errors;
+  };
+
+  const validateEdit = (values: any) => {
+    const errors: any = {};
+    if (
+      itemToEdit &&
+      values.email.trim().toLowerCase() !==
+        itemToEdit.email.trim().toLowerCase() &&
+      isEmailTaken(values.email, itemToEdit.id_employes)
+    ) {
+      errors.email = "El correo ya está registrado en otro empleado.";
+    }
+    return errors;
+  };
+
+  // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const employeeColumns: Column<EmployesInterface>[] = [
     { header: "Usuario", accessor: "usuario" },
     { header: "Unidad", accessor: "unidad" },
@@ -65,99 +95,85 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-  const employeeFields: FieldConfig[] = React.useMemo(
-    () => [
-      {
-        name: "usuario",
-        label: "Usuario",
-        type: "select",
-        options: users.map((user) => ({
-          label: user.username,
-          value: user.id_user,
-        })),
-        required: true,
-      },
-      {
-        name: "unidad",
-        label: "Unidad",
-        type: "select",
-        options: units.map((unit) => ({
-          label: unit.name,
-          value: unit.name, // O el valor que corresponda a 'unidad'
-        })),
-        required: true,
-      },
-      {
-        name: "subdireccion",
-        label: "Subdirección",
-        type: "select",
-        options: subdireccion.map((sub) => ({
-          label: sub.nombre,
-          value: sub.nombre, // O el valor que corresponda a 'subdireccion'
-        })),
-        required: true,
-      },
-      {
-        name: "direccion",
-        label: "Dirección",
-        type: "select",
-        options: directions.map((dir) => ({
-          label: dir.nombre,
-          value: dir.nombre, // O el valor que corresponda a 'direccion'
-        })),
-        required: true,
-      },
-      { name: "name", label: "Nombre", type: "text", required: true },
-      { name: "email", label: "Email", type: "email", required: true },
-      { name: "telefono", label: "Teléfono", type: "tel", required: true, pattern: "^[0-9+\\-()\\s]{7,}$" },
-      { name: "puesto", label: "Puesto", type: "text", required: true },
-      {
-        name: "estado",
-        label: "Estado",
-        type: "select",
-        options: [
-          { label: "Activo", value: true },
-          { label: "Inactivo", value: false },
-        ],
-        required: true,
-      },
-    ],
-    [users, units, subdireccion, directions]
-  );
+  const employeeFields: FieldConfig[] = [
+    {
+      name: "id_user",
+      label: "Usuario",
+      type: "select",
+      options: users.map((user) => ({
+        label: user.username,
+        value: user.id_user,
+      })),
+      required: true,
+    },
+    {
+      name: "id_units",
+      label: "Unidad",
+      type: "select",
+      options: units.map((unit) => ({
+        label: unit.name,
+        value: unit.id_units,
+      })),
+      required: true,
+    },
+    {
+      name: "id_subdireccion",
+      label: "Subdirección",
+      type: "select",
+      options: subdireccion.map((sub) => ({
+        label: sub.nombre,
+        value: sub.id_subdireccion,
+      })),
+      required: true,
+    },
+    {
+      name: "id_direction",
+      label: "Dirección",
+      type: "select",
+      options: directions.map((dir) => ({
+        label: dir.nombre,
+        value: dir.id_direction,
+      })),
+      required: true,
+    },
+    { name: "name", label: "Nombre", type: "text", required: true },
+    { name: "email", label: "Email", type: "email", required: true },
+    {
+      name: "telefono",
+      label: "Teléfono",
+      type: "tel",
+      required: true,
+      pattern: "^[0-9+\\-()\\s]{7,}$",
+    },
+    { name: "puesto", label: "Puesto", type: "text", required: true },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      options: [
+        { label: "Activo", value: true },
+        { label: "Inactivo", value: false },
+      ],
+      required: true,
+    },
+  ];
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([
-          GetEmployeContext(),
-          GetUsersContext(),
-        ]);
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []); // <- Quita las dependencias GetEmployeContext, GetUsersContext
-
-  useEffect(() => {
-    if (!employes || employes.length === 0) {
-      setFilteredData([]);
-      return;
+  // 5. FUNCIÓN PARA MANEJAR CONTENIDO DE TABLA
+  const handleTableContent = (list: EmployesInterface[]) => {
+    let filtrados = list;
+    if (status === "Activo") {
+      filtrados = list.filter((e) => e.estado === true);
+    } else if (status === "Inactivo") {
+      filtrados = list.filter((e) => e.estado === false);
     }
-
-    // Filtrar elementos válidos antes de procesar
-    const validEmployees = employes.filter(
-      (item) =>
-        item && item.id_employes && typeof item.id_employes === "string"
+    // Ordenar por nombre del empleado
+    const ordenados = filtrados.sort((a, b) =>
+      a.name.localeCompare(b.name)
     );
+    setFilteredData(ordenados);
+  };
 
-    handleTableContent(validEmployees);
-  }, [status, employes]); // <- Mantén solo estas dependencias
-
+  // 6. FUNCIONES DE MANEJO DE MODALES
   const closeAll = () => {
     setEditOpen(false);
     setCreateOpen(false);
@@ -172,84 +188,107 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setEditOpen(true);
   };
 
-  const openDelete = (id: string) => {
-    const item = employes.find((e) => e.id_employes === id) || null;
-    setItemToDelete(item);
+  const openDelete = (id_employes: string) => {
+    setItemToDelete(employes.find((e) => e.id_employes === id_employes) || null);
     setDeleteOpen(true);
   };
 
-  const handleTableContent = (emp: EmployesInterface[]) => {
-    // Verificar que emp existe y tiene elementos
-    if (!emp || emp.length === 0) {
-      setFilteredData([]);
+  // 7. HANDLERS DE CRUD
+  const handleCreate = async (values: any) => {
+    console.log("Estado employes ANTES:", employes.length);
+    
+    if (isEmailTaken(values.email)) {
+      toast.error("El correo ya está registrado en otro empleado.");
       return;
     }
 
-    // Filtrar elementos válidos antes de procesar
-    const validEmployees = emp.filter(
-      (item) =>
-        item && item.id_employes && typeof item.id_employes === "string"
-    );
+    setSaving(true);
+    await PostCreateEmployeContext(values as EmployesInterface);
+    await GetEmployeContext();
+    setSaving(false);
+    toast.success("Empleado creado correctamente");
+    closeAll();
 
-    if (status === "Todo") {
-      setFilteredData(validEmployees);
-    } else if (status === "Activo") {
-      setFilteredData(validEmployees.filter((item) => item.estado === true));
-    } else if (status === "Inactivo") {
-      setFilteredData(validEmployees.filter((item) => item.estado === false));
-    } else {
-      setFilteredData(validEmployees);
+    // Esperar un momento para que React actualice
+    setTimeout(() => {
+      console.log("Estado employes DESPUÉS:", employes.length);
+    }, 100);
+  };
+
+  const handleSave = async (values: any) => {
+    if (!itemToEdit) return;
+    setSaving(true);
+    try {
+      await PutUpdateEmployeContext(itemToEdit.id_employes, {
+        ...itemToEdit,
+        ...values,
+        estado: values.estado === "true" || values.estado === true,
+      } as EmployesInterface);
+      await GetEmployeContext();
+      toast.success("Empleado actualizado correctamente");
+      closeAll();
+    } catch (error) {
+      toast.error("Error actualizando empleado");
     }
+    setSaving(false);
   };
 
   const handleConfirmDelete = async (id: string) => {
     await DeleteEmployeContext(id);
     await GetEmployeContext();
+    toast.success("Empleado eliminado correctamente");
     closeAll();
   };
 
-  const handleSave = async (values: any) => {
-    if (!itemToEdit) {
-      console.error("No hay item para editar");
+  // 8. EFFECTS
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          GetEmployeContext(),
+          GetUsersContext(),
+          GetUnitsContext(),
+          GetSubdireccionesContext(),
+          GetDirectionsContext(),
+        ]);
+      } catch (error) {
+        toast.error("Error cargando datos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (!employes || employes.length === 0) {
+      setFilteredData([]);
       return;
     }
+    const validEmployees = employes.filter(
+      (item) => item && item.id_employes && typeof item.id_employes === "string"
+    );
+    handleTableContent(validEmployees);
+  }, [status, employes]);
 
-    try {
-      const payload: Partial<EmployesInterface> = {
-        ...itemToEdit,
-        ...values,
-        estado: values.estado === "true" || values.estado === true,
-      };
-
-      await PutUpdateEmployeContext(itemToEdit.id_employes, payload as EmployesInterface);
-      await GetEmployeContext();
-      closeAll();
-    } catch (error) {
-      console.error("Error actualizando empleado:", error);
-    }
-  };
-
-  const handleCreate = async (values: any) => {
-    try {
-      const payload = {
-        ...values,
-        estado: values.estado === "true" || values.estado === true,
-      };
-
-      await PostCreateEmployeContext(payload as EmployesInterface);
-      await GetEmployeContext();
-      closeAll();
-    } catch (error) {
-      console.error("Error creando empleado:", error);
-    }
-  };
-
+  // 9. RENDER CONDICIONAL
   if (loading) return <div>Cargando empleados…</div>;
 
+  // 10. RENDER PRINCIPAL
   return (
     <div>
-      <h2>Gestión de Empleados</h2>
-      <Button onClick={() => setCreateOpen(true)}>+ Nuevo empleado</Button>
+      <ToastContainer />
+      <h2 className="text-2xl font-bold mb-4 text-center">Gestión de Empleados</h2>
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nuevo empleado
+        </Button>
+      </div>
 
       <GenericTable
         columns={employeeColumns}
@@ -267,6 +306,9 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             onClick: (row) => openDelete(row.id_employes),
           },
         ]}
+        rowClassName={(row) =>
+          row.estado === false ? "opacity-40 line-through" : ""
+        }
       />
 
       {/* Modal Editar */}
@@ -274,21 +316,33 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         {itemToEdit && (
           <GenericForm<Partial<EmployesInterface>>
             initialValues={{
-              usuario: itemToEdit.usuario || "",
-              unidad: itemToEdit.unidad || "",
-              subdireccion: itemToEdit.subdireccion || "",
-              direccion: itemToEdit.direccion || "",
-              name: itemToEdit.name || "",
-              email: itemToEdit.email || "",
-              telefono: itemToEdit.telefono || "",
-              puesto: itemToEdit.puesto || "",
-              estado: itemToEdit.estado,
+              id_user: itemToEdit.id_user ?? "",
+              id_units: itemToEdit.id_units ?? "",
+              id_subdireccion: itemToEdit.id_subdireccion ?? "",
+              id_direction: itemToEdit.id_direction ?? "",
+              name: itemToEdit.name ?? "",
+              email: itemToEdit.email ?? "",
+              telefono: itemToEdit.telefono ?? "",
+              puesto: itemToEdit.puesto ?? "",
+              estado: itemToEdit.estado ?? true,
             }}
             fields={employeeFields}
             onSubmit={handleSave}
             onCancel={closeAll}
-            submitLabel="Guardar"
+            validate={validateEdit}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
             cancelLabel="Cancelar"
+            title="Editar Empleado"
+            submitDisabled={saving}
           />
         )}
       </Modal>
@@ -297,24 +351,39 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<EmployesInterface>>
           initialValues={{
-            usuario: "",
-            unidad: "",
-            subdireccion: "",
-            direccion: "",
+            id_user: "",
+            id_units: "",
+            id_subdireccion: "",
+            id_direction: "",
             name: "",
             email: "",
             telefono: "",
             puesto: "",
             estado: true,
           }}
-          fields={employeeFields}
+          fields={employeeFields.map(f =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validateCreate}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          title="Crear Empleado"
+          submitDisabled={saving}
         />
       </Modal>
 
+      {/* Modal Eliminar */}
       <Modal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete && (
           <>
@@ -330,15 +399,18 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               data={[itemToDelete]}
               rowKey={(row) => row.id_employes}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">
-                Cancelar
-              </Button>
+            <div className="mt-4 text-right gap-2 flex justify-center">
               <Button
-                isPrimary
                 onClick={() => handleConfirmDelete(itemToDelete.id_employes)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
               >
                 Eliminar
+              </Button>
+              <Button
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+              >
+                Cancelar
               </Button>
             </div>
           </>

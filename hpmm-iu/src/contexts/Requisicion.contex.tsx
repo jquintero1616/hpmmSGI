@@ -70,6 +70,9 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
   > => {
     try {
       const requisitions = await GetRequisicionesService(axiosPrivate);
+      if (requisitions !== null) {
+        setRequisitions(requisitions);
+      }
       return requisitions;
     } catch (error) {
       console.error("Error al recuperar las requisiciones", error);
