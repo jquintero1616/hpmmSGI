@@ -6,23 +6,29 @@ import { Sidebar } from "./SideBar";
 
 export default function Layout() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen">
+      {/* Header fijo en la parte superior */}
       <Header />
-      <div className="flex flex-1">
+      
+      {/* Contenedor principal que ocupa el resto del espacio */}
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar fijo que ocupa toda la altura disponible */}
-        <aside className="fixed top-[76px] left-0 bottom-0 z-20">
+        <aside className="flex-shrink-0">
           <Sidebar />
         </aside>
+        
         {/* Main content que se adapta al ancho del sidebar */}
         <main
           className="flex-1 overflow-auto bg-gray-50 transition-all duration-300"
-          style={{ marginLeft: "var(--sidebar-width, 256px)" }}
+          style={{ marginLeft: "0" }}
         >
-          <div className="p-4 pb-[48px]">
+          <div className="p-4 min-h-full">
             <Outlet />
           </div>
         </main>
       </div>
+      
+      {/* Footer fijo en la parte inferior */}
       <Footer />
     </div>
   );

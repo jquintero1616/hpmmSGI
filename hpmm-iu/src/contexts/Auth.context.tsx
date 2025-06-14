@@ -87,8 +87,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-purple-500 mb-4"></div>
-          <span className="text-purple-700 font-semibold">Autenticando...</span>
+          {/* Spinner moderno */}
+          <div className="relative">
+            <div className="w-8 h-8 border-2 border-slate-200 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-8 h-8 border-2 border-hpmm-morado-claro border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <span className="mt-4 text-slate-500 text-xs uppercase tracking-widest font-light">
+            Cargando
+          </span>
         </div>
       </div>
     );

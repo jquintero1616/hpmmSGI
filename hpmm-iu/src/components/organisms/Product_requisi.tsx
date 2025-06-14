@@ -122,7 +122,7 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
     );
 
     if (item) {
-      console.log("Item a editar:", item);
+     
       setItemToEdit(item);
       setEditOpen(true);
     } else {
@@ -178,8 +178,7 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
       return;
     }
 
-    console.log("Valores del formulario:", values);
-    console.log("Item original:", itemToEdit);
+
 
     try {
       // Arma el objeto de actualización

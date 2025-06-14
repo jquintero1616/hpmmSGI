@@ -1,7 +1,9 @@
 import { AxiosInstance } from "axios";
 import { userInterface } from "../interfaces/user.interface";
 
-export const GetUsersService = async ( axiosPrivate: AxiosInstance ): Promise<userInterface[] | null> => {
+export const GetUsersService = async ( 
+  axiosPrivate: AxiosInstance 
+): Promise<userInterface[] | null> => {
   try {
     const response = await axiosPrivate.get(`/users`);
     return response.data.users;

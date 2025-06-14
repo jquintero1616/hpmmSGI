@@ -110,7 +110,7 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     );
 
     if (item) {
-      console.log("Item a editar:", item);
+    
       setItemToEdit(item);
       setEditOpen(true);
     } else {
@@ -157,29 +157,27 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     } else {
       // Filtrar solo activos
       const activeItems = validList.filter((item) => item.estado === true);
-      console.log("Items activos filtrados:", activeItems);
+   
       setFilteredData(activeItems);
     }
   };
 
   const handleSave = async (values: any) => {
     if (!itemToEdit) {
-      console.error("No hay item para editar");
       return;
     }
 
-    console.log("Valores del formulario:", values);
-    console.log("Item original:", itemToEdit);
+   
 
     try {
-      // Arma el objeto de actualización
+      
       const payload: Partial<CategoryInterface> = {
         ...itemToEdit,
         ...values,
         estado: values.estado === "true" || values.estado === true,
       };
 
-      console.log("Payload para actualizar:", payload);
+     
 
       await PutUpdateCategoryContext(
         itemToEdit.id_category,

@@ -14,7 +14,8 @@ import { Direction} from "./direction.interface";
 import { Shopping } from "./shopping.interface";
 import { Requi_x_Product } from "./requi_x_product.interface";
 import { Requisicion } from "./requisicion.interface";
-import { Bitacora } from "../contexts/Bitacora.context";
+import { Bitacora } from "./Bitacora.interface";
+import { Scompras } from "./SolicitudCompras.inteface";
 
 
 export interface AuthContextType {
@@ -186,6 +187,15 @@ export interface BitacoraContextType {
   bitacoras: Bitacora[];
   GetBitacorasContext: () => Promise<Bitacora[] | null>;
   GetBitacoraByIdContext: (id_bitacora: string) => Promise<Bitacora | undefined>;
+}
+
+export interface SolicitudComprasContextType {
+  scompras: Scompras[];
+  GetSolicitudesComprasContext: () => Promise<Scompras[] | null>;
+  GetSolicitudCompraByIdContext: (id_scompra: string) => Promise<Scompras | undefined>;
+  PostCreateSolicitudCompraContext: (scompra: Scompras) => Promise<Scompras>;
+  PutUpdateSolicitudCompraContext: (id_scompra: string, scompra: Scompras) => Promise<void>;
+  DeleteSolicitudCompraContext: (id_scompra: string) => Promise<void>;
 }
 
 export interface ProviderProps {

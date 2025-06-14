@@ -20,6 +20,7 @@ import Shopping from "../components/organisms/Shopping";
 import Requisicion from "../components/organisms/Requisicion";
 import Product_requisi from "../components/organisms/Product_requisi";
 import Bitacora from "../components/organisms/Bitacora";
+import SolicitudCompras from "../components/organisms/SolicitudCompras";
 export const routes = [
   // Ruta pública de login
   {
@@ -250,6 +251,15 @@ export const routes = [
             </GenericPage>
           ),
         },
+        {
+          path: "solicitud_compras",
+          element: (
+            <GenericPage title="Gestión de Solicitudes de Compras">
+              <SolicitudCompras status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+
       ].map((route) => ({
         ...route,
         valid: {

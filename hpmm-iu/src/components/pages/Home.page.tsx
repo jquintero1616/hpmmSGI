@@ -56,6 +56,14 @@ const HomePage: React.FC = () => {
     ? kardex.filter((item: any) => item.tipo?.toLowerCase().trim() === "aprobado")
     : [];
 
+    // Función para obtener el saludo según la hora
+  const getSaludo = () => {
+    const hora = new Date().getHours();
+    if (hora < 12) return "Buenos días";
+    if (hora < 18) return "Buenas tardes";
+    return "Buenas noches";
+  };
+
 
 
   useEffect(() => {
@@ -79,7 +87,10 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {getSaludo()}, {username || "Usuario"}! 
+                </h1>
           <p className="text-gray-600">Resumen del estado actual del sistema</p>
         </div>
         {/* Grid de tarjetas */}

@@ -195,7 +195,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   // 7. HANDLERS DE CRUD
   const handleCreate = async (values: any) => {
-    console.log("Estado employes ANTES:", employes.length);
+   
     
     if (isEmailTaken(values.email)) {
       toast.error("El correo ya está registrado en otro empleado.");

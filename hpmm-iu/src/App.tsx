@@ -19,8 +19,11 @@ import { UnitProvider } from "./contexts/Unit.context";
 import { ShoppingProvider } from "./contexts/Shopping.context";
 import { ProductRequisitionProvider } from "./contexts/Product_requisi.context";
 import { RequisicionProvider } from "./contexts/Requisicion.contex";
-import PrivateRouteValidation from "./routes/PrivateRoute";
 import { BitacoraProvider } from "./contexts/Bitacora.context";
+import { SolicitudComprasProvider } from "./contexts/SolicitudCompras.context";
+
+import PrivateRouteValidation from "./routes/PrivateRoute";
+
 function AppRoutes() {
   const location = useLocation();
 
@@ -105,9 +108,11 @@ export default function App() {
                               <ProductRequisitionProvider>
                                 <RequisicionProvider>
                                   <BitacoraProvider>
-                                    <Router>
-                                      <AppRoutes />
-                                    </Router>
+                                    <SolicitudComprasProvider>
+                                      <Router>
+                                        <AppRoutes />
+                                      </Router>
+                                    </SolicitudComprasProvider>
                                   </BitacoraProvider>
                                 </RequisicionProvider>
                               </ProductRequisitionProvider>

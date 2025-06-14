@@ -64,7 +64,7 @@ const GenericForm = <T extends Record<string, any>>({
   onCancel,
   submitLabel = "Guardar",
   cancelLabel = "Cancelar",
-  title = "Formulario Genérico",
+  
   submitDisabled = false,
   validate, // ← Recibe validate
   extraFields,
@@ -286,11 +286,7 @@ const GenericForm = <T extends Record<string, any>>({
 
   return (
     <div className="max-w-xl mx-auto bg-white rounded-lg p-6">
-      {/* Header con título más apropiado */}
-      <div className="mb-4"></div>
-      {title && (
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
-      )}
+      
 
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="space-y-6">

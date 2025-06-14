@@ -70,6 +70,9 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
   const GetKardexContext = async (): Promise<kardexInterface[] | null> => {
     try {
       const kardexData = await GetKardexService(axiosPrivate);
+      if (kardexData !== null) {
+        setKardex(kardexData);
+      }
       return kardexData;
     } catch (error) {
       console.error("Error al recuperar el kardex", error);

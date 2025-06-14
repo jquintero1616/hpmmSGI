@@ -219,7 +219,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Gestión de Productos</h2>
+      <h2 className="text-2xl font-semibold mb-4">Productos</h2>
 
       {/* Controles: Nuevo + Filtro de stock */}
       <div className="flex flex-wrap items-center gap-4 mb-4">

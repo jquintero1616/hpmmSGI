@@ -34,7 +34,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [itemToDelete, setItemToDelete] = useState<userInterface | null>(null);
   const [saving, setSaving] = useState(false);
   const [isRoleModalOpen, setRoleModalOpen] = useState(false);
-  const [newRoleName, setNewRoleName] = useState(""); // Opcional, para seleccionar el nuevo rol
+  const [newRoleName, setNewRoleName] = useState(""); 
 
   // Estado local para el filtro
   const [estadoFiltro] = useState<string>("Todo");

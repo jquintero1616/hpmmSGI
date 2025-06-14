@@ -6,9 +6,27 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  title?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
+  onSave?: () => void;
+  onCancel?: () => void;
+  saveButtonText?: string;
+  cancelButtonText?: string;
 }
 
-const GenericModal: React.FC<ModalProps> = ({ children, isOpen, onClose }) => {
+const GenericModal: React.FC<ModalProps> = ({ 
+  children, 
+  isOpen, 
+  onClose,
+  title = "Modal",
+  showHeader = true,
+  showFooter = true,
+  onSave,
+  onCancel,
+  saveButtonText = "Guardar",
+  
+}) => {
   if (!isOpen) return null;
 
   // Manejador para detectar clicks fuera del modal
@@ -19,29 +37,62 @@ const GenericModal: React.FC<ModalProps> = ({ children, isOpen, onClose }) => {
     }
   };
 
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      onClose();
+    }
+  };
+
+  const handleSave = () => {
+    if (onSave) {
+      onSave();
+    }
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center"
+      className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm flex justify-center items-center"
       style={{ zIndex: 1000 }}
       onClick={handleBackdropClick}
     >
-      <div
-        className="
-          bg-white p-4 rounded 
-          w-11/12 max-w-2xl    /* ocupa casi todo el ancho, pero no excede 2xl */
-          max-h-[90vh]         /* no pasa del 90% de la altura de la ventana */
-          overflow-y-auto      /* si hay mucho contenido, hace scroll interno */
-          relative
-        "
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-2xl leading-none hover:text-gray-600"
-          aria-label="Cerrar"
-        >
-          ×
-        </button>
-        {children}
+      <div className="w-full max-w-lg mx-auto">
+        <div className="bg-white rounded-lg shadow-xl max-h-[90vh] overflow-hidden">
+          {/* Header */}
+          {showHeader && (
+            <header className="bg-purple-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+              <h2 className="text-lg font-semibold">{title}</h2>
+              <button
+                onClick={onClose}
+                className="text-2xl leading-none hover:text-gray-300 transition-colors"
+                aria-label="Cerrar"
+              >
+                ×
+              </button>
+            </header>
+          )}
+
+          {/* Content */}
+          <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+            {children}
+          </div>
+
+          {/* Footer */}
+          {showFooter && (
+            <div className="flex justify-end space-x-4 p-4 border-t">
+             
+              {onSave && (
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:opacity-90 transition"
+                >
+                  {saveButtonText}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

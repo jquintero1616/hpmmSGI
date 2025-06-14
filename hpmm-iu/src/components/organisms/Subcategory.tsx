@@ -35,7 +35,9 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // 1) Columnas de la tabla
   const subcategoryColumns: Column<SubcategoryInterface>[] = [
     { header: "Nombre", accessor: "nombre" },
-    { header: "Categoria", accessor: (row) => category.find((c) => c.id_category === row.id_category)?.name || "" },
+    { header: "Categoria", 
+      accessor: 
+      (row) => category.find((c) => c.id_category === row.id_category)?.name || "" },
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
@@ -125,7 +127,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     );
 
     if (item) {
-      console.log("Item a editar:", item);
+     
       setItemToEdit(item);
       setEditOpen(true);
     } else {
@@ -172,7 +174,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     } else {
       // Filtrar solo activos
       const activeItems = validList.filter((item) => item.estado === true);
-      console.log("Items activos filtrados:", activeItems);
+    
       setFilteredData(activeItems);
     }
   };
@@ -183,9 +185,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       return;
     }
 
-    console.log("Valores del formulario:", values);
-    console.log("Item original:", itemToEdit);
-
+   
     try {
       // Arma el objeto de actualización
       const payload: Partial<SubcategoryInterface> = {
@@ -194,7 +194,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         estado: values.estado === "true" || values.estado === true,
       };
 
-      console.log("Payload para actualizar:", payload);
+   
 
       await PutUpdateSubcategoryContext(
         itemToEdit.id_subcategory,
@@ -214,7 +214,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         estado: values.estado === "true" || values.estado === true,
       };
 
-      console.log("Payload para crear:", payload);
+ 
 
       await PostCreateSubcategoryContext(payload as SubcategoryInterface);
       await GetSubcategoriesContext();

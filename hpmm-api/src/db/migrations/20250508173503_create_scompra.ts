@@ -6,7 +6,7 @@ export async function up(knex: Knex): Promise<void> {
     
     table.uuid("id_scompra").primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid("id_requisi").notNullable();
-    table.enu("estado", ["Pendiente", "Comprado", "Cancelada"]);
+    table.enu("estado", ["Pendiente", "Comprado", "Cancelado"]);
     table.timestamps(true, true);
 
 

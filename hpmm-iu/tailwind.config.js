@@ -21,6 +21,8 @@ export default withMT({
         "hpmm-rojo":  "#ef4444", // Rojo intenso
         "hpmm-amarillo-claro": "#c7af12", // Amarillo brillante
         "hpmm-amarillo-oscuro": "#95830e", // Gris oscuro
+
+        
       },
     },
   },
