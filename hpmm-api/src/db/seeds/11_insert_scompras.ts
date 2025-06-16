@@ -19,7 +19,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id_scompra: "33333333-3333-3333-3333-333333333333",
       id_requisi: "cccccccc-cccc-cccc-cccc-cccccccccccc",
-      estado: "Cancelada",
+      estado: "Cancelado",
     },
   ]);
 }

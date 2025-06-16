@@ -34,7 +34,7 @@ export const createdScomprasService = async (scompras: NewsScompras): Promise<Ne
 export const updateScomprasService = async (
     id_scompra: string, 
     data: {
-        estado?: "Pendiente" | "Comprado" | "Cancelada";
+        estado?: "Pendiente" | "Comprado" | "Cancelado";
     }
 ): Promise<NewsScompras> => {
     try {
