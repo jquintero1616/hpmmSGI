@@ -30,6 +30,14 @@ export async function seed(knex: Knex): Promise<void> {
       id_rol: "11111111-1111-1111-1111-111111111111",
       estado: true,
     },
+      {
+      id_user: "88888888-8888-8888-8888-888888888888",
+      username: "TESTING1",
+      email: "1@hpmm.hn",
+      password: "$2b$10$KIhBbK2MU4k6Te2OVYf2bO6bo8CCofrKhxzJtz/62XpgR2C6k9feG",
+      id_rol: "44444444-4444-4444-4444-444444444444",
+      estado: true,
+    },
     
   ]);
 }

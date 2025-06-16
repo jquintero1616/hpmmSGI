@@ -5,20 +5,21 @@ import { randomUUID } from "crypto";
 
 const baseRequisiQuery = () => {
   return db("requisitions as r")
-    .select(
-      "r.id_requisi",
-      "r.id_employes",
-      "r.fecha",
-      "r.estado",
-      "r.created_at",
-      "r.updated_at",
-      "e.name as employee_name",
-      "rp.cantidad"
-    )
-    .join("employes as e", "e.id_employes", "r.id_employes")
-    .join("Requi_x_Product as rp", "rp.id_requisi", "r.id_requisi")
-    .orderBy("r.created_at", "desc");
-
+  .select(
+    "r.id_requisi",
+    "r.id_employes",
+    "r.fecha",
+    "r.estado",
+    "r.created_at",
+    "r.updated_at",
+    "e.name as employee_name",
+    "rp.cantidad",
+    "p.nombre as product_name"
+  )
+  .join("employes as e", "e.id_employes", "r.id_employes")
+  .join("Requi_x_Product as rp", "rp.id_requisi", "r.id_requisi")
+  .join("product as p", "p.id_product", "rp.id_product")
+  .orderBy("r.created_at", "desc");
 };
 
 export const getRequisiDetailsModel = async (

@@ -197,7 +197,7 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         estado: values.estado === "true" || values.estado === true,
       };
 
-      console.log("Payload para crear:", payload);
+    
 
       await PostCreateCategoryContext(payload as CategoryInterface);
       await GetCategoriesContext();

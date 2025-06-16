@@ -211,7 +211,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
     // Esperar un momento para que React actualice
     setTimeout(() => {
-      console.log("Estado employes DESPUÉS:", employes.length);
+    
     }, 100);
   };
 

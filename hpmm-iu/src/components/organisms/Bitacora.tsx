@@ -95,14 +95,14 @@ const Bitacora: React.FC = () => {
   );
 
   if (loading) {
-    return <div className="text-center py-8">Cargando bitácora...</div>;
+    return <div className="text-center py-8">Cargando auditoría de sistema...</div>;
   }
 
   return (
     <div>
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-left text-hpmm-azul-oscuro">
-        Bitácora
+        Auditoria de sistema
       </h1>
 
       <GenericTable
@@ -136,9 +136,9 @@ const Bitacora: React.FC = () => {
       {/* Modal Detalle */}
       <Modal isOpen={isDetailOpen} onClose={closeAll}>
         {itemToView && (
-          <div className="max-w-4xl">
+          <div className="max-w-4xl p-6 bg-white rounded shadow-lg">
             <h3 className="text-xl font-semibold mb-4 text-hpmm-azul-oscuro">
-              Detalles del Registro de Bitácora
+              Detalles del Registro de Auditoría
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

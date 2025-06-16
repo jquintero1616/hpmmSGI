@@ -1,4 +1,5 @@
 import db from "../db";
+import { up } from "../db/migrations/20250508171035_create_role";
 import { NewsScompras } from "../types/scompras";
 import { randomUUID } from "crypto";
 
@@ -35,6 +36,16 @@ export async function updateScomprasModel(
     return updatedScompras || null;
 }
 
+export async function deleteScomprasModel(
+    id_scompra: string
+): Promise<NewsScompras | null> {
+    const updated_at = new Date();
+    const [deletedScompras] = await knexTableName()
+        .where({ id_scompra })
+        .update({ estado: false, updated_at })
+        .returning("*");
+    return deletedScompras || null;
+}
 
 const knexTableName = () => {
   return db("solicitud_compras");

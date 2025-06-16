@@ -37,7 +37,9 @@ export async function updateUnitModel(
   return updatedUnit || null;
 }   
 
-export async function deleteUnitModel(id_units: string): Promise<NewUnit | null> {
+export async function deleteUnitModel(
+  id_units: string
+): Promise<NewUnit | null> {
   const updated_at = new Date();
   const [updatedUnit] = await knexTableName()
     .where({ id_units })

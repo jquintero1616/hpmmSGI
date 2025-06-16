@@ -285,32 +285,43 @@ router.put(
   bitacoraInterceptor(bitOpts.scompras),
   ScomprasControllers.updateScompraController
 );
-//router.delete("/:id_scompras", ScomprasControllers.deleteRequisiController);
+router.delete(
+  "/:id_scompras", 
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.scompras),
+  ScomprasControllers.deleteScomprasController
+);
 
 // create router units_pacts
 router.get(
   "/unitPacts",
   authenticateSession,
-  bitacoraInterceptor(bitOpts.pacts),
+  bitacoraInterceptor(bitOpts.units_x_pacts),
   UnitsPactsControllers.getAllController
 );
 router.get(
   "/unitPacts/:id",
   authenticateSession,
-  bitacoraInterceptor(bitOpts.pacts),
+  bitacoraInterceptor(bitOpts.units_x_pacts),
   UnitsPactsControllers.getByIdController
 );
 router.post(
   "/unitPacts",
   authenticateSession,
-  bitacoraInterceptor(bitOpts.pacts),
+  bitacoraInterceptor(bitOpts.units_x_pacts),
   UnitsPactsControllers.registerUnitPactController
 );
 router.put(
   "/unitPacts/:id",
   authenticateSession,
-  bitacoraInterceptor(bitOpts.pacts),
+  bitacoraInterceptor(bitOpts.units_x_pacts),
   UnitsPactsControllers.editUnitPacts
+);
+router.delete(
+  "/unitPacts/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.units_x_pacts),
+  UnitsPactsControllers.deleteUnitPactController
 );
 
 // create router Shopping

@@ -12,6 +12,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_units").notNullable().index();
     table.uuid("id_pacts").notNullable().index();
     table.uuid("id_subcategory").notNullable().index();
+    table.boolean("estado").defaultTo(true).notNullable();
     table.timestamps(true, true);
 
     table

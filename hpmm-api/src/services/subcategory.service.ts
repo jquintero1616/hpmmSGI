@@ -25,7 +25,8 @@ export const getSubcategoryByIdService = async (
   }
 };
 
-export const createSubcategoryService = async (data: NewSubcategory) => {
+export const createSubcategoryService = async (
+  data: NewSubcategory) => {
   try {
     return await SubcategoryModel.createSubCategoryModel(data);
   } catch (error) {

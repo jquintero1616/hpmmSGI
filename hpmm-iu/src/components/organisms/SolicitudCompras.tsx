@@ -54,10 +54,11 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
 
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const solicitudComprasColumns: Column<ScomprasInterface>[] = [
+    { header: "ID Solicitud", accessor: "id_scompra" },
     { header: "ID Requisición", accessor: "id_requisi" },
     {
       header: "Estado",
-      accessor: (row) => row.estado || "Pendiente",
+      accessor: "estado",
     },
     {
       header: "Fecha Creación",
@@ -79,8 +80,8 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
       options: requisitions
         .filter((r) => r.id_requisi) // Filtrar requisiciones válidas
         .map((r) => ({
-          label: `${r.id_requisi} - ${r.estado}`,
-          value: r.id_requisi
+          label: `${r.id_requisi} - ${r.estado }`,
+          value: r.id_requisi,
         })),
       required: true,
     },
@@ -239,11 +240,7 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
     handleTableContent(scompras);
   }, [scompras, status]); // CORRECCIÓN: Usar status prop, no estadoFiltro
 
-  // CORRECCIÓN: Agregar logs para debug
-  console.log('scompras:', scompras);
-  console.log('filteredData:', filteredData);
-  console.log('status:', status);
-  console.log('loading:', loading);
+
 
   // 9. RENDER CONDICIONAL
   if (loading) {
@@ -291,6 +288,7 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
         {itemToEdit && (
           <GenericForm<Partial<ScomprasInterface>>
             initialValues={{
+              id_scompra: itemToEdit.id_scompra ?? "",
               id_requisi: itemToEdit.id_requisi ?? "",
               estado: itemToEdit.estado ?? "Pendiente",
             }}
@@ -319,6 +317,7 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<ScomprasInterface>>
           initialValues={{
+            id_scompra: "",
             id_requisi: "",
             estado: "Pendiente",
           }}

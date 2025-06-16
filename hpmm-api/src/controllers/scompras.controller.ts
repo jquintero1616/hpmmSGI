@@ -56,3 +56,15 @@ export const updateScompraController = asyncWrapper(
     res.status(200).json({ message: "Actualizada correctamente", data: updated });
   }
 );
+
+export const deleteScomprasController = asyncWrapper(
+  async (req: Request, res: Response): Promise<void> => {
+    const id = (req.params.id || "").trim();
+    const deleted = await ScomprasService.deleteScomprasService(id);
+    if (!deleted) {
+      res.status(404).json({ message: `No existe solicitud ${id}` });
+      return;
+    }
+    res.status(200).json({ message: "Solicitud eliminada correctamente", data: deleted });
+  }
+);  

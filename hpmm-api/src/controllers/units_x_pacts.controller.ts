@@ -47,12 +47,13 @@ export const registerUnitPactController = asyncWrapper(
 export const editUnitPacts = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const id_unit_pacts = (req.params.id || "").trim();
-    const { data } = req.body;
+    const { data, estado } = req.body;
     const updatedUnitPact =
       await RolunitPactService.updateUnitPactService(
         id_unit_pacts,
-        data
-     );
+        data,
+        estado
+      );
 
     if (!updatedUnitPact) {
       res.status(404).json({ msg: "Unidad y pacto no encontrada" });
@@ -62,6 +63,23 @@ export const editUnitPacts = asyncWrapper(
     res.status(200).json({
       msg: `Unidad y pacto actualizada correctamente ${id_unit_pacts}`,
       updatedUnitPact,
+    });
+  }
+);
+
+export const deleteUnitPactController = asyncWrapper(
+  async (req: Request, res: Response): Promise<void> => {
+    const id_unit_pacts = (req.params.id || "").trim();
+    const deletedUnitPact = await RolunitPactService.deleteUnitPactService(id_unit_pacts);
+
+    if (!deletedUnitPact) {
+      res.status(404).json({ msg: "Unidad y pacto no encontrada" });
+      return;
+    }
+
+    res.status(200).json({
+      msg: `Unidad y pacto eliminada correctamente ${id_unit_pacts}`,
+      deletedUnitPact,
     });
   }
 );

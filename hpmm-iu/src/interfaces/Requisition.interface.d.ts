@@ -15,6 +15,8 @@ export interface RequisiDetail {
   id_requisi: string;
   id_employes?: string;
   id_product: string;
+  id_requi_x_product?: string;
+  product_name?: string;
   employee_name?: string;
   cantidad: number;
   fecha: Date;

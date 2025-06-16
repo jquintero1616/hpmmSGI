@@ -19,7 +19,7 @@ const GenericModal: React.FC<ModalProps> = ({
   children, 
   isOpen, 
   onClose,
-  title = "Modal",
+  title = "",
   showHeader = true,
   showFooter = true,
   onSave,

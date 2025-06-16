@@ -18,9 +18,10 @@ import Unit from "../components/organisms/Unit";
 import Direction from "../components/organisms/Direction";
 import Shopping from "../components/organisms/Shopping";
 import Requisicion from "../components/organisms/Requisicion";
-import Product_requisi from "../components/organisms/Product_requisi";
+import ProductRequisition from "../components/organisms/Product_requisi";
 import Bitacora from "../components/organisms/Bitacora";
 import SolicitudCompras from "../components/organisms/SolicitudCompras";
+
 export const routes = [
   // Ruta pública de login
   {
@@ -204,10 +205,10 @@ export const routes = [
           ),
         },
         {
-          path: "product_requisi",
+          path: "ProductRequisition",
           element: (
             <GenericPage title="Gestión de Requisiciones de Productos">
-              <Product_requisi status={"Todo"} />
+              <ProductRequisition status={"Todo"} />
             </GenericPage>
           ),
         },

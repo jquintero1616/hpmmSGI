@@ -9,8 +9,10 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { useEmploye } from "../../hooks/use.Employe";
+import { useProducts } from "../../hooks/use.Product";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
@@ -24,6 +26,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   } = useRequisicion();
 
   const { employes, GetEmployeContext } = useEmploye();
+  const { products, GetProductsContext } = useProducts();
 
   // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
@@ -51,15 +54,17 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const requisicionColumns: Column<RequisiDetail>[] = [
+    
     { header: "Empleado", accessor: "employee_name" },
+    { header: "Producto", accessor: "product_name" },
     { header: "Cantidad", accessor: "cantidad" },
     {
-      header: "Fecha de ingreso",
+      header: "Fecha de Solicitud",
       accessor: (row) => new Date(row.fecha).toLocaleDateString(),
     },
     { header: "Estado", accessor: "estado" },
     {
-      header: "Fecha Creación",
+      header: "Fecha ",
       accessor: (row) =>
         row.created_at ? new Date(row.created_at).toLocaleString() : "",
     },
@@ -71,6 +76,19 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   ];
 
   const requisicionFields: FieldConfig[] = [
+
+    {
+      name: "id_product",
+      label: "Producto",
+      type: "select",
+      options: products
+        .filter((p) => p.id_product) 
+        .map((p) => ({
+          label: p.nombre || p.product_name || "Sin nombre",
+          value: p.id_product, 
+        })),
+      required: true,
+    },
     {
       name: "id_employes",
       label: "Empleado",
@@ -101,7 +119,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       required: true,
     },
     {
-      name: "cantidad",
+      name: "quantity",
       label: "Cantidad",
       type: "number",
       required: true,
@@ -304,14 +322,14 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 8. EFFECTS
   useEffect(() => {
     setLoading(true);
-    Promise.all([GetRequisicionesContext(), GetEmployeContext()]).finally(() =>
+    Promise.all([GetRequisicionesContext(), GetEmployeContext(), GetProductsContext()]).finally(() =>
       setLoading(false)
     );
   }, []);
 
   useEffect(() => {
     handleTableContent(requisiDetail);
-  }, [requisiDetail, status]);
+  }, [status, requisiDetail]);
 
   // 9. RENDER CONDICIONAL
   if (loading) {
@@ -376,12 +394,13 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
-        <GenericForm<Partial<RequisiInterface>>
+        <GenericForm<Partial<RequisiDetail>>
           initialValues={{
+            id_product: "",
             id_employes: "",
             fecha: itemToEdit?.fecha ? new Date(itemToEdit.fecha) : new Date(),
             estado: "Pendiente",
-            cantidad: 1,
+            cantidad: 0,
           }}
           fields={requisicionFields.map((f) =>
             f.name === "estado" ? { ...f, disabled: true } : f

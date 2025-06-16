@@ -52,3 +52,15 @@ export const updateScomprasService = async (
     }
 };
 
+export const deleteScomprasService = async (id_scompra: string): Promise<NewsScompras | null> => {
+    try {
+        const existing = await ScomprasModel.getScomprasByIdModel(id_scompra);
+        if (!existing) return null;
+
+        const deactivatedScompras = await ScomprasModel.deleteScomprasModel(id_scompra);
+        return deactivatedScompras;
+    } catch (error) {
+        logger.error(`Error deleting scompras ${id_scompra}`, error);
+        throw error;
+    }
+};

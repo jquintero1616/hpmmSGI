@@ -44,17 +44,31 @@ export const createUnitPactModel = async (
 
 export async function updateUnitPactModel(
   id_units_x_pacts: string,
-  data: NewUnitPact
+  data: NewUnitPact,
+  estado: boolean
 ): Promise<NewUnitPact | null> {
   const updated_at = new Date();
   const [updatedUnitPact] = await knexTableName()
     .where({ id_units_x_pacts })
     .update({
       data,
+      estado,
       updated_at,
     })
     .returning("*");
   return updatedUnitPact || null;
+}
+
+
+export async function deleteUnitPactModel(
+  id_units_x_pacts: string
+): Promise<NewUnitPact | null> {
+  const updated_at = new Date();
+  const [deletedUnitPact] = await knexTableName()
+    .where({ id_units_x_pacts })
+    .update({ estado: false, updated_at })
+    .returning("*");
+  return deletedUnitPact || null;
 }
 
 const knexTableName = () => {

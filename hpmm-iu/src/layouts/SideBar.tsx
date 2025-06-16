@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback, useReducer } from "react";
+import {  useMemo, useCallback, useReducer } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import {
@@ -16,9 +16,6 @@ import {
   UserGroupIcon,
   ShieldCheckIcon,
   IdentificationIcon,
-  BanknotesIcon,
-  ArrowsUpDownIcon,
-  ClockIcon,
   ChartPieIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -146,7 +143,7 @@ const SubMenu: React.FC<SubMenuProps> = ({ items, onNavigate, isOpen, currentPat
     if (path.includes('/kardex') || path.includes('/Kardex')) {
       return { icon: 'text-orange-500', active: 'text-orange-600', bg: 'bg-orange-50' };
     }
-    if (path.includes('/requisicion') || path.includes('/solicitudes') || path.includes('/shopping')) {
+    if (path.includes('/requisicion') || path.includes('/solicitudes') || path.includes('/shopping') || path.includes('/requisiProduct')) {
       return { icon: 'text-indigo-500', active: 'text-indigo-600', bg: 'bg-indigo-50' };
     }
     if (path.includes('/suppliers') || path.includes('/vendedor')) {
@@ -289,6 +286,11 @@ export function Sidebar() {
           path: "/solicitud_compras",
           icon: ShoppingCartIcon,
         },
+        {
+          label: "Productos / Requisiciones",
+          path: "/ProductRequisition",
+          icon: ShoppingCartIcon,
+        },
         { label: "Compras", path: "/shopping", icon: CreditCardIcon },
       ],
       providers: [
@@ -323,7 +325,7 @@ export function Sidebar() {
         },
         { label: "Unidades", path: "/unit", icon: IdentificationIcon },
       ],
-      audit: [{ label: "Bitácora", path: "/bitacora", icon: ArchiveBoxIcon }],
+      audit: [{ label: "Detalles Auditoría", path: "/bitacora", icon: ArchiveBoxIcon }],
     }),
     []
   );

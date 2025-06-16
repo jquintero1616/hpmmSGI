@@ -68,10 +68,10 @@ export const createKardexController = asyncWrapper(
     const data: NewKardex = req.body;
     // Auditoría
 
-    console.log(req.user)
+  
     data.id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
 
-    console.log("Data received for Kardex creation:", data);
+    // Validación de datos;
 
     const kardex = await KardexService.createKardexService(data);
     res.status(201).json({

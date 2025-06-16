@@ -71,7 +71,7 @@ const HomePage: React.FC = () => {
       toast.success(
         `¡Bienvenido al Sistema de Gestión de Inventario, ${username || "Usuario"}!`,
         {
-          position: "top-right",
+          position: "top-center",
           autoClose: 3000,
         }
       );

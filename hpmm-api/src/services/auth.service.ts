@@ -22,7 +22,6 @@ export const authenticateUser = async (
     .where("users.email", email)
     .first();
 
-    console.log(user)
 
   const { id_rol, id_user, username, id_employes, user_password, state, role_name, employe_name } =
     user;

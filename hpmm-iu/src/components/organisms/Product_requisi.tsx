@@ -58,7 +58,7 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
         name: "id_requisi",
         label: "Requisición",
         type: "select",
-        options: requisitions.map((r) => ({ label: r.nombre, value: r.id_requisi })),
+        options: requisitions.map((r) => ({ label: r.id_requisi, value: r.id_requisi })),
       },
       {
         name: "id_product",
@@ -85,7 +85,7 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
     };
 
     loadData();
-  }, [GetRequiProductContext, GetProductsContext, GetRequisicionesContext]);
+  }, []);
 
   // Filtrar datos cuando cambie el status o productRequisition
   useEffect(() => {
@@ -188,7 +188,7 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
         cantidad: Number(values.cantidad),
       };
 
-      console.log("Payload para actualizar:", payload);
+    
 
       await PutUpdateProductRequisitionContext(
         itemToEdit.id_requisi_x_product,
@@ -208,7 +208,6 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
         cantidad: Number(values.cantidad),
       };
 
-      console.log("Payload para crear:", payload);
 
       await PostCreateProductRequisitionContext(payload as Requi_x_ProductInterface);
       await GetRequiProductContext();
