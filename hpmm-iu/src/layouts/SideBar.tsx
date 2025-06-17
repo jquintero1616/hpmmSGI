@@ -51,11 +51,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
         active: 'text-blue-700', 
         bg: 'bg-blue-50' 
       },
-      'Inventario': { 
-        icon: 'text-green-600', 
-        active: 'text-green-700', 
-        bg: 'bg-green-50' 
-      },
       'Kardex': { 
         icon: 'text-orange-600', 
         active: 'text-orange-700', 
@@ -66,22 +61,27 @@ const MenuItem: React.FC<MenuItemProps> = ({
         active: 'text-indigo-700', 
         bg: 'bg-indigo-50' 
       },
-      'Proveedores': { 
-        icon: 'text-cyan-600', 
-        active: 'text-cyan-700', 
-        bg: 'bg-cyan-50' 
-      },
       'Pactos': { 
         icon: 'text-emerald-600', 
         active: 'text-emerald-700', 
         bg: 'bg-emerald-50' 
+      },
+      'Inventario': { 
+        icon: 'text-green-600', 
+        active: 'text-green-700', 
+        bg: 'bg-green-50' 
+      },
+      'Proveedores': { 
+        icon: 'text-cyan-600', 
+        active: 'text-cyan-700', 
+        bg: 'bg-cyan-50' 
       },
       'Usuarios & Roles': { 
         icon: 'text-violet-600', 
         active: 'text-violet-700', 
         bg: 'bg-violet-50' 
       },
-      'Reportes': { 
+      'Report': { 
         icon: 'text-pink-600', 
         active: 'text-pink-700', 
         bg: 'bg-pink-50' 
@@ -137,20 +137,20 @@ interface SubMenuProps {
 const SubMenu: React.FC<SubMenuProps> = ({ items, onNavigate, isOpen, currentPath }) => {
   
   const getSubMenuColors = (path: string) => {
-    if (path.includes('/products') || path.includes('/category') || path.includes('/subcategory') || path.includes('/stock-critico')) {
-      return { icon: 'text-green-500', active: 'text-green-600', bg: 'bg-green-50' };
-    }
     if (path.includes('/kardex') || path.includes('/Kardex')) {
       return { icon: 'text-orange-500', active: 'text-orange-600', bg: 'bg-orange-50' };
     }
     if (path.includes('/requisicion') || path.includes('/solicitudes') || path.includes('/shopping') || path.includes('/requisiProduct')) {
       return { icon: 'text-indigo-500', active: 'text-indigo-600', bg: 'bg-indigo-50' };
     }
+    if (path.includes('/pacts') || path.includes('/detalle_pactos')) {
+      return { icon: 'text-emerald-500', active: 'text-emerald-600', bg: 'bg-emerald-50' };
+    }
+    if (path.includes('/products') || path.includes('/category') || path.includes('/subcategory') || path.includes('/stock-critico')) {
+      return { icon: 'text-green-500', active: 'text-green-600', bg: 'bg-green-50' };
+    }
     if (path.includes('/suppliers') || path.includes('/vendedor')) {
       return { icon: 'text-cyan-500', active: 'text-cyan-600', bg: 'bg-cyan-50' };
-    }
-    if (path.includes('/pacts')) {
-      return { icon: 'text-emerald-500', active: 'text-emerald-600', bg: 'bg-emerald-50' };
     }
     if (path.includes('/users') || path.includes('/roles') || path.includes('/employees') || path.includes('/direction') || path.includes('/subdireccion') || path.includes('/unit')) {
       return { icon: 'text-violet-500', active: 'text-violet-600', bg: 'bg-violet-50' };
@@ -158,6 +158,10 @@ const SubMenu: React.FC<SubMenuProps> = ({ items, onNavigate, isOpen, currentPat
     if (path.includes('/bitacora')) {
       return { icon: 'text-red-500', active: 'text-red-600', bg: 'bg-red-50' };
     }
+    if (path.includes('/Report')) {
+      return { icon: 'text-pink-500', active: 'text-pink-600', bg: 'bg-pink-50' };
+    }
+    
     return { icon: 'text-gray-500', active: 'text-gray-600', bg: 'bg-gray-50' };
   };
 
@@ -228,16 +232,6 @@ export function Sidebar() {
 
   const menuItems = useMemo(
     () => ({
-      inventario: [
-        { label: "Productos", path: "/products", icon: CubeIcon },
-        { label: "Categorías", path: "/category", icon: TagIcon },
-        { label: "Subcategorías", path: "/subcategory", icon: TagIcon },
-        {
-          label: "Stock Crítico",
-          path: "/stock-critico",
-          icon: ExclamationTriangleIcon,
-        },
-      ],
       kardex: [
         {
           label: "Fusiones Aprobadas",
@@ -293,14 +287,6 @@ export function Sidebar() {
         },
         { label: "Compras", path: "/shopping", icon: CreditCardIcon },
       ],
-      providers: [
-        {
-          label: "Lista de Proveedores",
-          path: "/suppliers",
-          icon: BuildingStorefrontIcon,
-        },
-        { label: "Vendedores", path: "/vendedor", icon: IdentificationIcon },
-      ],
       pacts: [
         {
           label: "Lista de Pactos",
@@ -309,9 +295,27 @@ export function Sidebar() {
         },
         {
           label: "Detalle",
-          path: "/pacts/detalle",
+          path: "/detalle_pactos",
           icon: DocumentDuplicateIcon,
         },
+      ],
+      inventario: [
+        { label: "Productos", path: "/products", icon: CubeIcon },
+        { label: "Categorías", path: "/category", icon: TagIcon },
+        { label: "Subcategorías", path: "/subcategory", icon: TagIcon },
+        {
+          label: "Stock Crítico",
+          path: "/stock-critico",
+          icon: ExclamationTriangleIcon,
+        },
+      ],
+      providers: [
+        {
+          label: "Lista de Proveedores",
+          path: "/suppliers",
+          icon: BuildingStorefrontIcon,
+        },
+        { label: "Vendedores", path: "/vendedor", icon: IdentificationIcon },
       ],
       usersRoles: [
         { label: "Usuarios", path: "/users", icon: UserGroupIcon },
@@ -325,7 +329,13 @@ export function Sidebar() {
         },
         { label: "Unidades", path: "/unit", icon: IdentificationIcon },
       ],
-      audit: [{ label: "Detalles Auditoría", path: "/bitacora", icon: ArchiveBoxIcon }],
+      audit: [
+        { label: "Detalles Auditoría", path: "/bitacora", icon: ArchiveBoxIcon },
+      ],
+      reportes: [
+        { label: "Lista de Reportes", path: "/Report", icon: ChartPieIcon },
+        // Puedes agregar más submenús aquí si lo necesitas
+      ],
     }),
     []
   );
@@ -364,30 +374,31 @@ export function Sidebar() {
   const isTecnicoAlmacen = roleName === "Tecnico Almacen";
 
   return (
-    <div className={`${containerWidth} h-screen bg-white border-r border-gray-200 transition-all duration-300 shadow-lg flex flex-col overflow-hidden`}>
+    <div className={`${containerWidth} h-screen bg-gradient-to-b from-slate-50 to-white border-r border-gray-200/50 transition-all duration-300 shadow-lg flex flex-col overflow-hidden`}>
       {/* Header del sidebar */}
-      <div className="p-2 border-b border-gray-200">
+      <div className="p-2 border-b border-gray-200/50 bg-white/80 backdrop-blur-sm">
         <div className={`flex ${collapsed ? "justify-center" : "justify-end"}`}>
           <button
             onClick={toggleCollapsed}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 border border-gray-200 hover:border-gray-300"
+            className="p-2 hover:bg-purple-50 rounded-lg transition-colors duration-200 border border-purple-200/50 hover:border-purple-300"
             title={collapsed ? "Expandir sidebar" : "Contraer sidebar"}
           >
             {collapsed ? (
-              <ChevronRightIcon className="h-4 w-4 text-gray-600 hover:text-gray-800 transition-colors duration-150" />
+              <ChevronRightIcon className="h-4 w-4 text-purple-600 hover:text-purple-800 transition-colors duration-150" />
             ) : (
-              <ChevronLeftIcon className="h-4 w-4 text-gray-600 hover:text-gray-800 transition-colors duration-150" />
+              <ChevronLeftIcon className="h-4 w-4 text-purple-600 hover:text-purple-800 transition-colors duration-150" />
             )}
           </button>
         </div>
       </div>
 
       {/* Contenido del sidebar con scroll */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
         <div className="p-2">
           <ul className="space-y-1">
             {!isTecnicoAlmacen && (
               <>
+                {/* 1. INICIO */}
                 <MenuItem
                   icon={HomeIcon}
                   label="Inicio"
@@ -395,39 +406,84 @@ export function Sidebar() {
                   onClick={() => navigate("/home")}
                   isActive={isActiveRoute("/home")}
                 />
-                
-                <MenuItem
-                  icon={ArchiveBoxIcon}
-                  label="Inventario"
-                  isCollapsed={collapsed}
-                  hasSubmenu
-                  isOpen={open === 2}
-                  onClick={() => handleOpen(2)}
-                  isActive={isActiveSection(menuItems.inventario)}
-                />
-                <SubMenu 
-                  items={menuItems.inventario} 
-                  onNavigate={navigate} 
-                  isOpen={open === 2 && !collapsed}
-                  currentPath={location.pathname}
-                />
+              </>
+            )}
 
+            {/* 2. KARDEX - Siempre visible (primera prioridad) */}
+            <MenuItem
+              icon={ArrowsRightLeftIcon}
+              label="Kardex"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 1}
+              onClick={() => handleOpen(1)}
+              isActive={isActiveSection(menuItems.kardex)}
+            />
+            <SubMenu 
+              items={menuItems.kardex} 
+              onNavigate={navigate} 
+              isOpen={open === 1 && !collapsed}
+              currentPath={location.pathname}
+            />
+
+            {/* 3. REQUISICIONES & COMPRAS - Segunda prioridad */}
+            {!isTecnicoAlmacen && (
+              <>
                 <MenuItem
                   icon={ClipboardDocumentListIcon}
                   label="Requisiciones & Compras"
                   isCollapsed={collapsed}
                   hasSubmenu
-                  isOpen={open === 4}
-                  onClick={() => handleOpen(4)}
+                  isOpen={open === 2}
+                  onClick={() => handleOpen(2)}
                   isActive={isActiveSection(menuItems.requisitions)}
                 />
                 <SubMenu 
                   items={menuItems.requisitions} 
                   onNavigate={navigate} 
+                  isOpen={open === 2 && !collapsed}
+                  currentPath={location.pathname}
+                />
+              </>
+            )}
+
+            {/* 4. PACTOS - Tercera prioridad, siempre visible */}
+            <MenuItem
+              icon={DocumentDuplicateIcon}
+              label="Pactos"
+              isCollapsed={collapsed}
+              hasSubmenu
+              isOpen={open === 3}
+              onClick={() => handleOpen(3)}
+              isActive={isActiveSection(menuItems.pacts)}
+            />
+            <SubMenu 
+              items={menuItems.pacts} 
+              onNavigate={navigate} 
+              isOpen={open === 3 && !collapsed}
+              currentPath={location.pathname}
+            />
+
+            {!isTecnicoAlmacen && (
+              <>
+                {/* 5. INVENTARIO */}
+                <MenuItem
+                  icon={ArchiveBoxIcon}
+                  label="Inventario"
+                  isCollapsed={collapsed}
+                  hasSubmenu
+                  isOpen={open === 4}
+                  onClick={() => handleOpen(4)}
+                  isActive={isActiveSection(menuItems.inventario)}
+                />
+                <SubMenu 
+                  items={menuItems.inventario} 
+                  onNavigate={navigate} 
                   isOpen={open === 4 && !collapsed}
                   currentPath={location.pathname}
                 />
 
+                {/* 6. PROVEEDORES */}
                 <MenuItem
                   icon={BuildingStorefrontIcon}
                   label="Proveedores"
@@ -444,83 +500,64 @@ export function Sidebar() {
                   currentPath={location.pathname}
                 />
 
+                {/* 7. USUARIOS & ROLES */}
                 <MenuItem
                   icon={UserGroupIcon}
                   label="Usuarios & Roles"
                   isCollapsed={collapsed}
                   hasSubmenu
-                  isOpen={open === 7}
-                  onClick={() => handleOpen(7)}
+                  isOpen={open === 6}
+                  onClick={() => handleOpen(6)}
                   isActive={isActiveSection(menuItems.usersRoles)}
                 />
                 <SubMenu 
                   items={menuItems.usersRoles} 
                   onNavigate={navigate} 
-                  isOpen={open === 7 && !collapsed}
+                  isOpen={open === 6 && !collapsed}
                   currentPath={location.pathname}
                 />
 
+                {/* 8. REPORTES */}
                 <MenuItem
                   icon={ChartPieIcon}
-                  label="Reportes"
+                  label="Report"
                   isCollapsed={collapsed}
-                  onClick={() => navigate("/reportes")}
-                  isActive={isActiveRoute("/reportes")}
+                  hasSubmenu
+                  isOpen={open === 8}
+                  onClick={() => handleOpen(8)}
+                  isActive={isActiveSection(menuItems.reportes)}
+                />
+                <SubMenu
+                  items={menuItems.reportes}
+                  onNavigate={navigate}
+                  isOpen={open === 8 && !collapsed}
+                  currentPath={location.pathname}
                 />
 
+                {/* 9. AUDITORÍA */}
                 <MenuItem
                   icon={ArchiveBoxIcon}
                   label="Auditoría"
                   isCollapsed={collapsed}
                   hasSubmenu
-                  isOpen={open === 9}
-                  onClick={() => handleOpen(9)}
+                  isOpen={open === 7}
+                  onClick={() => handleOpen(7)}
                   isActive={isActiveSection(menuItems.audit)}
                 />
                 <SubMenu 
                   items={menuItems.audit} 
                   onNavigate={navigate} 
-                  isOpen={open === 9 && !collapsed}
+                  isOpen={open === 7 && !collapsed}
                   currentPath={location.pathname}
                 />
               </>
             )}
-
-            {/* Siempre mostrar Kardex y Pactos para Técnico Almacén */}
-            <MenuItem
-              icon={ArrowsRightLeftIcon}
-              label="Kardex"
-              isCollapsed={collapsed}
-              hasSubmenu
-              isOpen={open === 3}
-              onClick={() => handleOpen(3)}
-              isActive={isActiveSection(menuItems.kardex)}
-            />
-            <SubMenu 
-              items={menuItems.kardex} 
-              onNavigate={navigate} 
-              isOpen={open === 3 && !collapsed}
-              currentPath={location.pathname}
-            />
-
-            <MenuItem
-              icon={DocumentDuplicateIcon}
-              label="Pactos"
-              isCollapsed={collapsed}
-              hasSubmenu
-              isOpen={open === 6}
-              onClick={() => handleOpen(6)}
-              isActive={isActiveSection(menuItems.pacts)}
-            />
-            <SubMenu 
-              items={menuItems.pacts} 
-              onNavigate={navigate} 
-              isOpen={open === 6 && !collapsed}
-              currentPath={location.pathname}
-            />
           </ul>
         </div>
       </div>
     </div>
   );
 }
+
+
+

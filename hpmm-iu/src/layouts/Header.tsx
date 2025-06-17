@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/use.Auth';
+import { toast } from 'react-toastify';
+import LogoUrl from "../assets/logoBlancoHPMM.png";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +11,7 @@ const Header: React.FC = () => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const avatarUrl = "https://www.material-tailwind.com/img/avatar1.jpg";
+  
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -73,48 +76,55 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30 backdrop-blur-sm">
+      <header className="bg-gradient-to-r from-purple-600 via-purple-700 to-blue-800 shadow-lg sticky top-0 z-30">
         <div className="flex items-center justify-between py-3 px-4 sm:py-4 sm:px-6 lg:px-8">
-          {/* Logo responsive */}
+          {/* Logo responsive minimalista */}
           <div 
-            className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0"
+            className="flex items-center gap-3 sm:gap-4 cursor-pointer group min-w-0"
             onClick={() => navigate('/home')}
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-200 flex-shrink-0">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
+            {/* Logo directo sin contenedores extras */}
+            <img 
+              src={LogoUrl} 
+              alt="Logo HPMM"
+              className="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 object-contain drop-shadow-md group-hover:drop-shadow-lg group-hover:scale-105 transition-all duration-300 filter brightness-100 group-hover:brightness-110"
+            />
+            
+            <div className="flex flex-col">
+              <h1 className="text-sm sm:text-base lg:text-lg font-bold text-white tracking-tight select-none group-hover:text-white/90 transition-all duration-200 truncate leading-tight">
+                <span className="hidden sm:inline">Sistema de Gestión de Inventario</span>
+                <span className="sm:hidden">HPMM</span>
+              </h1>
+              <span className="hidden lg:block text-xs text-white/70 font-medium">
+                Hospital Psiaquiatrico Mario Mendoza
+              </span>
             </div>
-            <h1 className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-purple-700 to-purple-900 bg-clip-text text-transparent tracking-tight select-none group-hover:from-purple-600 group-hover:to-purple-800 transition-all duration-200 truncate">
-              <span className="hidden sm:inline">Sistema de Gestión de Inventario</span>
-              <span className="sm:hidden">HPMM</span>
-            </h1>
           </div>
 
           {/* Menú derecho responsive */}
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Notificaciones - oculto en móvil muy pequeño */}
             <button
-              className="hidden xs:block relative p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-all duration-200 group"
+              className="hidden xs:block relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
               title="Notificaciones"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               {/* Indicador de notificación */}
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full border-2 border-white"></span>
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-400 rounded-full border-2 border-white/50"></span>
             </button>
 
             {/* Perfil de usuario responsive */}
             <div className="relative" ref={userMenuRef}>
               <button
-                className="flex items-center gap-2 sm:gap-3 cursor-pointer"
+                className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-white/10 rounded-lg px-2 py-1 transition-all duration-200"
                 onClick={() => setUserMenuOpen((open) => !open)}
               >
                 {/* Info usuario - solo visible en pantallas medianas+ */}
                 <div className="hidden md:flex flex-col items-end">
-                  <span className="text-sm font-semibold text-gray-800 truncate max-w-[120px] lg:max-w-none">{username}</span>
-                  <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-0.5 rounded-full truncate max-w-[100px] lg:max-w-none">
+                  <span className="text-sm font-semibold text-white truncate max-w-[120px] lg:max-w-none">{username}</span>
+                  <span className="text-xs text-white/80 font-medium bg-white/20 px-2 py-0.5 rounded-full truncate max-w-[100px] lg:max-w-none backdrop-blur-sm">
                     {getRoleAbbrev(roleName || "Usuario")}
                   </span>
                 </div>
@@ -124,7 +134,7 @@ const Header: React.FC = () => {
                   <img
                     src={avatarUrl}
                     alt={username}
-                    className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow duration-200"
+                    className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white/30 shadow-lg hover:shadow-xl hover:border-white/50 transition-all duration-200"
                   />
                   {/* Indicador de estado online */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></div>
@@ -132,7 +142,7 @@ const Header: React.FC = () => {
                 
                 {/* Chevron - oculto en móvil muy pequeño */}
                 <svg 
-                  className={`hidden sm:block w-3 h-3 sm:w-4 sm:h-4 text-gray-400 transform transition-transform duration-300 ${
+                  className={`hidden sm:block w-3 h-3 sm:w-4 sm:h-4 text-white/80 transform transition-transform duration-300 ${
                     userMenuOpen ? "rotate-180" : "rotate-0"
                   }`} 
                   fill="none" 
@@ -160,8 +170,6 @@ const Header: React.FC = () => {
                     <span className="font-medium truncate">Mi perfil</span>
                   </button>
 
-              
-
                   {/* Separador */}
                   <div className="border-t border-gray-100 my-2 mx-2"></div>
 
@@ -171,6 +179,11 @@ const Header: React.FC = () => {
                     onClick={() => {
                       logout();
                       setUserMenuOpen(false);
+                      toast.success("Sesión cerrada correctamente. ¡Hasta pronto!", {
+                        position: "top-right",
+                        autoClose: 3000,
+                        
+                      });
                     }}
                   >
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors duration-200 flex-shrink-0">

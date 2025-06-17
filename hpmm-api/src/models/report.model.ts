@@ -1,4 +1,5 @@
 import db from "../db";
+import { up } from "../db/migrations/20250508171035_create_role";
 import { NewReport } from "../types/report";
 import { randomUUID } from "crypto";
 
@@ -7,12 +8,6 @@ export const getAllreports = async (): Promise<NewReport[]> => {
     return knexTableName().select("*").where({estado: true})
     }
 
-export async function getReportByIdModel(
-    id_report: string
-): Promise<NewReport | null> {
-    const report = await knexTableName().where({ id_report }).first();
-    return report || null;
-}
 
 export const createReportModel = async (
     data: NewReport
@@ -22,21 +17,39 @@ export const createReportModel = async (
 
 }
 
+
+export async function getReportByIdModel(
+    id_report: string
+): Promise<NewReport | null> {
+    const report = await knexTableName().where({ id_report }).first();
+    return report || null;
+}
+
+
+
 export async function updateReportModel(
     id_report: string,
-    payload: Partial<NewReport>
-): Promise<NewReport> {
+    tipo: string, 
+    periodo: string,
+    fecha: Date,
+    estado: boolean,
+    
+): Promise<NewReport | null> {
+  const updated_at = new Date();
     const [updatedReport] = await knexTableName()
       .where({ id_report })
-      .update(payload )
+      .update({ tipo, periodo, fecha, estado, updated_at })
       .returning("*");
-    return updatedReport;
+    return updatedReport || null;
   }
 
-  export async function deleteReportModel(id_report: string): Promise<NewReport | null> {
+  export async function deleteReportModel(
+    id_report: string
+  ): Promise<NewReport | null> {
+    const updated_at = new Date();
     const [deletedReport] = await knexTableName()
     .where({ id_report })
-    .delete()
+    .update( { estado: false, updated_at})
     .returning("*");
     return deletedReport || null;
   }

@@ -53,11 +53,9 @@ export const PostCreateProductService = async (
       {
         id_subcategory: product.id_subcategory,
         nombre: product.nombre,
-        descripcion: product.descripcion,
         stock_actual: product.stock_actual,
         stock_maximo: product.stock_maximo,
-        fecha_vencimiento: product.fecha_vencimiento,
-        numero_lote: product.numero_lote,
+
       },
       { headers: { "Content-Type": "application/json" } }
     );

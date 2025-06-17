@@ -18,6 +18,9 @@ export async function up(knex: Knex): Promise<void> {
     table.string("requisicion_numero").notNullable();
     table.enu("tipo", ["Aprobado", "Rechazado", "Pendiente", "Cancelado"]);
     table.string("observacion");
+    table.string("descripcion").notNullable();
+    table.date("fecha_vencimiento").notNullable();
+    table.string("numero_lote").notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
     table.uuid("id_empleado_solicitud_f");

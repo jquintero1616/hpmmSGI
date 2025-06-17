@@ -38,6 +38,7 @@ export const updateKardexService = async (
   id: string,
   id_product: string,
   id_shopping: string,
+  id_pacts: string,
   anio_creacion: string,
   tipo_movimiento: "Entrada" | "Salida",
   fecha_movimiento: Date,
@@ -48,6 +49,9 @@ export const updateKardexService = async (
   requisicion_numero: string,
   tipo: "Aprobado" | "Rechazado" | "Pendiente"  | "Cancelado",
   observacion: string,
+  descripcion: string,
+  fecha_vencimiento: Date,
+  numero_lote: string,
   estado: boolean,
   id_empleado_solicitud_f: string
 ): Promise<NewKardex | null> => {
@@ -56,6 +60,7 @@ export const updateKardexService = async (
       id,
       id_product,
       id_shopping,
+      id_pacts,
       anio_creacion,
       tipo_movimiento,
       fecha_movimiento,
@@ -66,6 +71,9 @@ export const updateKardexService = async (
       requisicion_numero,
       tipo,
       observacion,
+      descripcion,
+      fecha_vencimiento,
+      numero_lote,
       estado,
       id_empleado_solicitud_f
     );

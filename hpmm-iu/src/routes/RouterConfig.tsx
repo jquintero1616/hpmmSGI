@@ -21,7 +21,8 @@ import Requisicion from "../components/organisms/Requisicion";
 import ProductRequisition from "../components/organisms/Product_requisi";
 import Bitacora from "../components/organisms/Bitacora";
 import SolicitudCompras from "../components/organisms/SolicitudCompras";
-
+import DetallePactos from "../components/organisms/DetallePactos";
+import Report from "../components/organisms/report";
 export const routes = [
   // Ruta pública de login
   {
@@ -260,6 +261,24 @@ export const routes = [
             </GenericPage>
           ),
         },
+        {
+          path: "detalle_pactos",
+          element: (
+            <GenericPage title="Gestión de Detalles de Pactos">
+              <DetallePactos status={"Todo"} />
+            </GenericPage>
+          ),
+        },
+
+        {
+
+          path: "report",
+          element: (
+            <GenericPage title="Gestión de Reportes">
+              <Report  />
+            </GenericPage>
+          ),
+        }
 
       ].map((route) => ({
         ...route,

@@ -3,6 +3,15 @@ import { BitacoraOptions } from "../types/bitacora";
 
 
 export const bitOpts: Record<string, BitacoraOptions> = {
+
+
+  reports: {
+    tabla: "reports",
+    idColumn: "id_report",
+    idParam: "id",
+    modulo: "Reportes",
+    fields: ["id_report","tipo","periodo","fecha","estado"],
+  },
   users: {
     tabla: "users",
     idColumn: "id_user",

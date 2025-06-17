@@ -3,7 +3,8 @@ import { KardexDetail } from "../../interfaces/kardex.interface";
 export interface kardex {
   id_kardex: string;
   id_product: string;
-  id_shopping: string;
+  id_shopping?: string;
+  id_units_x_pacts?: string;
   anio_creacion: string;
   tipo_movimiento: "Entrada" | "Salida";
   fecha_movimiento: Date;
@@ -14,6 +15,11 @@ export interface kardex {
   requisicion_numero: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
   observacion: string;
+  // nuevos
+  descripcion: string;
+  fecha_vencimiento: Date;
+  numero_lote: string;
+  // -----
   estado: boolean;
   create_at: Date;
   update_at: Date;
@@ -31,6 +37,8 @@ export interface KardexFilter {
 export interface KardexDetail {
   id_kardex: string;
   id_product: string;
+  id_units_x_pacts?: string;
+  id_shopping?: string;
   name: string;               // nombre del empleado
   fecha_movimiento: Date;
   tipo_movimiento: "Entrada" | "Salida";

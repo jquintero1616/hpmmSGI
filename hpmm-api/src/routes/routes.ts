@@ -20,6 +20,7 @@ import * as SubdireccionControllers from "../controllers/subdireccion.controller
 import * as RequiXproductControllers from "../controllers/requisi.x.product.controller";
 import * as DirectionControllers from "../controllers/direction.controller";
 import * as BitacoraControllers from "../controllers/bitacora.controller";
+import * as ReportControllers from "../controllers/report.controller";
 import * as AuthControllers from "../controllers/auth.controller";
 
 //---------------------------------------------------------------------------
@@ -31,6 +32,37 @@ import { bitOpts } from "../config/bitacora.config";
 import { authenticateSession } from "../middlewares/auth.middleware";
 
 const router = Router(); //
+
+router.get(
+  "/reports",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.reports),
+  ReportControllers.getAllReportsController
+);
+router.get(
+  "/reports/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.reports),
+  ReportControllers.getReportByIdController
+);
+router.post(
+  "/reports",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.reports),
+  ReportControllers.createReportController
+);
+router.put(
+  "/reports/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.reports),
+  ReportControllers.updateReportController
+);
+router.delete(
+  "/reports/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.reports), 
+  ReportControllers.deleteReportController
+);
 
 // Create router users
 router.get(

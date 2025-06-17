@@ -4,7 +4,7 @@ import React, {
   useRef,
   useEffect,
   ChangeEvent,
-  FormEvent,
+  FormEvent
 } from "react";
 import Input from "../atoms/Inputs/Input";
 import Button from "../atoms/Buttons/Button";
@@ -47,7 +47,11 @@ interface GenericFormProps<T> {
   title?: string;
   submitDisabled?: boolean;
   validate?: (values: T) => Record<string, string>;
-  extraFields?: Record<string, React.ReactNode>; // ← Añade esto
+  extraFields?: Record<string, React.ReactNode>;
+  // Nuevas props para manejar la lista de productos
+  dataList?: any[];
+  setDataList?: React.Dispatch<React.SetStateAction<any[]>>;
+  onAddItem?: (item: T) => void; // Función para agregar items a la lista
 }
 
 function normalizeOptions(o?: string[] | SelectOption[]): SelectOption[] {
@@ -64,17 +68,17 @@ const GenericForm = <T extends Record<string, any>>({
   onCancel,
   submitLabel = "Guardar",
   cancelLabel = "Cancelar",
-  
   submitDisabled = false,
-  validate, // ← Recibe validate
+  validate,
   extraFields,
+  setDataList,
+  dataList,
+  onAddItem,
 }: GenericFormProps<T>) => {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const errorTimeouts = useRef<Record<string, number>>({});
 
-
-  
   useEffect(() => {
     // Limpiar timeouts al desmontar
     return () => {
@@ -83,6 +87,11 @@ const GenericForm = <T extends Record<string, any>>({
       );
     };
   }, []);
+
+  // Sincroniza los valores cuando cambian los initialValues (por ejemplo, al editar)
+  useEffect(() => {
+    setValues(initialValues);
+  }, [initialValues]);
 
   // Modifica handleChange para validar en tiempo real
   const handleChange = (
@@ -284,10 +293,28 @@ const GenericForm = <T extends Record<string, any>>({
     );
   };
 
+  // Nueva función para manejar agregar producto
+  const handleAddProduct = () => {
+    if (validateAll()) {
+      // Si hay función personalizada para agregar, la usa
+      if (onAddItem) {
+        onAddItem(values);
+      } 
+      // Si no, usa setDataList directamente
+      else if (setDataList) {
+        setDataList((prev) => [...prev, { ...values, id_product: crypto.randomUUID() }]); // Agregar ID único
+      }
+      
+      // Limpiar el formulario después de agregar
+      setValues(initialValues);
+      setErrors({});
+    }
+  };
+
+  
+
   return (
     <div className="max-w-xl mx-auto bg-white rounded-lg p-6">
-      
-
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -316,9 +343,7 @@ const GenericForm = <T extends Record<string, any>>({
 
               {/* Ayuda contextual */}
               {field.type === "email" && !errors[field.name] && (
-                <p className="text-xs text-gray-500 mt-1">
-                 
-                </p>
+                <p className="text-xs text-gray-500 mt-1"></p>
               )}
               {field.type === "number" &&
                 (field.min || field.max) &&
@@ -336,6 +361,15 @@ const GenericForm = <T extends Record<string, any>>({
         </div>
 
         <div className="flex justify-end space-x-3">
+          {submitLabel === "Crear" && (
+            <Button
+              type="button"
+              onClick={handleAddProduct} // ← Usar la nueva función
+              className="px-6 py-2 bg-hpmm-verde-claro text-white hover:bg-hpmm-verde-oscuro transition-colors"
+            >
+              Agregar Producto
+            </Button>
+          )}
           <Button
             type="button"
             onClick={onCancel}
@@ -345,8 +379,8 @@ const GenericForm = <T extends Record<string, any>>({
           </Button>
           <Button
             type="submit"
-            className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors"
-            disabled={submitDisabled} // ← Nuevo
+            className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={ submitLabel === "Crear" ? dataList?.length === 0 : submitDisabled}
           >
             {submitLabel}
           </Button>

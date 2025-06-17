@@ -12,6 +12,11 @@ export interface kardexInterface {
   requisicion_numero: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
   observacion: string;
+  // nuevos
+  descripcion: string;
+  fecha_vencimiento: Date;
+  numero_lote: string;
+  // -----
   estado: boolean;
   created_at: Date;
   updated_at: Date;
@@ -20,8 +25,10 @@ export interface kardexInterface {
 
 export interface KardexDetail {
   id_kardex: string;
-  id_product: string;         // ID del producto
-  shopping_order_id: string; // ID de la orden de compra
+  id_producto: string;         // ID del producto
+  id_units_x_pacts: string; // ID de las unidades por pacto
+  nombre_unidad: string;         // nombre de la unidad
+  nombre_de_factura: string; // ID de la orden de compra
   name: string;               // nombre del empleado
   fecha_movimiento: Date;
   nombre_empleado_sf: string; // nombre del empleado en el sistema
@@ -33,7 +40,7 @@ export interface KardexDetail {
   numero_factura: string;
   cantidad: number;
   precio_unitario: number;
-  nombre: string;             // nombre del producto
+  nombre_producto: string;             // nombre del producto
   descripcion: string;
   stock_actual: number;
   stock_maximo: number;

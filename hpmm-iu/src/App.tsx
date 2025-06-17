@@ -21,7 +21,8 @@ import { ProductRequisitionProvider } from "./contexts/Product_requisi.context";
 import { RequisicionProvider } from "./contexts/Requisicion.contex";
 import { BitacoraProvider } from "./contexts/Bitacora.context";
 import { SolicitudComprasProvider } from "./contexts/SolicitudCompras.context";
-
+import { DetallePactosProvider } from "./contexts/DetallePactos.context";
+import { ReportProvider } from "./contexts/Report.context";
 import PrivateRouteValidation from "./routes/PrivateRoute";
 
 function AppRoutes() {
@@ -109,9 +110,13 @@ export default function App() {
                                 <RequisicionProvider>
                                   <BitacoraProvider>
                                     <SolicitudComprasProvider>
-                                      <Router>
-                                        <AppRoutes />
-                                      </Router>
+                                      <DetallePactosProvider>
+                                        <ReportProvider>
+                                          <Router>
+                                            <AppRoutes />
+                                          </Router>
+                                        </ReportProvider>
+                                      </DetallePactosProvider>
                                     </SolicitudComprasProvider>
                                   </BitacoraProvider>
                                 </RequisicionProvider>

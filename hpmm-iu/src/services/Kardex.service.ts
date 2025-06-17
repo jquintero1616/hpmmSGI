@@ -43,7 +43,9 @@ export const PostCreateKardexService = async (
     axiosPrivate: AxiosInstance
 ): Promise<kardexInterface> => {
     try {
-        const response = await axiosPrivate.post<kardexInterface>(`kardex`, {
+        const response = await axiosPrivate.post<kardexInterface>(
+          `kardex`,
+          {
             id_kardex: kardexs.id_kardex,
             id_product: kardexs.id_product,
             id_shopping: kardexs.id_shopping,
@@ -57,12 +59,19 @@ export const PostCreateKardexService = async (
             requisicion_numero: kardexs.requisicion_numero,
             tipo: kardexs.tipo,
             observacion: kardexs.observacion,
-            estado: kardexs.estado
-        }, {
+            //- nuevos
+            descripcion: kardexs.descripcion,
+            fecha_vencimiento: kardexs.fecha_vencimiento,
+            numero_lote: kardexs.numero_lote,
+            //-----
+            estado: kardexs.estado,
+          },
+          {
             headers: {
-                "Content-Type": "application/json",
+              "Content-Type": "application/json",
             },
-        });
+          }
+        );
         return response.data;
     } catch (error) {
         console.error("Error al crear el kardex:", error);

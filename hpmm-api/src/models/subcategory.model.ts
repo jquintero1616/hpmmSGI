@@ -7,7 +7,7 @@ export const getAllSubcategoryModel = async (): Promise<NewSubcategory[]> => {
     .join("category as c", "sb.id_category", "c.id_category")
     .select(
       "sb.id_subcategory",
-      "sb.nombre",
+      "sb.nombre as subcategory_name",
       "sb.estado",
       "sb.created_at",
       "sb.updated_at",

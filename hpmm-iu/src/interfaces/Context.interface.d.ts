@@ -16,6 +16,8 @@ import { Requi_x_Product } from "./requi_x_product.interface";
 import { Requisicion } from "./requisicion.interface";
 import { Bitacora } from "./Bitacora.interface";
 import { Scompras } from "./SolicitudCompras.inteface";
+import { DetallePactos } from "./DetallePactos.interface";
+import { Report} from "./Report.interface";
 
 
 export interface AuthContextType {
@@ -196,6 +198,24 @@ export interface SolicitudComprasContextType {
   PostCreateSolicitudCompraContext: (scompra: Scompras) => Promise<Scompras>;
   PutUpdateSolicitudCompraContext: (id_scompra: string, scompra: Scompras) => Promise<void>;
   DeleteSolicitudCompraContext: (id_scompra: string) => Promise<void>;
+}
+
+export interface DetallePactosContextType {
+  detallePactos: DetallePactos[];
+  GetDetallePactosContext: () => Promise<DetallePactos[] | null>;
+  GetDetallePactosByIdContext: (id: string) => Promise<DetallePactos | undefined>;
+  PostCreateDetallePactosContext: (detallePacto: DetallePactos) => Promise<void>;
+  PutUpdateDetallePactosContext: (id: string, detallePacto: DetallePactos) => Promise<void>;
+  DeleteDetallePactosContext: (id: string) => Promise<void>;
+}
+
+export interface ReportContextType {
+  report: Report[];
+  GetReportsContext: () => Promise<Report[] | null>;
+  GetReportByIdContext: (id_report: string) => Promise<Report | undefined>;
+  PostCreateReportContext: (report: Report) => Promise<Report>;
+  PutUpdateReportContext: (id_report: string, report: Report) => Promise<void>;
+  DeleteReportContext: (id_report: string) => Promise<void>;
 }
 
 export interface ProviderProps {

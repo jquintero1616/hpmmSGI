@@ -63,7 +63,9 @@ export const SubcategoryProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     };
 
-    const PostCreateSubcategoryContext = async (subcategory: SubcategoryInterface): Promise<SubcategoryInterface> => {
+    const PostCreateSubcategoryContext = async (
+        subcategory: SubcategoryInterface
+    ): Promise<SubcategoryInterface> => {
         try {
             const newSubcategory = await PostCreateSubcategoryService(subcategory, axiosPrivate);
             setSubcategory(prev => [...prev, newSubcategory]);

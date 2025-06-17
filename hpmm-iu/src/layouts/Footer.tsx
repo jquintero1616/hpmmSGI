@@ -6,7 +6,7 @@ export const Footer: React.FC = () => {
       <div className="flex justify-center items-center px-4">
         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-center text-sm">
           <span>
-            © {new Date().getFullYear()} HPMM · Sistema de Inventario · v1.0.0
+            © {new Date().getFullYear()} HPMM · SGI · v1.0.0
           </span>
           <span className="hidden md:inline text-gray-400 dark:text-gray-500">•</span>
           <a

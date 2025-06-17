@@ -2,7 +2,15 @@ import db from "../db";
 import { Pact, NewPact } from "../types/pacts";
 
 export const getAllPactsModel = async (): Promise<Pact[]> => {
-  return db("pacts").select("*");
+  return db("pacts as p")
+  .select(
+    "p.id_pacts",           
+    "p.name", 
+    "p.estado",             
+    "p.created_at",
+    "p.updated_at"
+  );
+
 };
 
 export const getPactByIdModel = async (id_pacts: string): Promise<Pact> => {

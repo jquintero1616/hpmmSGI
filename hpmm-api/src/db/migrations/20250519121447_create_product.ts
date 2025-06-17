@@ -7,11 +7,8 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_product").primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid("id_subcategory").notNullable();
     table.string("nombre").notNullable();
-    table.string("descripcion");
     table.integer("stock_actual").notNullable();
     table.integer("stock_maximo").notNullable();
-    table.date("fecha_vencimiento").notNullable();
-    table.string("numero_lote").notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
 

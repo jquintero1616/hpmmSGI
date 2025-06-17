@@ -26,11 +26,16 @@ export const getReportByIdController = asyncWrapper(
 
 export const createReportController = asyncWrapper(
     async (req: Request, res: Response): Promise<void> => {
-        const payload = req.body;
-        const report = await reportService.createReportService(payload);
+        const { tipo, periodo, fecha, estado } = req.body;
+        const newReport = await reportService.createReportService({
+            tipo,
+            periodo,
+            fecha,
+            estado,
+        });
         res.status(201).json({
             msg: "Reporte creado correctamente",
-            report,
+            newReport,
         });
     }
 );
@@ -38,8 +43,14 @@ export const createReportController = asyncWrapper(
 export const updateReportController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const id_report = (req.params.id || "").trim();
-    const payload = req.body;
-   const updatedReport = await reportService.updateReportService(id_report, payload);
+    const { tipo, periodo, fecha, estado } = req.body;
+   const updatedReport = await reportService.updateReportService(
+    id_report,
+    tipo,
+    periodo,
+    fecha,
+    estado
+   );
    if (!updatedReport) {
       res.status(404).json({
         msg: "Reporte no encontrado",

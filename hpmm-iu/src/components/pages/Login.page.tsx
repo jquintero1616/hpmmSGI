@@ -6,7 +6,7 @@ import LoginForm from "../molecules/LoginForm";
 import LoginFormProps from "../organisms/Login";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import Logo from "../../assets/Hpmm2.png";
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,13 +48,8 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-purple-50">
       <LoginFormProps>
         <div className="w-full max-w-md mx-auto p-6">
-          {/* Logo/Imagen circular arriba */}
-          
-
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
-              Bienvenido
-            </h1>
+            <img src={Logo} alt="Logo" className="mx-auto mb-6 w-40 h-30 object-contain" />
             <p className="text-gray-600 text-sm">Inicia sesión</p>
           </div>
 

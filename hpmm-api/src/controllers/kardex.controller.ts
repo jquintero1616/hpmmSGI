@@ -3,7 +3,6 @@ import * as KardexService from "../services/kardex.service";
 import { asyncWrapper } from "../utils/errorHandler";
 import { NewKardex } from "../types/kardex";
 
-
 // Obtener detalles de Kardex con filtros y paginación
 export const getKardexDetailsController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
@@ -30,7 +29,6 @@ export const getKardexDetailsController = asyncWrapper(
     });
   }
 );
-
 
 // Obtener todos los Kardex
 export const getAllKardexController = asyncWrapper(
@@ -68,7 +66,6 @@ export const createKardexController = asyncWrapper(
     const data: NewKardex = req.body;
     // Auditoría
 
-  
     data.id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
 
     // Validación de datos;
@@ -99,6 +96,10 @@ export const updateKardexController = asyncWrapper(
       requisicion_numero,
       tipo,
       observacion,
+      descripcion,
+      fecha_vencimiento,
+      numero_lote,
+
       estado,
     } = req.body;
 
@@ -120,12 +121,17 @@ export const updateKardexController = asyncWrapper(
       requisicion_numero,
       tipo,
       observacion,
+      descripcion,
+      fecha_vencimiento,
+      numero_lote,
       estado,
       id_empleado_solicitud_f
     );
 
     if (!updatedKardex) {
-      res.status(404).json({ msg: `Kardex no encontrado con id_kardex ${id_kardex}` });
+      res
+        .status(404)
+        .json({ msg: `Kardex no encontrado con id_kardex ${id_kardex}` });
       return;
     }
 
@@ -140,9 +146,8 @@ export const updateKardexController = asyncWrapper(
 export const deleteKardexController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const id_kardex = (req.params.id || "").trim();
-    const deactivatedKardex = await KardexService.deleteKardexService(
-      id_kardex
-    );
+    const deactivatedKardex =
+      await KardexService.deleteKardexService(id_kardex);
 
     if (!deactivatedKardex) {
       res
@@ -157,4 +162,3 @@ export const deleteKardexController = asyncWrapper(
     });
   }
 );
-

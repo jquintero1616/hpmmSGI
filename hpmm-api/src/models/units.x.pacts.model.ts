@@ -6,12 +6,12 @@ export const getallUnitsPactsModel = async (): Promise<NewUnitPact[]> => {
   return db("units_x_pacts as up")
     .join("units as u", "up.id_units", "u.id_units")
     .join("pacts as p", "up.id_pacts", "p.id_pacts")
-    .join("subcategory as sc", "up.id_subcategory", "sc.id_subcategory")
+    .join("product as sc", "up.id_product", "sc.id_product")
     .select(
       "up.*",
       "u.name as unit_name",
       "p.name as pact_name",
-      "sc.nombre as subcategory_name"
+      "sc.nombre as nombre"
     );
 };
 
@@ -45,6 +45,7 @@ export const createUnitPactModel = async (
 export async function updateUnitPactModel(
   id_units_x_pacts: string,
   data: NewUnitPact,
+  cantidad: number,
   estado: boolean
 ): Promise<NewUnitPact | null> {
   const updated_at = new Date();
@@ -52,6 +53,7 @@ export async function updateUnitPactModel(
     .where({ id_units_x_pacts })
     .update({
       data,
+      cantidad,
       estado,
       updated_at,
     })

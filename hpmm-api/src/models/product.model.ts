@@ -12,11 +12,8 @@ export const baseProductQuery = () => {
       "p.nombre            as nombre",
       "p.created_at        as created_at",
       "p.updated_at        as updated_at", 
-      "p.descripcion       as descripcion",
       "p.stock_actual      as stock_actual",
       "p.stock_maximo      as stock_maximo",
-      "p.fecha_vencimiento as fecha_vencimiento",
-      "p.numero_lote       as numero_lote",
       "p.estado            as estado",
       "s.nombre            as subcategory_name",
       "c.name              as category_name"
@@ -72,11 +69,10 @@ export async function updateProductModel (
     id_product: string,
     id_subcategory : string,
     nombre: string,
-    descripcion: string,
+
     stock_actual: number,
     stock_maximo: number,
-    fecha_vencimiento: Date,
-    numero_lote: string,
+
     estado: boolean
 ): Promise<NewProduct | null> {
     const updated_at = new Date();
@@ -85,11 +81,10 @@ export async function updateProductModel (
     .update({
         nombre,
         id_subcategory,
-        descripcion,
+
         stock_actual,
         stock_maximo,
-        fecha_vencimiento,
-        numero_lote,
+
         estado,
         updated_at,
     })

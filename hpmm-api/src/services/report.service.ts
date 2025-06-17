@@ -34,23 +34,28 @@ export const createReportService = async ( data : NewReport) => {
 
 export const updateReportService = async (
   id_report: string,
-  payload: Partial<NewReport>
-): Promise<NewReport | null> => {
-  const updateReport = await ReportModel.updateReportModel(id_report, payload);
-  if (!updateReport) {
-    throw new Error("Report not found or update failed");
-  }
+  tipo: string,
+  periodo: string,
+  fecha: Date,
+  estado: boolean,
+  
+) => {
+  const updateReport = await ReportModel.updateReportModel(
+    id_report, 
+    tipo, 
+    periodo, 
+    fecha, 
+    estado
+  );
+
   return updateReport;
 };
 
 export const deleteReportService = async (
   id_report: string
 ): Promise<NewReport | null> => {
-  try {
-    const deletedReport = await ReportModel.deleteReportModel(id_report);
-    return deletedReport;
-  } catch (error) {
-    logger.error("Error deleting report", error);
-    throw error;
-  }
-};
+   const existing = await ReportModel.getReportByIdModel(id_report);
+  if (!existing) return null;
+  const deletedReport = await ReportModel.deleteReportModel(id_report);
+  return deletedReport; 
+}
