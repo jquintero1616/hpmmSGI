@@ -88,6 +88,7 @@ export const updateKardexController = asyncWrapper(
     const {
       id_product,
       id_shopping,
+      id_units_x_pacts,
       anio_creacion,
       tipo_movimiento,
       fecha_movimiento,
@@ -107,6 +108,7 @@ export const updateKardexController = asyncWrapper(
     const updatedKardex = await KardexService.updateKardexService(
       id_kardex,
       id_product,
+      id_units_x_pacts,
       id_shopping,
       anio_creacion,
       tipo_movimiento,

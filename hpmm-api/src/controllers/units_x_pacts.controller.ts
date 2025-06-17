@@ -47,11 +47,12 @@ export const registerUnitPactController = asyncWrapper(
 export const editUnitPacts = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const id_unit_pacts = (req.params.id || "").trim();
-    const { data, estado } = req.body;
+    const { data, cantidad,estado } = req.body;
     const updatedUnitPact =
       await RolunitPactService.updateUnitPactService(
         id_unit_pacts,
         data,
+        cantidad,
         estado
       );
 

@@ -11,7 +11,8 @@ export async function up(knex: Knex): Promise<void> {
 
     table.uuid("id_units").notNullable().index();
     table.uuid("id_pacts").notNullable().index();
-    table.uuid("id_subcategory").notNullable().index();
+    table.uuid("id_product").notNullable().index();
+    table.integer("cantidad").notNullable().defaultTo(0);
     table.boolean("estado").defaultTo(true).notNullable();
     table.timestamps(true, true);
 
@@ -26,9 +27,9 @@ export async function up(knex: Knex): Promise<void> {
       .inTable("pacts")
       .onDelete("CASCADE");
     table
-      .foreign("id_subcategory")
-      .references("id_subcategory")
-      .inTable("subcategory")
+      .foreign("id_product")
+      .references("id_product")
+      .inTable("product")
       .onDelete("CASCADE");
   });
 }

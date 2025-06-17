@@ -6,7 +6,8 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_kardex").primary().defaultTo(knex.raw("uuid_generate_v4()"));
 
     table.uuid("id_product").notNullable();
-    table.uuid("id_shopping").notNullable();
+    table.uuid("id_shopping");
+    table.uuid("id_units_x_pacts");
     table.string("anio_creacion").notNullable();
     table.enu("tipo_movimiento", ["Entrada", "Salida"]);
     table.date("fecha_movimiento").notNullable();
@@ -35,6 +36,11 @@ export async function up(knex: Knex): Promise<void> {
       .foreign("id_product")
       .references("id_product")
       .inTable("product")
+      .onDelete("CASCADE"); 
+    table
+      .foreign("id_units_x_pacts")
+      .references("id_units_x_pacts")
+      .inTable("units_x_pacts")
       .onDelete("CASCADE");
   });
 }

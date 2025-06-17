@@ -97,7 +97,7 @@ export const bitOpts: Record<string, BitacoraOptions> = {
     idColumn: "id_units_x_pacts",
     idParam: "id",
     modulo: "UnidadesPactos",
-    fields: ["id_units","id_pacts", "id_subcategory","estado"],
+    fields: ["id_units","id_pacts", "id_subcategory","cantidad","estado"],
   },
   noti: {
     tabla: "notifications",

@@ -10,7 +10,7 @@ export async function seed(knex: Knex): Promise<void> {
       id_user: "33333333-3333-3333-3333-333333333333",
       username: "José Quintero",
       email: "jquintero@hpmm.com",
-      password: "12345678$2y$10$Y2mueDmhzRSKghDkwZlug.SSRF8wUmZ0sdp/uIUb0dw1y5BsMnQ12",
+      password: "$2y$10$Y2mueDmhzRSKghDkwZlug.SSRF8wUmZ0sdp/uIUb0dw1y5BsMnQ12",
       id_rol: "44444444-4444-4444-4444-444444444444",
       estado: true,
     },
