@@ -62,6 +62,7 @@ const  GetRequiProductByIdContext = async (id_requisi_x_product: string): Promis
         }
     }
 const PostCreateProductRequisitionContext = async (requiProduct: Requi_x_ProductInterface): Promise<Requi_x_ProductInterface> => {
+       console.log('PostCreateProductRequisitionContext', requiProduct);
         try {
             const newRequiProduct = await PostRequiProductService(requiProduct, axiosPrivate);
             setProductRequisition(prev => [...prev, newRequiProduct]);

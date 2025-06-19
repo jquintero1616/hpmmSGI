@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as RequisiService from "../services/requisi.service";
 import { asyncWrapper } from "../utils/errorHandler";
-import { NewRequisi } from "../types/requisi";
+import { Requisi } from "../types/requisi";
 
 
 
@@ -13,7 +13,7 @@ export const getRequisiDetailsController = asyncWrapper(
     ? Array.isArray(raw)
     ? (raw as string[])
     : [raw as string]
-    : ["Aprobado", "Rechazado", "Pendiente"];
+    : ["Aprobado", "Rechazado", "Pendiente", "Cancelado"];
 
     const data = await RequisiService.getRequisiDetailService({
       limit,
@@ -61,7 +61,7 @@ export const getRequisiByController = asyncWrapper(
 
 export const createRequisiController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
-    const data: NewRequisi = req.body;
+    const data: Requisi = req.body;
     const requisi = await RequisiService.createRequiService(data);
     res.status(201).json({
       msg: `Requisicion creada correctamente con id_requisi}`,

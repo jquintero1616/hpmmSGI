@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useShopping } from "../../hooks/use.Shopping";
-import { useVendedor } from "../../hooks/use.vendedor";
 import { ShoppingInterface } from "../../interfaces/shopping.interface";
 import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
@@ -8,6 +6,10 @@ import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
+import { useShopping } from "../../hooks/use.Shopping";
+import { useVendedor } from "../../hooks/use.vendedor";
 
 const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // 1) HOOKS
@@ -20,6 +22,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   } = useShopping();
 
   const { vendedor, GetVendedorContext } = useVendedor();
+  const { scompras, GetSolicitudesComprasContext } = useSolicitudCompras();
 
   // 2) ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
@@ -28,7 +31,9 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ShoppingInterface | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<ShoppingInterface | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<ShoppingInterface | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
 
   // Estado local para el filtro
@@ -39,7 +44,8 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const isOrderIdTaken = (orderId: string, excludeShoppingId?: string) => {
     return shopping.some(
       (s) =>
-        s.shopping_order_id?.trim().toLowerCase() === orderId.trim().toLowerCase() &&
+        s.shopping_order_id?.trim().toLowerCase() ===
+          orderId.trim().toLowerCase() &&
         (!excludeShoppingId || s.id_shopping !== excludeShoppingId)
     );
   };
@@ -48,7 +54,8 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const validateCreate = (values: any) => {
     const errors: any = {};
     if (values.shopping_order_id && isOrderIdTaken(values.shopping_order_id)) {
-      errors.shopping_order_id = "El número de orden ya está registrado en otra compra.";
+      errors.shopping_order_id =
+        "El número de orden ya está registrado en otra compra.";
     }
     return errors;
   };
@@ -63,7 +70,8 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         itemToEdit.shopping_order_id?.trim().toLowerCase() &&
       isOrderIdTaken(values.shopping_order_id, itemToEdit.id_shopping)
     ) {
-      errors.shopping_order_id = "El número de orden ya está registrado en otra compra.";
+      errors.shopping_order_id =
+        "El número de orden ya está registrado en otra compra.";
     }
     return errors;
   };
@@ -76,9 +84,13 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     {
       header: "Fecha Compra",
       accessor: (row) =>
-        row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : ""
+        row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : "",
     },
     { header: "Numero Orden", accessor: "shopping_order_id" },
+    { header: "Nombre Unidad", accessor: "nombre_unidad" },
+    { header: "Lugar Entrega", accessor: "lugar_entrega" },
+    { header: "Numero Cotización", accessor: "numero_cotizacion" },
+    { header: "Numero Pedido", accessor: "numero_pedido" },
     { header: "Total", accessor: "total" },
     {
       header: "Estado",
@@ -99,36 +111,68 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Campos para el formulario
   const shoppingFields: FieldConfig[] = React.useMemo(
     () => [
-      { 
-        name: "id_scompra", 
-        label: "Solicitud de compra", 
-        type: "text",
-        required: true
+      {
+        name: "id_scompra",
+        label: "Solicitud de compra",
+        type: "select",
+        options: scompras.map((sc) => ({
+          label: sc.id_scompra,
+          value: sc.id_scompra,
+        })),
+        required: true,
       },
       {
         name: "id_vendedor",
         label: "Vendedor",
         type: "select",
-        options: vendedor.map((v) => ({ label: v.nombre_contacto, value: v.id_vendedor })),
+        options: vendedor.map((v) => ({
+          label: v.nombre_contacto,
+          value: v.id_vendedor,
+        })),
         required: true,
       },
-      { 
-        name: "fecha_compra", 
-        label: "Fecha Compra", 
+      {
+        name: "fecha_compra",
+        label: "Fecha Compra",
         type: "date",
-        required: true
+        required: true,
       },
-      { 
-        name: "shopping_order_id", 
-        label: "Numero Orden", 
+      {
+        name: "shopping_order_id",
+        label: "Numero Orden",
         type: "text",
-        required: true
+        required: true,
       },
-      { 
-        name: "total", 
-        label: "Total", 
+      {
+        name: "total",
+        label: "Total",
         type: "number",
-        required: true
+        required: true,
+      },
+      {
+        name: "numero_cotizacion",
+        label: "Numero Cotización",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "numero_pedido",
+        label: "Numero Pedido",
+        type: "text",
+        required: true,
+      },
+      {
+        name: "nombre_unidad",
+        label: "Nombre Unidad",
+        type: "select",
+        options: [{ label: "HPMM", value: "HPMM" }],
+        disabled: true,
+        readOnly: true, // Asignar un valor por defecto y hacerlo de solo lectura
+      },
+      {
+        name: "lugar_entrega",
+        label: "Lugar Entrega",
+        type: "text",
       },
       {
         name: "estado",
@@ -141,15 +185,14 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         required: true,
       },
     ],
-    [vendedor]
+    [vendedor, scompras]
   );
 
   // 5) FUNCIÓN handleTableContent
   const handleTableContent = (list: ShoppingInterface[]) => {
     // Asegurar que todos los elementos sean válidos
     const validList = list.filter(
-      (item) =>
-        item && item.id_shopping && typeof item.id_shopping === "string"
+      (item) => item && item.id_shopping && typeof item.id_shopping === "string"
     );
 
     let filtrados = validList;
@@ -258,7 +301,10 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         fecha_compra: new Date(values.fecha_compra),
       };
 
-      await PutShoppingContext(itemToEdit.id_shopping, payload as ShoppingInterface);
+      await PutShoppingContext(
+        itemToEdit.id_shopping,
+        payload as ShoppingInterface
+      );
       await GetShoppingContext();
       toast.success(`Compra ${values.id_scompra} actualizada correctamente`);
       closeAll();
@@ -304,7 +350,11 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     const loadData = async () => {
       setLoading(true);
       try {
-        await Promise.all([GetShoppingContext(), GetVendedorContext()]);
+        await Promise.all([
+          GetShoppingContext(),
+          GetVendedorContext(),
+          GetSolicitudesComprasContext(),
+        ]);
       } catch (error) {
         console.error("Error cargando datos:", error);
         toast.error("Error al cargar los datos");
@@ -403,6 +453,11 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             id_vendedor: "",
             fecha_compra: new Date(),
             shopping_order_id: "",
+            numero_cotizacion: "",
+            numero_pedido: "",
+            nombre_unidad: "HPMM", // Asignar un valor por defecto
+            lugar_entrega: "",
+
             total: 0,
             estado: true,
           }}

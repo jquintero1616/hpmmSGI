@@ -1,25 +1,29 @@
 import knex from "knex";
 import db from "../db";
-import { NewRequisi, RequisiFilter, RequisiDetail } from "../types/requisi";
+import { RequisiFilter, RequisiDetail, Requisi } from "../types/requisi";
 import { randomUUID } from "crypto";
 
 const baseRequisiQuery = () => {
   return db("requisitions as r")
-  .select(
-    "r.id_requisi",
-    "r.id_employes",
-    "r.fecha",
-    "r.estado",
-    "r.created_at",
-    "r.updated_at",
-    "e.name as employee_name",
-    "rp.cantidad",
-    "p.nombre as product_name"
-  )
-  .join("employes as e", "e.id_employes", "r.id_employes")
-  .join("Requi_x_Product as rp", "rp.id_requisi", "r.id_requisi")
-  .join("product as p", "p.id_product", "rp.id_product")
-  .orderBy("r.created_at", "desc");
+    .select(
+      "r.id_requisi",
+      "r.id_employes",
+      "r.fecha",
+      "r.estado",
+      "r.descripcion",
+      "r.created_at",
+      "r.updated_at",
+      "e.name             as employee_name",
+      "u.id_units         as id_unit",
+      "u.name             as unit_name",
+      "rp.cantidad as     cantidad",
+      "p.nombre           as product_name"
+    )
+    .innerJoin("employes as e", "e.id_employes", "r.id_employes")
+    .innerJoin("units as u", "u.id_units", "e.id_units")
+    .innerJoin("Requi_x_Product as rp", "rp.id_requisi", "r.id_requisi")
+    .innerJoin("product as p", "p.id_product", "rp.id_product")
+    .orderBy("r.created_at", "desc");
 };
 
 export const getRequisiDetailsModel = async (
@@ -41,22 +45,22 @@ export const getRequisiDetailsModel = async (
   return q;
 };
 
-export const getAllRequiModel = async (): Promise<NewRequisi[]> => {
+export const getAllRequiModel = async (): Promise<Requisi[]> => {
   return db("requisitions").select("*");
 };
 
 export async function getRequisiByIdModel(
   id_requisi: string
-): Promise<NewRequisi | null> {
+): Promise<Requisi | null> {
   const requi = await knexTableName().where({ id_requisi }).first();
   return requi || null;
 }
 
 export const createRequisiModel = async (
-  data: NewRequisi
-): Promise<NewRequisi> => {
+  data: Requisi
+): Promise<Requisi> => {
   const [newRequi] = await knexTableName()
-    .insert({ ...data, id_requisi: randomUUID() })
+    .insert({ ...data, id_requisi: data?.id_requisi || randomUUID() })
     .returning("*");
   return newRequi;
 };
@@ -64,13 +68,15 @@ export const createRequisiModel = async (
 export async function updateRequisiModel(
   id_requisi: string,
   fecha: Date,
-  estado: string
-): Promise<NewRequisi | null> {
+  estado: string,
+  descripcion: string
+): Promise<Requisi | null> {
   const updated_at = new Date();
   const [updatedRequisi] = await knexTableName()
     .update({
       fecha,
       estado,
+      descripcion,
       updated_at,
     })
     .where({ id_requisi })
@@ -80,11 +86,11 @@ export async function updateRequisiModel(
 
 export async function deleteRequisiModel(
   id_requisi: string
-): Promise<NewRequisi | null> {
+): Promise<Requisi | null> {
   const updated_at = new Date();
   const [updatedRequisi] = await knexTableName()
     .where({ id_requisi })
-    .update({ estado: false, updated_at })
+    .update({ updated_at })
     .returning("*");
   return updatedRequisi || null;
 }

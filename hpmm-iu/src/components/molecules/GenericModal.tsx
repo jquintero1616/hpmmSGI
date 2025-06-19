@@ -1,6 +1,8 @@
 // src/components/molecules/GenericModal.tsx
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
+// Si usas focus-trap-react, descomenta la siguiente línea e instálalo:
+// import FocusTrap from "focus-trap-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -15,9 +17,9 @@ interface ModalProps {
   cancelButtonText?: string;
 }
 
-const GenericModal: React.FC<ModalProps> = ({ 
-  children, 
-  isOpen, 
+const GenericModal: React.FC<ModalProps> = ({
+  children,
+  isOpen,
   onClose,
   title = "",
   showHeader = true,
@@ -25,47 +27,71 @@ const GenericModal: React.FC<ModalProps> = ({
   onSave,
   onCancel,
   saveButtonText = "Guardar",
-  
-}) => {
-  if (!isOpen) return null;
 
-  // Manejador para detectar clicks fuera del modal
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Si el click es exactamente en el fondo (no en el modal)
-    if (e.target === e.currentTarget) {
-      onClose();
+}) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar con ESC
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Captura foco al abrir
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      modalRef.current.focus();
     }
+  }, [isOpen]);
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
   };
 
   const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      onClose();
-    }
+    if (onCancel) onCancel();
+    else onClose();
   };
 
   const handleSave = () => {
-    if (onSave) {
-      onSave();
-    }
+    if (onSave) onSave();
   };
 
+  if (!isOpen) return null;
+
+  // Puedes envolver el modal con <FocusTrap> si lo tienes instalado
   return (
+    // <FocusTrap>
     <div
-      className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm flex justify-center items-center"
-      style={{ zIndex: 1000 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      tabIndex={-1}
     >
-      <div className="w-full max-w-lg mx-auto">
-        <div className="bg-white rounded-lg shadow-xl max-h-[90vh] overflow-hidden">
+      <div
+        ref={modalRef}
+        className="w-full h-full md:h-auto md:w-auto flex items-center justify-center"
+        tabIndex={0}
+      >
+        <div className="bg-white rounded-2xl shadow-xl w-full h-full max-w-lg md:max-w-2xl mx-auto flex flex-col overflow-hidden">
           {/* Header */}
           {showHeader && (
-            <header className="bg-purple-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-              <h2 className="text-lg font-semibold">{title}</h2>
+            <header className="bg-hpmm-primary h-12 px-4 flex items-center justify-between rounded-t-2xl">
+              <h2
+                id="modal-title"
+                className="text-base font-semibold text-white truncate"
+              >
+                {title}
+              </h2>
               <button
                 onClick={onClose}
-                className="text-2xl leading-none hover:text-gray-300 transition-colors"
+                className="text-white hover:text-gray-200 text-2xl leading-none transition-colors focus:outline-none"
                 aria-label="Cerrar"
               >
                 ×
@@ -74,18 +100,19 @@ const GenericModal: React.FC<ModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
             {children}
           </div>
 
           {/* Footer */}
           {showFooter && (
-            <div className="flex justify-end space-x-4 p-4 border-t">
-             
+            <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 px-6 md:px-8 pb-6">
+              
               {onSave && (
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:opacity-90 transition"
+                  className="px-4 py-2 rounded-xl bg-hpmm-accent text-white hover:bg-hpmm-accent-dark transition focus:ring-2 focus:ring-hpmm-accent focus:border-transparent"
+                  type="button"
                 >
                   {saveButtonText}
                 </button>
@@ -95,6 +122,7 @@ const GenericModal: React.FC<ModalProps> = ({
         </div>
       </div>
     </div>
+    // </FocusTrap>
   );
 };
 

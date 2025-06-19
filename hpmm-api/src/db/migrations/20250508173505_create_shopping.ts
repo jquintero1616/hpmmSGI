@@ -8,7 +8,11 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_scompra").notNullable();
     table.uuid("id_vendedor").notNullable();
     table.date("fecha_compra").notNullable();
+    table.string("numero_cotizacion", 50).notNullable();
+    table.string("numero_pedido", 50).notNullable();
+    table.string("lugar_entrega", 100).notNullable();
     table.string("shopping_order_id", 50).notNullable();
+    table.string("nombre_unidad", 100).notNullable();
     table.decimal("total",10, 2).notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);

@@ -13,6 +13,12 @@ export const getAllshoppingModel = async (): Promise<NewShopping[]> => {
             "v.nombre_contacto as vendedor_nombre",
             "s.fecha_compra",
             "s.shopping_order_id",
+            
+            "s.numero_cotizacion",
+            "s.numero_pedido",
+            "s.nombre_unidad",
+            "s.lugar_entrega",
+
             "s.total",
             "s.estado",
             "s.created_at",
@@ -44,7 +50,11 @@ export async function updateShoppingModel(
     id_shopping: string,
     id_scompra: string,
     id_vendedor: string,
+    numero_cotizacion: string,
+    numero_pedido: string,
+    nombre_unidad: string,
     fecha_compra: Date,
+    lugar_entrega: string,
     shopping_order_id: string,
     total: number,
     estado: boolean
@@ -53,7 +63,7 @@ export async function updateShoppingModel(
       .where({
         id_shopping,
       })
-      .update({ fecha_compra, total, id_scompra, id_vendedor, shopping_order_id, estado })
+      .update({ numero_cotizacion,  lugar_entrega,numero_pedido,fecha_compra, nombre_unidad,total, id_scompra, id_vendedor, shopping_order_id, estado })
       .returning("*");
     return updatedShopping;
 }

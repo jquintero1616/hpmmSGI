@@ -5,6 +5,12 @@ export interface ShoppingInterface {
   vendedor_nombre?: string; // Optional, as it may not be present in all contexts
   fecha_compra: Date;
   shopping_order_id: string;
+
+  numero_cotizacion: string;
+  numero_pedido: string;
+  nombre_unidad: string;
+  lugar_entrega?: string;
+  
   total: number;
   estado: boolean;
   created_at?: Date;

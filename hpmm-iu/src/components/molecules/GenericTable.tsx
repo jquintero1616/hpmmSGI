@@ -164,149 +164,163 @@ const GenericTable = <T extends Record<string, any>>({
   }, [data.length, rowsPerPage]);
 
   return (
-    <div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-full table-auto border-collapse text-sm">
-          <thead className="text-sm">
-            <tr>
-              {columns.map((col, idx) => {
-                const key =
-                  typeof col.accessor === "string" ? col.accessor : col.header;
-                const isSorted = sortBy === key;
-                const isFiltered = !!filters[key as string];
-                return (
-                  <th
-                    key={`column-${idx}`}
-                    className="border border-gray-300 px-4 py-2 text-left bg-gray-50 whitespace-nowrap relative"
-                  >
-                    <div className="flex items-center gap-1">
-                      <span
-                        className="flex items-center cursor-pointer select-none"
-                        onClick={() => {
-                          // Solo ordenar aquí
-                          const key =
-                            typeof col.accessor === "string"
-                              ? col.accessor
-                              : col.header;
-                          if (sortBy === key) {
-                            setSortDirection((prev) =>
-                              prev === "asc"
-                                ? "desc"
-                                : prev === "desc"
-                                ? null
-                                : "asc"
-                            );
-                            if (sortDirection === "desc") setSortBy(null);
-                          } else {
-                            setSortBy(key as string);
-                            setSortDirection("asc");
-                          }
-                        }}
-                      >
-                        {isSorted ? (
-                          sortDirection === "asc" ? (
-                            <FaSortUp className="inline" />
-                          ) : sortDirection === "desc" ? (
-                            <FaSortDown className="inline" />
-                          ) : (
-                            <FaSort className="inline" />
-                          )
+    <div className="overflow-x-auto bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4">
+      <table
+        className="w-full min-w-[600px] table-auto border-collapse text-sm"
+        aria-label="Lista de requisiciones"
+      >
+        <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
+          <tr className="divide-x divide-gray-100 dark:divide-gray-700">
+            {columns.map((col, idx) => {
+              const key =
+                typeof col.accessor === "string" ? col.accessor : col.header;
+              const isSorted = sortBy === key;
+              const isFiltered = !!filters[key as string];
+              // Ejemplo de ocultar columna en móvil:
+              // const thClass = idx === 2 ? "hidden sm:table-cell" : "";
+              return (
+                <th
+                  key={`column-${idx}`}
+                  className={`px-4 py-3 text-left text-xs font-bold text-gray-900 dark:text-white uppercase bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 relative`}
+                  // className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase ${thClass}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <span
+                      className="flex items-center cursor-pointer select-none"
+                      onClick={() => {
+                        const key =
+                          typeof col.accessor === "string"
+                            ? col.accessor
+                            : col.header;
+                        if (sortBy === key) {
+                          setSortDirection((prev) =>
+                            prev === "asc"
+                              ? "desc"
+                              : prev === "desc"
+                              ? null
+                              : "asc"
+                          );
+                          if (sortDirection === "desc") setSortBy(null);
+                        } else {
+                          setSortBy(key as string);
+                          setSortDirection("asc");
+                        }
+                      }}
+                    >
+                      {isSorted ? (
+                        sortDirection === "asc" ? (
+                          <FaSortUp className="inline" />
+                        ) : sortDirection === "desc" ? (
+                          <FaSortDown className="inline" />
                         ) : (
                           <FaSort className="inline" />
-                        )}
-                        {col.header}
-                      </span>
-                      <span className="relative">
-                        <FaSearch
-                          className={`inline ml-1 cursor-pointer ${
-                            isFiltered ? "text-blue-600" : "text-gray-400"
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowFilter((prev) => ({
-                              ...prev,
-                              [key as string]: !prev[key as string],
-                            }));
-                          }}
+                        )
+                      ) : (
+                        <FaSort className="inline" />
+                      )}
+                      {col.header}
+                    </span>
+                    <span className="relative">
+                      <FaSearch
+                        className={`inline ml-1 cursor-pointer ${
+                          isFiltered ? "text-blue-600" : "text-gray-400"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowFilter((prev) => ({
+                            ...prev,
+                            [key as string]: !prev[key as string],
+                          }));
+                        }}
+                      />
+                      {isFiltered && (
+                        <span
+                          className="absolute top-0 right-0 block w-2 h-2 rounded-full bg-blue-600"
+                          style={{ transform: "translate(60%,-60%)" }}
                         />
-                        {isFiltered && (
-                          <span
-                            className="absolute top-0 right-0 block w-2 h-2 rounded-full bg-blue-600"
-                            style={{ transform: "translate(60%,-60%)" }}
-                          />
-                        )}
-                      </span>
+                      )}
+                    </span>
+                  </div>
+                  {showFilter[key as string] && (
+                    <div
+                      className="flex items-center mt-1 w-full absolute left-0 z-10 bg-white dark:bg-gray-900"
+                      style={{ minWidth: "120px" }}
+                    >
+                      <input
+                        ref={(el) => (filterRefs.current[key as string] = el)}
+                        type="text"
+                        className="border border-gray-300 dark:border-gray-700 rounded-l px-2 py-1 text-xs w-full bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200"
+                        placeholder={`Filtrar...`}
+                        value={filters[key as string] || ""}
+                        onChange={(e) =>
+                          handleFilterChange(key as string, e.target.value)
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                        style={{ borderRight: "none" }}
+                      />
+                      <button
+                        type="button"
+                        className="h-full px-3 border border-gray-300 dark:border-gray-700 border-l-0 rounded-r text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-lg flex items-center justify-center transition-colors duration-150"
+                        onClick={() => {
+                          handleFilterChange(key as string, "");
+                        }}
+                        tabIndex={-1}
+                        aria-label="Limpiar filtro"
+                        style={{ minHeight: "32px" }}
+                      >
+                        ×
+                      </button>
                     </div>
-                    {showFilter[key as string] && (
-                      <div
-                        className="flex items-center mt-1 w-full absolute left-0 z-10 bg-white"
-                        style={{ minWidth: "120px" }}
-                      >
-                        <input
-                          ref={(el) => (filterRefs.current[key as string] = el)}
-                          type="text"
-                          className="border border-gray-300 rounded-l px-2 py-1 text-xs w-full"
-                          placeholder={`Filtrar...`}
-                          value={filters[key as string] || ""}
-                          onChange={(e) =>
-                            handleFilterChange(key as string, e.target.value)
-                          }
-                          onClick={(e) => e.stopPropagation()}
-                          autoFocus
-                          style={{ borderRight: "none" }}
-                        />
-                        <button
-                          type="button"
-                          className="h-full px-3 border border-gray-300 border-l-0 rounded-r text-gray-400 hover:text-gray-700 text-lg flex items-center justify-center"
-                          onClick={() => {
-                            handleFilterChange(key as string, "");
-                            // Si quieres cerrar el input al limpiar, descomenta la siguiente línea:
-                            // setShowFilter((prev) => ({ ...prev, [key as string]: false }));
-                          }}
-                          tabIndex={-1}
-                          aria-label="Limpiar filtro"
-                          style={{ minHeight: "32px" }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    )}
-                  </th>
-                );
-              })}
-              {(roleName === "Jefe Almacen" || roleName === "Super Admin") && (
-                <th className="border border-gray-300 px-4 py-2 text-left bg-gray-50 whitespace-nowrap">
-                  Acciones
+                  )}
                 </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="text-sm">
-            {paginatedData.map((row, rowIndex) => {
-              const uniqueRowKey = rowKey(row) || `row-${rowIndex}`;
-              const customRowClass = rowClassName ? rowClassName(row) : "";
-              return (
-                <tr
-                  key={uniqueRowKey}
-                  className={`hover:bg-gray-100 ${customRowClass}`}
-                >
-                  {columns.map((col, idx) => {
-                    const cell =
-                      typeof col.accessor === "function"
-                        ? col.accessor(row)
-                        : (row[col.accessor] as React.ReactNode);
-                    return (
-                      <td
-                        key={`${uniqueRowKey}-col-${idx}`}
-                        className="border border-gray-200 px-4 py-2 whitespace-nowrap"
-                      >
-                        {cell}
-                      </td>
-                    );
-                  })}
-                  {(roleName === "Jefe Almacen" ||
-                    roleName === "Super Admin") && (
-                    <td className="border border-gray-200 px-4 py-2 whitespace-nowrap gap-2 flex">
+              );
+            })}
+            {(roleName === "Jefe Almacen" || roleName === "Super Admin") && (
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 dark:text-white uppercase bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600">
+                Acciones
+              </th>
+            )}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+          {paginatedData.map((row, rowIndex) => {
+            const uniqueRowKey = rowKey(row) || `row-${rowIndex}`;
+            const customRowClass = rowClassName ? rowClassName(row) : "";
+            return (
+              <tr
+                key={uniqueRowKey}
+                className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150 even:bg-gray-100 dark:even:bg-gray-850 ${customRowClass}`}
+              >
+                {columns.map((col, idx) => {
+                  const cell =
+                    typeof col.accessor === "function"
+                      ? col.accessor(row)
+                      : (row[col.accessor] as React.ReactNode);
+                  // Ejemplo: si es numérico, text-right; si no, text-left
+                  const isNumeric =
+                    typeof cell === "number" ||
+                    (typeof cell === "string" && !isNaN(Number(cell)));
+                  return (
+                    <td
+                      key={`${uniqueRowKey}-col-${idx}`}
+                      className={`px-4 py-3 whitespace-nowrap text-sm ${
+                        isNumeric
+                          ? "text-right text-gray-700 dark:text-gray-300"
+                          : "text-left text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {cell}
+                    </td>
+                  );
+                })}
+                {(roleName === "Jefe Almacen" || roleName === "Super Admin") && (
+                  <td className="px-4 py-3">
+                    <div
+                      className="flex space-x-2"
+                      role="group"
+                      aria-label="Acciones sobre la fila"
+                    >
                       {actions.map((act, idx) => (
                         <Button
                           key={`${uniqueRowKey}-action-${idx}`}
@@ -320,26 +334,25 @@ const GenericTable = <T extends Record<string, any>>({
                           {act.label}
                         </Button>
                       ))}
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-
-            {paginatedData.length === 0 && (
-              <tr>
-                <td
-                  colSpan={columns.length + actions.length}
-                  className="text-center py-6"
-                >
-                  Sin datos para mostrar.
-                </td>
+                    </div>
+                  </td>
+                )}
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            );
+          })}
 
+          {paginatedData.length === 0 && (
+            <tr>
+              <td
+                colSpan={columns.length + (roleName === "Jefe Almacen" || roleName === "Super Admin" ? 1 : 0)}
+                className="text-center py-6 text-gray-500 dark:text-gray-400"
+              >
+                Sin datos para mostrar.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
       {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}

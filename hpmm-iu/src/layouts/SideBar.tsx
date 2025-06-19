@@ -233,88 +233,36 @@ export function Sidebar() {
   const menuItems = useMemo(
     () => ({
       kardex: [
-        {
-          label: "Fusiones Aprobadas",
-          path: "/kardex",
-          icon: ArrowsRightLeftIcon,
-        },
-        {
-          label: "Fusiones Rechazadas",
-          path: "/KardexRechazadas",
-          icon: ArrowsRightLeftIcon,
-        },
-        {
-          label: "Solicitudes de Fusiones",
-          path: "/KardexPendiente",
-          icon: ArrowsRightLeftIcon,
-        },
-        {
-          label: "Fusiones Canceladas",
-          path: "/KardexCancelada",
-          icon: ArrowsRightLeftIcon,
-        },
-        {
-          label: "Histórico de Fusiones",
-          path: "/KardexHistorico",
-          icon: ArrowsRightLeftIcon,
-        },
+        { label: "Fusiones Aprobadas", path: "/kardex", icon: ArrowsRightLeftIcon },
+        { label: "Fusiones Rechazadas", path: "/KardexRechazadas", icon: ArrowsRightLeftIcon },
+        { label: "Solicitudes de Fusiones", path: "/KardexPendiente", icon: ArrowsRightLeftIcon },
+        { label: "Fusiones Canceladas", path: "/KardexCancelada", icon: ArrowsRightLeftIcon },
+        { label: "Histórico de Fusiones", path: "/KardexHistorico", icon: ArrowsRightLeftIcon },
       ],
-      requisitions: [
-        {
-          label: "Pendiente",
-          path: "/requisicionPendiente",
-          icon: ClipboardDocumentListIcon,
-        },
-        {
-          label: "Aprobado",
-          path: "/requisicionAprobado",
-          icon: ClipboardDocumentListIcon,
-        },
-        {
-          label: "Rechazado",
-          path: "/requisicionRechazado",
-          icon: ClipboardDocumentListIcon,
-        },
-        {
-          label: "Solicitudes",
-          path: "/solicitud_compras",
-          icon: ShoppingCartIcon,
-        },
-        {
-          label: "Productos / Requisiciones",
-          path: "/ProductRequisition",
-          icon: ShoppingCartIcon,
-        },
+      requisiciones: [
+        { label: "Pendientes", path: "/requisicionPendiente", icon: ClipboardDocumentListIcon },
+        { label: "Aprobadas", path: "/requisicionAprobado", icon: ClipboardDocumentListIcon },
+        { label: "Rechazadas", path: "/requisicionRechazado", icon: ClipboardDocumentListIcon },
+        { label: "Canceladas", path: "/requisicionCancelado", icon: ClipboardDocumentListIcon },
+        { label: "Histórico", path: "/requisicionHistorico", icon: ClipboardDocumentListIcon },
+      ],
+      comprasProductos: [
+        { label: "Solicitudes de Compras", path: "/solicitud_compras", icon: ShoppingCartIcon },
         { label: "Compras", path: "/shopping", icon: CreditCardIcon },
+        { label: "Productos / Requisiciones", path: "/ProductRequisition", icon: ShoppingCartIcon },
       ],
       pacts: [
-        {
-          label: "Lista de Pactos",
-          path: "/pacts",
-          icon: DocumentDuplicateIcon,
-        },
-        {
-          label: "Detalle",
-          path: "/detalle_pactos",
-          icon: DocumentDuplicateIcon,
-        },
+        { label: "Lista de Pactos", path: "/pacts", icon: DocumentDuplicateIcon },
+        { label: "Registro de Pactos", path: "/detalle_pactos", icon: DocumentDuplicateIcon },
       ],
       inventario: [
         { label: "Productos", path: "/products", icon: CubeIcon },
         { label: "Categorías", path: "/category", icon: TagIcon },
         { label: "Subcategorías", path: "/subcategory", icon: TagIcon },
-        {
-          label: "Stock Crítico",
-          path: "/stock-critico",
-          icon: ExclamationTriangleIcon,
-        },
+        { label: "Stock Crítico", path: "/stock-critico", icon: ExclamationTriangleIcon },
       ],
       providers: [
-        {
-          label: "Lista de Proveedores",
-          path: "/suppliers",
-          icon: BuildingStorefrontIcon,
-        },
+        { label: "Lista de Proveedores", path: "/suppliers", icon: BuildingStorefrontIcon },
         { label: "Vendedores", path: "/vendedor", icon: IdentificationIcon },
       ],
       usersRoles: [
@@ -322,23 +270,35 @@ export function Sidebar() {
         { label: "Roles", path: "/roles", icon: ShieldCheckIcon },
         { label: "Empleados", path: "/employees", icon: IdentificationIcon },
         { label: "Direcciones", path: "/direction", icon: IdentificationIcon },
-        {
-          label: "Subdirecciones",
-          path: "/subdireccion",
-          icon: IdentificationIcon,
-        },
+        { label: "Subdirecciones", path: "/subdireccion", icon: IdentificationIcon },
         { label: "Unidades", path: "/unit", icon: IdentificationIcon },
       ],
       audit: [
         { label: "Detalles Auditoría", path: "/bitacora", icon: ArchiveBoxIcon },
       ],
-      reportes: [
+      report: [
         { label: "Lista de Reportes", path: "/Report", icon: ChartPieIcon },
-        // Puedes agregar más submenús aquí si lo necesitas
       ],
     }),
     []
   );
+
+  // Configuración de visibilidad por roles
+  const menuVisibility = {
+    kardex: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin"],
+    requisiciones: ["Administrador", "Jefe Almacen", "Super Admin"],
+    comprasProductos: ["Administrador", "Super Admin", "Jefe de Logistica"],
+    pacts: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin"],
+    inventario: ["Administrador", "Jefe Almacen", "Super Admin"],
+    providers: ["Administrador", "Jefe Almacen", "Super Admin"],
+    usersRoles: ["Administrador", "Super Admin"],
+    audit: ["Administrador", "Super Admin"],
+    report: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin"],
+  };
+
+  // Función para saber si el menú es visible para el rol actual
+  const canViewMenu = (menuKey: keyof typeof menuVisibility) =>
+    roleName ? menuVisibility[menuKey].includes(roleName) : false;
 
   const handleOpen = useCallback(
     (value: number) => {
@@ -410,36 +370,40 @@ export function Sidebar() {
             )}
 
             {/* 2. KARDEX - Siempre visible (primera prioridad) */}
-            <MenuItem
-              icon={ArrowsRightLeftIcon}
-              label="Kardex"
-              isCollapsed={collapsed}
-              hasSubmenu
-              isOpen={open === 1}
-              onClick={() => handleOpen(1)}
-              isActive={isActiveSection(menuItems.kardex)}
-            />
-            <SubMenu 
-              items={menuItems.kardex} 
-              onNavigate={navigate} 
-              isOpen={open === 1 && !collapsed}
-              currentPath={location.pathname}
-            />
+            {canViewMenu("kardex") && (
+              <>
+                <MenuItem
+                  icon={ArrowsRightLeftIcon}
+                  label="Kardex"
+                  isCollapsed={collapsed}
+                  hasSubmenu
+                  isOpen={open === 1}
+                  onClick={() => handleOpen(1)}
+                  isActive={isActiveSection(menuItems.kardex)}
+                />
+                <SubMenu 
+                  items={menuItems.kardex} 
+                  onNavigate={navigate} 
+                  isOpen={open === 1 && !collapsed}
+                  currentPath={location.pathname}
+                />
+              </>
+            )}
 
-            {/* 3. REQUISICIONES & COMPRAS - Segunda prioridad */}
-            {!isTecnicoAlmacen && (
+            {/* 3. REQUISICIONES - Segunda prioridad */}
+            {!isTecnicoAlmacen && canViewMenu("requisiciones") && (
               <>
                 <MenuItem
                   icon={ClipboardDocumentListIcon}
-                  label="Requisiciones & Compras"
+                  label="Requisiciones"
                   isCollapsed={collapsed}
                   hasSubmenu
                   isOpen={open === 2}
                   onClick={() => handleOpen(2)}
-                  isActive={isActiveSection(menuItems.requisitions)}
+                  isActive={isActiveSection(menuItems.requisiciones)}
                 />
                 <SubMenu 
-                  items={menuItems.requisitions} 
+                  items={menuItems.requisiciones} 
                   onNavigate={navigate} 
                   isOpen={open === 2 && !collapsed}
                   currentPath={location.pathname}
@@ -447,109 +411,154 @@ export function Sidebar() {
               </>
             )}
 
-            {/* 4. PACTOS - Tercera prioridad, siempre visible */}
-            <MenuItem
-              icon={DocumentDuplicateIcon}
-              label="Pactos"
-              isCollapsed={collapsed}
-              hasSubmenu
-              isOpen={open === 3}
-              onClick={() => handleOpen(3)}
-              isActive={isActiveSection(menuItems.pacts)}
-            />
-            <SubMenu 
-              items={menuItems.pacts} 
-              onNavigate={navigate} 
-              isOpen={open === 3 && !collapsed}
-              currentPath={location.pathname}
-            />
-
-            {!isTecnicoAlmacen && (
+            {/* 4. COMPRAS & PRODUCTOS - Tercera prioridad */}
+            {!isTecnicoAlmacen && canViewMenu("comprasProductos") && (
               <>
-                {/* 5. INVENTARIO */}
                 <MenuItem
-                  icon={ArchiveBoxIcon}
-                  label="Inventario"
+                  icon={ShoppingCartIcon}
+                  label="Compras"
+                  isCollapsed={collapsed}
+                  hasSubmenu
+                  isOpen={open === 3}
+                  onClick={() => handleOpen(3)}
+                  isActive={isActiveSection(menuItems.comprasProductos)}
+                />
+                <SubMenu 
+                  items={menuItems.comprasProductos}
+                  onNavigate={navigate}
+                  isOpen={open === 3 && !collapsed}
+                  currentPath={location.pathname}
+                />
+              </>
+            )}
+
+            {/* 5. PACTOS - Sexta prioridad, siempre visible */}
+            {canViewMenu("pacts") && (
+              <>
+                <MenuItem
+                  icon={DocumentDuplicateIcon}
+                  label="Pactos"
                   isCollapsed={collapsed}
                   hasSubmenu
                   isOpen={open === 4}
                   onClick={() => handleOpen(4)}
-                  isActive={isActiveSection(menuItems.inventario)}
+                  isActive={isActiveSection(menuItems.pacts)}
                 />
                 <SubMenu 
-                  items={menuItems.inventario} 
+                  items={menuItems.pacts} 
                   onNavigate={navigate} 
                   isOpen={open === 4 && !collapsed}
                   currentPath={location.pathname}
                 />
+              </>
+            )}
 
-                {/* 6. PROVEEDORES */}
-                <MenuItem
-                  icon={BuildingStorefrontIcon}
-                  label="Proveedores"
-                  isCollapsed={collapsed}
-                  hasSubmenu
-                  isOpen={open === 5}
-                  onClick={() => handleOpen(5)}
-                  isActive={isActiveSection(menuItems.providers)}
-                />
-                <SubMenu 
-                  items={menuItems.providers} 
-                  onNavigate={navigate} 
-                  isOpen={open === 5 && !collapsed}
-                  currentPath={location.pathname}
-                />
+            {!isTecnicoAlmacen && (
+              <>
+                {/* 6. INVENTARIO */}
+                {canViewMenu("inventario") && (
+                  <>
+                    <MenuItem
+                      icon={ArchiveBoxIcon}
+                      label="Inventario"
+                      isCollapsed={collapsed}
+                      hasSubmenu
+                      isOpen={open === 5}
+                      onClick={() => handleOpen(5)}
+                      isActive={isActiveSection(menuItems.inventario)}
+                    />
+                    <SubMenu 
+                      items={menuItems.inventario} 
+                      onNavigate={navigate} 
+                      isOpen={open === 5 && !collapsed}
+                      currentPath={location.pathname}
+                    />
+                  </>
+                )}
 
-                {/* 7. USUARIOS & ROLES */}
-                <MenuItem
-                  icon={UserGroupIcon}
-                  label="Usuarios & Roles"
-                  isCollapsed={collapsed}
-                  hasSubmenu
-                  isOpen={open === 6}
-                  onClick={() => handleOpen(6)}
-                  isActive={isActiveSection(menuItems.usersRoles)}
-                />
-                <SubMenu 
-                  items={menuItems.usersRoles} 
-                  onNavigate={navigate} 
-                  isOpen={open === 6 && !collapsed}
-                  currentPath={location.pathname}
-                />
+                {/* 7. PROVEEDORES */}
+                {canViewMenu("providers") && (
+                  <>
+                    <MenuItem
+                      icon={BuildingStorefrontIcon}
+                      label="Proveedores"
+                      isCollapsed={collapsed}
+                      hasSubmenu
+                      isOpen={open === 6}
+                      onClick={() => handleOpen(6)}
+                      isActive={isActiveSection(menuItems.providers)}
+                    />
+                    <SubMenu 
+                      items={menuItems.providers} 
+                      onNavigate={navigate} 
+                      isOpen={open === 6 && !collapsed}
+                      currentPath={location.pathname}
+                    />
+                  </>
+                )}
 
-                {/* 8. REPORTES */}
-                <MenuItem
-                  icon={ChartPieIcon}
-                  label="Report"
-                  isCollapsed={collapsed}
-                  hasSubmenu
-                  isOpen={open === 8}
-                  onClick={() => handleOpen(8)}
-                  isActive={isActiveSection(menuItems.reportes)}
-                />
-                <SubMenu
-                  items={menuItems.reportes}
-                  onNavigate={navigate}
-                  isOpen={open === 8 && !collapsed}
-                  currentPath={location.pathname}
-                />
+                {/* 8. USUARIOS & ROLES */}
+                {canViewMenu("usersRoles") && (
+                  <>
+                    <MenuItem
+                      icon={UserGroupIcon}
+                      label="Usuarios & Roles"
+                      isCollapsed={collapsed}
+                      hasSubmenu
+                      isOpen={open === 7}
+                      onClick={() => handleOpen(7)}
+                      isActive={isActiveSection(menuItems.usersRoles)}
+                    />
+                    <SubMenu 
+                      items={menuItems.usersRoles} 
+                      onNavigate={navigate} 
+                      isOpen={open === 7 && !collapsed}
+                      currentPath={location.pathname}
+                    />
+                  </>
+                )}
 
-                {/* 9. AUDITORÍA */}
-                <MenuItem
-                  icon={ArchiveBoxIcon}
-                  label="Auditoría"
-                  isCollapsed={collapsed}
-                  hasSubmenu
-                  isOpen={open === 7}
-                  onClick={() => handleOpen(7)}
-                  isActive={isActiveSection(menuItems.audit)}
-                />
-                <SubMenu 
-                  items={menuItems.audit} 
-                  onNavigate={navigate} 
-                  isOpen={open === 7 && !collapsed}
-                  currentPath={location.pathname}
-                />
+                {/* 9. REPORTES */}
+                {canViewMenu("report") && (
+                  <>
+                    <MenuItem
+                      icon={ChartPieIcon}
+                      label="Report"
+                      isCollapsed={collapsed}
+                      hasSubmenu
+                      isOpen={open === 8}
+                      onClick={() => handleOpen(8)}
+                      isActive={isActiveSection(menuItems.report)}
+                    />
+                    <SubMenu
+                      items={menuItems.report}
+                      onNavigate={navigate}
+                      isOpen={open === 8 && !collapsed}
+                      currentPath={location.pathname}
+                    />
+                  </>
+                )}
+
+                {/* 10. AUDITORÍA */}
+                {canViewMenu("audit") && (
+                  <>
+                    <MenuItem
+                      icon={ArchiveBoxIcon}
+                      label="Auditoría"
+                      isCollapsed={collapsed}
+                      hasSubmenu
+                      isOpen={open === 9}
+                      onClick={() => handleOpen(9)}
+                      isActive={isActiveSection(menuItems.audit)}
+                    />
+                    <SubMenu 
+                      items={menuItems.audit} 
+                      onNavigate={navigate} 
+                      isOpen={open === 9 && !collapsed}
+                      currentPath={location.pathname}
+                    />
+                  </>
+                )}
               </>
             )}
           </ul>
@@ -558,6 +567,5 @@ export function Sidebar() {
     </div>
   );
 }
-
 
 

@@ -6,16 +6,7 @@ import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import Button from "../atoms/Buttons/Button";
 import "react-toastify/dist/ReactToastify.css";
-
-// Ajusta esta interfaz a tu modelo real
-interface reportInterface {
-  id_report: string;
-  title: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  estado: boolean;
-}
+import { Reportinterface } from "../../interfaces/Report.interface";
 
 const Report: React.FC = () => {
   const {
@@ -27,18 +18,22 @@ const Report: React.FC = () => {
   } = useReport();
 
   const [loading, setLoading] = useState(true);
-  const [filteredData, setFilteredData] = useState<reportInterface[]>([]);
+  const [filteredData, setFilteredData] = useState<Reportinterface[]>([]);
   const [isEditOpen, setEditOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-  const [itemToEdit, setItemToEdit] = useState<reportInterface | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<reportInterface | null>(null);
+  const [itemToEdit, setItemToEdit] = useState<Reportinterface | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Reportinterface | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Columnas de la tabla
-  const reportColumns: Column<reportInterface>[] = [
-    { header: "Título", accessor: "title" },
-    { header: "Descripción", accessor: "description" },
+  const reportColumns: Column<Reportinterface>[] = [
+    { header: "Tipo", accessor: "tipo" },
+    { header: "Periodo", accessor: "periodo" },
+    {
+      header: "Fecha",
+      accessor: (row) => (row.fecha ? new Date(row.fecha).toLocaleDateString() : ""),
+    },
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
@@ -57,8 +52,37 @@ const Report: React.FC = () => {
 
   // Campos del formulario
   const reportFields: FieldConfig[] = [
-    { name: "title", label: "Título", type: "text", required: true },
-    { name: "description", label: "Descripción", type: "text", required: true },
+    {
+      name: "tipo",
+      label: "Tipo",
+      type: "select",
+      options: [
+        { label: "Producto Adquirido", value: "Producto Adquirido" },
+        { label: "Consumo", value: "Consumo" },
+        { label: "Pactos", value: "Pactos" },
+        { label: "Existencia", value: "Existencia" },
+        { label: "Vencimientos", value: "Vencimientos" },
+      ],
+      required: true,
+    },
+    {
+      name: "periodo",
+      label: "Periodo",
+      type: "select",
+      options: [
+        { label: "Semanal", value: "Semanal" },
+        { label: "Mensual", value: "Mensual" },
+        { label: "Trimestral", value: "Trimestral" },
+        { label: "Anual", value: "Anual" },
+      ],
+      required: true,
+    },
+    {
+      name: "fecha",
+      label: "Fecha",
+      type: "date",
+      required: true,
+    },
     {
       name: "estado",
       label: "Estado",
@@ -77,7 +101,12 @@ const Report: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setFilteredData(reports.sort((a, b) => a.title.localeCompare(b.title)));
+    // Ordena por tipo y luego por periodo (o el campo que prefieras)
+    setFilteredData(
+      [...(reports ?? [])].sort((a, b) =>
+        (a.tipo ?? "").localeCompare(b.tipo ?? "")
+      )
+    );
   }, [reports]);
 
   const closeAll = () => {
@@ -163,11 +192,12 @@ const Report: React.FC = () => {
       {/* Modal Editar */}
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
-          <GenericForm<Partial<reportInterface>>
+          <GenericForm<Partial<Reportinterface>>
             initialValues={{
-              title: itemToEdit.title,
-              description: itemToEdit.description,
-              estado: itemToEdit.estado,
+              tipo: itemToEdit?.tipo ?? undefined,
+              periodo: itemToEdit?.periodo ?? undefined,
+              fecha: itemToEdit?.fecha ?? undefined, // <-- aquí
+              estado: itemToEdit?.estado ?? true,
             }}
             fields={reportFields}
             onSubmit={handleSave}
@@ -182,10 +212,11 @@ const Report: React.FC = () => {
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
-        <GenericForm<Partial<reportInterface>>
+        <GenericForm<Partial<Reportinterface>>
           initialValues={{
-            title: "",
-            description: "",
+            tipo: undefined,
+            periodo: undefined,
+            fecha: undefined, // <-- aquí
             estado: true,
           }}
           fields={reportFields}

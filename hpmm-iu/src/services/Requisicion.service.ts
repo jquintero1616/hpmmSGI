@@ -51,6 +51,7 @@ export const PostRequisicionService = async (
       id_requisi: requisicion.id_requisi,
       id_employes: requisicion.id_employes,
       fecha: requisicion.fecha,
+      descripcion: requisicion.descripcion,
       estado: requisicion.estado,
     },
     { headers: { "Content-Type": "application/json" } }
@@ -64,16 +65,18 @@ export const PutRequisicionService = async (
     axiosPrivate: AxiosInstance
 ): Promise<void> => {
     await axiosPrivate.put(
-        `/requisi/${id_requisi}`,
-         {
-            id_requisi: requisicion.id_requisi,
-            id_employes: requisicion.id_employes,
-            fecha: requisicion.fecha,
-            estado: requisicion.estado
-         },
-        {
-            headers: { "Content-Type": "application/json" }
-        }
+      `/requisi/${id_requisi}`,
+      {
+        id_producto: requisicion.id_product,
+        id_requisi: requisicion.id_requisi,
+        id_employes: requisicion.id_employes,
+        fecha: requisicion.fecha,
+        descripcion: requisicion.descripcion,
+        estado: requisicion.estado,
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
     );
 };
 export const DeleteRequisicionService = async (

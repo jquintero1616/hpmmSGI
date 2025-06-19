@@ -69,7 +69,9 @@ export const SolicitudComprasProvider: React.FC<ProviderProps> = ({ children }) 
         }
     };
 
-    const PostCreateSolicitudCompraContext = async (scompra: ScomprasInterface): Promise<ScomprasInterface> => {
+    const PostCreateSolicitudCompraContext = async (
+        scompra: ScomprasInterface
+    ): Promise<ScomprasInterface> => {
         try {
             const newScompra = await PostCreateSolicitudCompraService(scompra, axiosPrivate);
             setScompras((prev) => [...prev, newScompra]);
@@ -104,17 +106,17 @@ export const SolicitudComprasProvider: React.FC<ProviderProps> = ({ children }) 
     };  
 
     return(
-        SolicitudComprasContext.Provider,
-        {
-            value: {
+        <SolicitudComprasContext.Provider
+            value={{
                 scompras,
                 GetSolicitudesComprasContext,
                 GetSolicitudCompraByIdContext,
                 PostCreateSolicitudCompraContext,
                 PutUpdateSolicitudCompraContext,
                 DeleteSolicitudCompraContext,
-            }
-        },
-        children
+            }}
+        >
+            {children}
+        </SolicitudComprasContext.Provider>
     );
 };

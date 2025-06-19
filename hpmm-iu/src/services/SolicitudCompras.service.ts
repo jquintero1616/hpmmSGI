@@ -40,7 +40,7 @@ export const PostCreateSolicitudCompraService = async (
     { headers: { "Content-Type": "application/json" } }
   );
 
-  return response.data.scompras;
+  return response.data.newScompras;
 }
 
 export const PutUpdateSolicitudCompraService = async (

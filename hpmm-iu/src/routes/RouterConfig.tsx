@@ -22,7 +22,7 @@ import ProductRequisition from "../components/organisms/Product_requisi";
 import Bitacora from "../components/organisms/Bitacora";
 import SolicitudCompras from "../components/organisms/SolicitudCompras";
 import DetallePactos from "../components/organisms/DetallePactos";
-import Report from "../components/organisms/report";
+import Report from "../components/organisms/Report";
 export const routes = [
   // Ruta pública de login
   {
@@ -105,7 +105,7 @@ export const routes = [
             <Pacts status={"Todo"} />
           </GenericPage>
         ),
-        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin", "Jefe de Logistica"] },
+        valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin"] },
       },
       // El resto de rutas solo para roles distintos a "Tecnico Almacen"
       ...[
@@ -116,6 +116,7 @@ export const routes = [
               {<User status={"Todo"} />}
             </GenericPage>
           ),
+          valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin"] },
         },
         {
           path: "products",
@@ -204,6 +205,7 @@ export const routes = [
               <Shopping status={"Todo"} />
             </GenericPage>
           ),
+          valid: { roles: ["Administrador", "Super Admin", "Jefe de Logistica"] },
         },
         {
           path: "ProductRequisition",
@@ -216,7 +218,7 @@ export const routes = [
         {
           path: "requisicionAprobado",
           element: (
-            <GenericPage title="Gestión de Kardex">
+            <GenericPage title="Gestión de Requisiciones Aprobadas">
               <Requisicion status={"Aprobado"} />
             </GenericPage>
           ),
@@ -246,12 +248,23 @@ export const routes = [
           ),
         },
         {
+          path: "RequisicionCancelado",
+          element: (
+            <GenericPage title="Requisicion Cancelado">
+              <Requisicion status={"Cancelado"} />
+            </GenericPage>
+          ),
+        },
+        {
           path: "bitacora",
           element: (
             <GenericPage title="Bitácora del Sistema">
               <Bitacora />
             </GenericPage>
+            
           ),
+          valid: { roles: ["Administrador", "Jefe Almacen", "Tecnico Almacen", "Super Admin"] },
+          
         },
         {
           path: "solicitud_compras",
@@ -260,6 +273,7 @@ export const routes = [
               <SolicitudCompras status={"Todo"} />
             </GenericPage>
           ),
+          valid: { roles: ["Administrador", "Super Admin", "Jefe de Logistica"] },
         },
         {
           path: "detalle_pactos",

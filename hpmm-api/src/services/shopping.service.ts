@@ -33,33 +33,40 @@ export const CreateShoppingService = async (data: NewShopping) => {
 }
 
 export const updateShoppingService = async (
-    id_shopping: string,
-    id_scompra: string,
-    id_vendedor: string,
-    fecha_compra: Date,
-    shopping_order_id: string,
-    total: number,
-    estado: boolean
-    
+  id_shopping: string,
+  id_scompra: string,
+  id_vendedor: string,
+  fecha_compra: Date,
+  lugar_entrega: string,
+  numero_cotizacion: string,
+  numero_pedido: string,
+  nombre_unidad: string,
+  shopping_order_id: string,
+  total: number,
+  estado: boolean
 ): Promise<NewShopping> => {
-    try {
-        const updatedShopping = await ShoppingModel.updateShoppingModel(
-            id_shopping,
-            id_scompra,
-            id_vendedor,
-            fecha_compra,
-            shopping_order_id,
-            total,
-            estado
-        );
-        if (!updatedShopping) {
-            throw new Error(`shopping with id_shopping ${id_shopping} not found`);
-        }
-        return updatedShopping;
-    } catch (error) {
-        logger.error(`Error updating shopping ${id_shopping}`, error);
-        throw error;
+  try {
+    const updatedShopping = await ShoppingModel.updateShoppingModel(
+      id_shopping,
+      id_scompra,
+      id_vendedor,
+      numero_cotizacion,
+      numero_pedido,
+      nombre_unidad,
+      fecha_compra,
+      lugar_entrega,
+      shopping_order_id,
+      total,
+      estado
+    );
+    if (!updatedShopping) {
+      throw new Error(`shopping with id_shopping ${id_shopping} not found`);
     }
+    return updatedShopping;
+  } catch (error) {
+    logger.error(`Error updating shopping ${id_shopping}`, error);
+    throw error;
+  }
 };
 
 export async function deleteShoppingService(

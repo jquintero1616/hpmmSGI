@@ -31,5 +31,11 @@ export async function seed(knex: Knex): Promise<void> {
       descripcion: "Acceso total al sistema",
       estado:      true,
     },
+    {
+      id_rol:      "55555555-5555-5555-5555-555555555555",
+      name:        "Jefe de Logistica",
+      descripcion: "Personal del Area de Logística",
+      estado:      true,
+    },
   ]);
 }

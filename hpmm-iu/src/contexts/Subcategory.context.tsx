@@ -53,7 +53,9 @@ export const SubcategoryProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     };
 
-    const GetSubcategoryByIdContext = async (id_subcategory: string): Promise<SubcategoryInterface | undefined> => {
+    const GetSubcategoryByIdContext = async (
+        id_subcategory: string
+    ): Promise<SubcategoryInterface | undefined> => {
         try {
             const subcategory = await GetSubcategoryByIdService(id_subcategory, axiosPrivate);
             return subcategory;

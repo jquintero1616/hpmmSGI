@@ -42,6 +42,12 @@ export const PostShoppingService = async (
             id_vendedor: shopping.id_vendedor,
             fecha_compra: shopping.fecha_compra,
             shopping_order_id: shopping.shopping_order_id,
+            numero_cotizacion: shopping.numero_cotizacion,
+            
+            numero_pedido: shopping.numero_pedido,
+            nombre_unidad: shopping.nombre_unidad,
+            lugar_entrega: shopping.lugar_entrega,
+
             total: shopping.total,
             estado: shopping.estado,
         }
@@ -62,6 +68,10 @@ export const PutShoppingService = async (
             id_vendedor: shopping.id_vendedor,
             fecha_compra: shopping.fecha_compra,
             shopping_order_id: shopping.shopping_order_id,
+            numero_cotizacion: shopping.numero_cotizacion,
+            numero_pedido: shopping.numero_pedido,
+            nombre_unidad: shopping.nombre_unidad,
+            lugar_entrega: shopping.lugar_entrega,
             total: shopping.total,
             estado: shopping.estado,
         }

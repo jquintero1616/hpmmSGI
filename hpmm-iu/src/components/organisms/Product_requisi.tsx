@@ -20,6 +20,7 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
 
   const { products, GetProductsContext } = useProducts();
   const { requisitions, GetRequisicionesContext } = useRequisicion();
+  
 
   // Estados locales para manejar la UI
   const [loading, setLoading] = useState(true);

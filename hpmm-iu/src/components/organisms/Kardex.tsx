@@ -116,7 +116,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const kardexFields: FieldConfig[] = [
     {
       name: "id_detalle_pacto",
-      label: "ID de Detalle Pacto",
+      label: "Pactos",
       type: "select",
       options: detallePactos.map((pacto) => ({
         label: pacto.id_units_x_pacts,

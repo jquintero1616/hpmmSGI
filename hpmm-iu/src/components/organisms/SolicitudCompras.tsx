@@ -238,9 +238,9 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
 
   useEffect(() => {
     handleTableContent(scompras);
-  }, [scompras, status]); // CORRECCIÓN: Usar status prop, no estadoFiltro
+  }, [scompras, status]);
 
-
+  
 
   // 9. RENDER CONDICIONAL
   if (loading) {
@@ -390,3 +390,4 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
 };
 
 export default SolicitudCompras;
+

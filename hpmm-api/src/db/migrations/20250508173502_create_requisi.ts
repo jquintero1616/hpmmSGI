@@ -7,6 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_employes").notNullable();
     table.date('fecha').notNullable();
     table.enu("estado", ["Pendiente", "Aprobado", "Rechazado", "Cancelado"]).defaultTo("Pendiente");
+    table.string("descripcion");
     table.timestamps(true, true);
 
 

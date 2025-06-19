@@ -83,12 +83,15 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
   const GetRequisiDetailsContext = async (): Promise<RequisiDetail[] | null> => {
     try {
       const requisitionData = await GetRequisiDetailsService(axiosPrivate);
+      if (requisitionData !== null) {
+        setRequisiDetail(requisitionData);
+      }
       return requisitionData;
     } catch (error) {
       console.error("Error al recuperar el detalle de requisición", error);
       return null;
     }
-  }
+  };
 
 
   const GetRequisicionByIdContext = async (
@@ -125,24 +128,26 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
     }
   };
 
-  const PutUpdateRequisicionContext = async (
-    id_requisi: string,
-    requisicion: RequisiInterface
-  ): Promise<void> => {
-    try {
-      await PutRequisicionService(id_requisi, requisicion, axiosPrivate);
-      setRequisitions((prev) =>
-        prev.map((req) =>
-          req.id_requisi === id_requisi ? { ...req, ...requisicion } : req
-        )
-      );
-    } catch (error) {
-      console.error(
-        `Error al actualizar la requisición con ID: ${id_requisi}`,
-        error
-      );
-    }
-  };
+ const PutUpdateRequisicionContext = async (
+  id_requisi: string,
+  requisicion: RequisiInterface
+): Promise<void> => {
+  try {
+    await PutRequisicionService(id_requisi, requisicion, axiosPrivate);
+    setRequisitions((prev) =>
+      prev.map((req) =>
+        req.id_requisi === id_requisi ? { ...req, ...requisicion } : req
+      )
+    );
+    
+    await GetRequisiDetailsContext();
+  } catch (error) {
+    console.error(
+      `Error al actualizar la requisición con ID: ${id_requisi}`,
+      error
+    );
+  }
+};
 
   const DeleteRequisicionContext = async (
     id_requisi: string

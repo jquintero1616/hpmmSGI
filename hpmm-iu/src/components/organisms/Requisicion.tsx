@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useRequisicion } from "../../hooks/use.Requisicion";
+
 import {
   RequisiInterface,
   RequisiDetail,
@@ -8,11 +8,15 @@ import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
-import { useEmploye } from "../../hooks/use.Employe";
-import { useProducts } from "../../hooks/use.Product";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { useProductRequisi } from "../../hooks/use.Product_requisi";
+import { useRequisicion } from "../../hooks/use.Requisicion";
+import { useEmploye } from "../../hooks/use.Employe";
+import { useProducts } from "../../hooks/use.Product";
+import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
@@ -28,6 +32,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const { employes, GetEmployeContext } = useEmploye();
   const { products, GetProductsContext } = useProducts();
 
+  const { PostCreateProductRequisitionContext } = useProductRequisi();
+  const { PostCreateSolicitudCompraContext } = useSolicitudCompras();
+
   // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<RequisiDetail[]>([]);
@@ -37,6 +44,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [itemToEdit, setItemToEdit] = useState<RequisiInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<RequisiDetail | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isDetailOpen, setDetailOpen] = useState(false);
+  const [itemToView, setItemToView] = useState<RequisiDetail | null>(null);
+
+  // NUEVOS ESTADOS PARA LISTA DE REQUISICIONES
+  const [dataListForm, setDataListForm] = useState<any[]>([]);
+  const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
   // 3. FUNCIONES DE VALIDACIÓN
   const validateCreate = (values: any) => {
@@ -53,39 +66,32 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   };
 
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
-  const requisicionColumns: Column<RequisiDetail>[] = [
-    
+  const requisicionColumns: Column<any>[] = [
     { header: "Empleado", accessor: "employee_name" },
+    { header: "Unidad", accessor: "unit_name" },
     { header: "Producto", accessor: "product_name" },
     { header: "Cantidad", accessor: "cantidad" },
     {
       header: "Fecha de Solicitud",
-      accessor: (row) => new Date(row.fecha).toLocaleDateString(),
+      accessor: (row) =>
+        row.fecha ? new Date(row.fecha).toLocaleDateString() : "",
     },
+    { header: "Descripción", accessor: "descripcion" },
+
     { header: "Estado", accessor: "estado" },
-    {
-      header: "Fecha ",
-      accessor: (row) =>
-        row.created_at ? new Date(row.created_at).toLocaleString() : "",
-    },
-    {
-      header: "Fecha Actualización",
-      accessor: (row) =>
-        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
-    },
+    
   ];
 
   const requisicionFields: FieldConfig[] = [
-
     {
       name: "id_product",
       label: "Producto",
       type: "select",
       options: products
-        .filter((p) => p.id_product) 
+        .filter((p) => p.id_product)
         .map((p) => ({
           label: p.nombre || p.product_name || "Sin nombre",
-          value: p.id_product, 
+          value: p.id_product,
         })),
       required: true,
     },
@@ -94,16 +100,16 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       label: "Empleado",
       type: "select",
       options: employes
-        .filter((e) => e.id_employes) 
+        .filter((e) => e.id_employes)
         .map((e) => ({
           label: e.name || e.employee_name || "Sin nombre",
-          value: e.id_employes, 
+          value: e.id_employes,
         })),
       required: true,
     },
-    { 
-      name: "fecha", 
-      label: "Fecha", 
+    {
+      name: "fecha",
+      label: "Fecha",
       type: "date",
       required: true,
     },
@@ -112,17 +118,24 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       label: "Estado",
       type: "select",
       options: [
-        { label: "Pendiente", value: "Pendiente" },     
+        { label: "Pendiente", value: "Pendiente" },
         { label: "Aprobado", value: "Aprobado" },
         { label: "Rechazado", value: "Rechazado" },
+        { label: "Cancelado", value: "Cancelado" },
       ],
       required: true,
     },
     {
-      name: "quantity",
+      name: "cantidad",
       label: "Cantidad",
       type: "number",
       required: true,
+    },
+    {
+      name: "descripcion",
+      label: "Descripción",
+      type: "textarea",
+      required: false,
     },
   ];
 
@@ -177,6 +190,16 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     setDeleteOpen(true);
   };
 
+  const openDetail = (row: RequisiDetail) => {
+    setItemToView(row);
+    setDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    setItemToView(null);
+    setDetailOpen(false);
+  };
+
   // 7. HANDLERS DE CRUD
   const handleConfirmDelete = async (id_requisi: string) => {
     setSaving(true);
@@ -220,32 +243,99 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     }
   };
 
-  const handleCreate = async (values: any) => {
+  // FUNCIONES PARA AGREGAR, EDITAR Y ELIMINAR DE LA LISTA
+  const deleteItemList = (id: string) => {
+    setDataListForm((prev) => prev.filter((item) => item.id_requisi !== id));
+  };
+
+  const handleAddItem = (item: any) => {
+    let fechaISO = "";
+    if (
+      typeof item.fecha === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(item.fecha)
+    ) {
+      const [year, month, day] = item.fecha.split("-");
+
+      const localDate = new Date(Number(year), Number(month) - 1, Number(day));
+      fechaISO = localDate.toISOString();
+    } else if (item.fecha instanceof Date) {
+      fechaISO = item.fecha.toISOString();
+    } else {
+      fechaISO = new Date().toISOString();
+    }
+
+    const newItem = { ...item, fecha: fechaISO };
+
+    if (itemToEditList) {
+      setDataListForm((prev) =>
+        prev.map((p) =>
+          p.id_requisi === itemToEditList.id_requisi
+            ? { ...newItem, id_requisi: itemToEditList.id_requisi }
+            : p
+        )
+      );
+      setItemToEditList(null);
+    } else {
+      setDataListForm((prev) => [
+        ...prev,
+        { ...newItem, id_requisi: crypto.randomUUID() },
+      ]);
+    }
+    console.log("Lista actualizada:", newItem);
+  };
+
+  
+  const handleCreate = async (_values: any) => {
     setSaving(true);
     try {
-      await PostCreateRequisicionContext(values);
+      if (dataListForm.length === 0) {
+        toast.error("Debes agregar al menos una requisición a la lista.");
+        return;
+      }
+      await Promise.all(
+        dataListForm.map(async (item) => {
+          await PostCreateRequisicionContext(item);
+          await PostCreateProductRequisitionContext({
+            id_product: item.id_product,
+            id_requisi: item.id_requisi,
+            cantidad: item.cantidad,
+          });
+        })
+      );
       await GetRequisicionesContext();
-      toast.success("Requisición creada correctamente");
+      toast.success("Requisiciones creadas correctamente");
+      setDataListForm([]);
       closeAll();
     } catch (error) {
-      toast.error("Error al crear la requisición");
+      toast.error("Error al crear las requisiciones");
     } finally {
       setSaving(false);
     }
   };
 
   // Handlers específicos para cambiar estado
-  const changeRequisicionStatus = async (row: RequisiDetail, newStatus: string) => {
+  const changeRequisicionStatus = async (row: RequisiDetail, newStatus: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado") => {
     const item = requisitions.find((r) => r.id_requisi === row.id_requisi);
     if (item) {
       setSaving(true);
       try {
         await PutUpdateRequisicionContext(item.id_requisi, {
           ...item,
-          estado: newStatus as "Pendiente" | "Aprobado" | "Rechazado",
+          estado: newStatus,
         });
+
+        if (newStatus === "Aprobado") {
+          await PostCreateSolicitudCompraContext({
+            id_requisi: item.id_requisi,
+            estado: "Pendiente",
+          });
+          toast.success(
+            "La requisición ha sido APROBADA,se ha creado una solicitud de compra."
+          );
+        } else {
+          toast.success(`Estado cambiado a ${newStatus}`);
+        }
         await GetRequisicionesContext();
-        toast.success(`Estado cambiado a ${newStatus}`);
       } catch (error) {
         toast.error("Error al cambiar el estado");
       } finally {
@@ -256,19 +346,18 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // Configuración de acciones por estado
   const getActionsForStatus = (status: string) => {
-    switch (status) {
-      case "Rechazado":
-        return [
-          {
-            header: "Acciones",
-            label: "Recuperar",
-            onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Pendiente"),
-          },
-        ];
+    const baseActions = [
+      {
+        header: "Acciones",
+        label: "Ver",
+        onClick: (row: RequisiDetail) => openDetail(row),
+      },
+    ];
 
+    switch (status) {
       case "Pendiente":
         return [
+          ...baseActions,
           {
             header: "Acciones",
             label: "Editar",
@@ -277,45 +366,39 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Aprobar",
-            onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Aprobado"),
+            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Aprobado"),
           },
           {
             header: "Acciones",
             label: "Rechazar",
-            onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Rechazado"),
+            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
+          },
+          {
+            header: "Acciones",
+            label: "Cancelar",
+            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Cancelado"),
           },
         ];
-
       case "Aprobado":
         return [
-          {
-            header: "Acciones",
-            label: "Ver",
-            onClick: (row: RequisiDetail) => openEdit(row.id_requisi),
-          },
+          ...baseActions,
           {
             header: "Acciones",
             label: "Rechazar",
-            onClick: (row: RequisiDetail) =>
-              changeRequisicionStatus(row, "Rechazado"),
+            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
+          },
+          {
+            header: "Acciones",
+            label: "Cancelar",
+            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Cancelado"),
           },
         ];
-
+      case "Rechazado":
+        return baseActions;
+      case "Cancelado":
+        return baseActions;
       default:
-        return [
-          {
-            header: "Acciones",
-            label: "Editar",
-            onClick: (row: RequisiDetail) => openEdit(row.id_requisi),
-          },
-          {
-            header: "Acciones",
-            label: "Eliminar",
-            onClick: (row: RequisiDetail) => openDelete(row.id_requisi),
-          },
-        ];
+        return baseActions;
     }
   };
 
@@ -336,7 +419,19 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     return <div>Cargando requisiciones...</div>;
   }
 
-  // 10. RENDER PRINCIPAL
+  
+
+  const dataListFormDisplay = dataListForm.map((item) => {
+    const empleado = employes.find((e) => e.id_employes === item.id_employes);
+    const producto = products.find((p) => p.id_product === item.id_product);
+    return {
+      ...item,
+      employee_name: empleado?.name || empleado?.employee_name || "Sin nombre",
+      product_name: producto?.nombre || producto?.product_name || "Sin nombre",
+     
+    };
+  });
+
   return (
     <div>
       <ToastContainer />
@@ -366,10 +461,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         {itemToEdit && (
           <GenericForm<Partial<RequisiInterface>>
             initialValues={{
+              id_product: itemToEdit.id_product ?? "",
               id_employes: itemToEdit.id_employes ?? "",
-              fecha: itemToEdit.fecha ? new Date(itemToEdit.fecha) : new Date(),
+              fecha: itemToEdit.fecha ?? new Date().toISOString().slice(0, 10),
               estado: itemToEdit.estado ?? "Pendiente",
-              cantidad: itemToEdit.cantidad ?? 0,
+              cantidad: itemToEdit.cantidad ?? "0",
+              descripcion: itemToEdit.descripcion ?? "",
             }}
             fields={requisicionFields}
             onSubmit={handleSave}
@@ -394,34 +491,84 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
+        <h2 className="text-xl font-bold mb-4 text-center">
+    {itemToEditList ? "Editar requisición de la lista" : "Agregar requisición a la lista"}
+  </h2>
         <GenericForm<Partial<RequisiDetail>>
-          initialValues={{
-            id_product: "",
-            id_employes: "",
-            fecha: itemToEdit?.fecha ? new Date(itemToEdit.fecha) : new Date(),
-            estado: "Pendiente",
-            cantidad: 0,
-          }}
+          initialValues={
+            itemToEditList
+              ? itemToEditList
+              : {
+                  id_product: "",
+                  id_employes: "",
+                  fecha: new Date().toISOString().slice(0, 10),
+                  estado: "Pendiente",
+                  descripcion: "",
+                  cantidad: 0,
+                  
+                }
+          }
           fields={requisicionFields.map((f) =>
             f.name === "estado" ? { ...f, disabled: true } : f
           )}
-          onSubmit={handleCreate}
-          onCancel={closeAll}
+          onSubmit={handleAddItem}
+          onCancel={() => {
+            setItemToEditList(null);
+          }}
           validate={validateCreate}
-          submitLabel={
-            saving ? (
+          submitLabel={itemToEditList ? "Actualizar" : "Agregar a lista"}
+          cancelLabel="Cancelar edición"
+          title={
+            itemToEditList
+              ? "Editar requisición de la lista"
+              : "Agregar requisición a la lista"
+          }
+          submitDisabled={saving}
+        />
+        <GenericTable
+          columns={requisicionColumns}
+          data={dataListFormDisplay}
+          rowKey={(row) => row.id_requisi}
+          actions={[
+            {
+              header: "Acciones",
+              label: "Editar",
+              onClick: (row) => setItemToEditList(row),
+            },
+            {
+              header: "Eliminar",
+              label: "Eliminar",
+              onClick: (row) => deleteItemList(row.id_requisi),
+            },
+          ]}
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            onClick={handleCreate}
+            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+            disabled={saving || dataListForm.length === 0}
+          >
+            {saving ? (
               <span>
                 <span className="animate-spin inline-block mr-2">⏳</span>
                 Creando...
               </span>
             ) : (
-              "Crear"
-            )
-          }
-          cancelLabel="Cancelar"
-          title="Crear Requisición"
-          submitDisabled={saving}
-        />
+              "Crear todas"
+            )}
+          </Button>
+          <Button
+            onClick={() => {
+              setItemToEditList(null);
+              setDataListForm([]);
+              closeAll();
+            }}
+            className="bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+            disabled={saving}
+          >
+            Cancelar 
+          </Button>
+        </div>
       </Modal>
 
       {/* Modal Eliminar */}
@@ -464,6 +611,81 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               </Button>
             </div>
           </>
+        )}
+      </Modal>
+
+      {/* Modal Detalle */}
+      <Modal isOpen={isDetailOpen} onClose={closeDetail} showHeader={false} showFooter={false}>
+        {itemToView && (
+          <div className="max-w-2xl mx-auto">
+            {/* Título */}
+            <div className="mb-6">
+              <h2 className="text-center text-2xl font-light text-hpmm-azul-oscuro tracking-wide select-none">
+                Detalle de la Requisición
+              </h2>
+              <hr className="mt-3 border-hpmm-azul-claro opacity-40" />
+            </div>
+            {/* Datos principales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 mb-8">
+              <div className="space-y-5">
+                <div>
+                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Solicitante</div>
+                  <div className="text-xl font-bold text-hpmm-azul-oscuro bg-hpmm-azul-claro/10 px-2 py-1 rounded">
+                    {itemToView.employee_name}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Unidad</div>
+                  <div className="text-lg text-gray-800">{itemToView.unit_name}</div>
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Estado</div>
+                  <span className={`inline-block px-3 py-1 rounded-full text-base font-bold ${
+                    itemToView.estado === "Pendiente" ? "bg-yellow-100 text-yellow-800" :
+                    itemToView.estado === "Aprobado" ? "bg-green-100 text-green-800" :
+                    itemToView.estado === "Rechazado" ? "bg-red-100 text-red-800" :
+                    itemToView.estado === "Cancelado" ? "bg-gray-200 text-gray-800" : ""
+                  }`}>
+                    {itemToView.estado}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-5">
+                <div>
+                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Producto</div>
+                  <div className="text-xl font-bold text-green-700 bg-green-100 px-2 py-1 rounded">
+                    {itemToView.product_name}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Cantidad</div>
+                  <div className="text-xl font-semibold text-hpmm-azul-oscuro">{Number(itemToView.cantidad).toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Fecha de Solicitud</div>
+                  <div className="text-lg text-gray-800">{new Date(itemToView.fecha).toLocaleDateString()}</div>
+                </div>
+              </div>
+            </div>
+            {/* Descripción */}
+            <div className="mb-8">
+              <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-2">Descripción</div>
+              <div className="bg-yellow-50 border-l-4 border-hpmm-amarillo-claro p-4 rounded-lg min-h-[48px] text-base text-gray-900">
+                {itemToView.descripcion
+                  ? itemToView.descripcion
+                  : <span className="italic text-gray-400">Sin descripción</span>}
+              </div>
+            </div>
+            {/* Botón cerrar */}
+            <div className="text-right">
+              <button
+                onClick={closeDetail}
+                className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-semibold py-2 px-6 rounded transition"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         )}
       </Modal>
     </div>
