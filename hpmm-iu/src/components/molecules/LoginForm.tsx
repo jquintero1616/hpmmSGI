@@ -26,6 +26,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 }) => {
   const [remember, setRemember] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [showPassword, setShowPassword] = useState(false); // Nuevo estado
 
   useEffect(() => {
     if (initialLoad) {
@@ -70,14 +71,36 @@ const LoginForm: React.FC<LoginFormProps> = ({
           disabled={isLoading}
         />
 
-        <Input
-          name="password"
-          type="password"
-          value={password}
-          onChange={onPasswordChange}
-          placeholder="Contraseña"
-          disabled={isLoading}
-        />
+        <div className="relative">
+          <Input
+            name="password"
+            type={showPassword ? "text" : "password"} // Cambia el tipo según el estado
+            value={password}
+            onChange={onPasswordChange}
+            placeholder="Contraseña"
+            disabled={isLoading}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-hpmm-morado-claro focus:outline-none"
+            tabIndex={-1}
+          >
+            {showPassword ? (
+              // Ícono de ojo cerrado
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4.03-9-9 0-1.657.403-3.216 1.125-4.575m2.122-2.122A8.963 8.963 0 0112 3c5 0 9 4.03 9 9 0 1.657-.403 3.216-1.125 4.575m-2.122 2.122A8.963 8.963 0 0112 21c-2.21 0-4.253-.72-5.875-1.825M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+              </svg>
+            ) : (
+              // Ícono de ojo abierto
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-.274.857-.687 1.664-1.212 2.393M15.54 17.44A8.963 8.963 0 0112 19c-2.21 0-4.253-.72-5.875-1.825" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center justify-between">
@@ -120,7 +143,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             Cargando...
           </span>
         ) : (
-          "Iniciar sesión"
+          "Ingresar"
         )}
       </Button>
     </form>

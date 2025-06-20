@@ -167,6 +167,10 @@ const GenericForm = <T extends Record<string, any>>({
             if (isNaN(numValue)) {
               newErrors[field.name] = "Debe ser un número válido";
             } else {
+              // Validar que sea mayor a 0
+              if (numValue <= 0) {
+                newErrors[field.name] = "Debe ser mayor a 0";
+              }
               if (field.min !== undefined && numValue < field.min) {
                 newErrors[field.name] = `Mínimo valor: ${field.min}`;
               }
@@ -220,7 +224,7 @@ const GenericForm = <T extends Record<string, any>>({
 
     switch (field.type) {
       case "email":
-        return "ejemplo@hpmm.com";
+        return "ejemplo@correo.com";
       case "tel":
         return "Número de teléfono"; // Placeholder más genérico
       case "number":
@@ -316,60 +320,29 @@ const GenericForm = <T extends Record<string, any>>({
   return (
     <div className="max-w-xl mx-auto bg-white rounded-lg p-6">
       {/* Formulario */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           {fields.map((field) => (
             <div
               key={field.name}
-              className={`flex flex-col ${
-                field.type === "textarea" ? "md:col-span-2" : ""
-              }`}
+              className={`flex flex-col ${field.type === "textarea" ? "md:col-span-2" : ""}`}
             >
               <label className="text-sm font-semibold text-gray-700 mb-1">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>
-
-              {/* Si hay extraFields para este campo, lo renderiza, si no, el campo normal */}
               {extraFields && extraFields[field.name]
                 ? extraFields[field.name]
                 : renderField(field)}
-
               {errors[field.name] && (
                 <p className="text-xs text-red-500 mt-1">
                   {errors[field.name]}
                 </p>
               )}
-
-              {/* Ayuda contextual */}
-              {field.type === "email" && !errors[field.name] && (
-                <p className="text-xs text-gray-500 mt-1"></p>
-              )}
-              {field.type === "number" &&
-                (field.min || field.max) &&
-                !errors[field.name] && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {field.min && field.max
-                      ? `Rango: ${field.min} - ${field.max}`
-                      : field.min
-                      ? `Mínimo: ${field.min}`
-                      : `Máximo: ${field.max}`}
-                  </p>
-                )}
             </div>
           ))}
         </div>
-
-        <div className="flex justify-end space-x-3">
-          {submitLabel === "Crear" && (
-            <Button
-              type="button"
-              onClick={handleAddProduct} // ← Usar la nueva función
-              className="px-6 py-2 bg-hpmm-verde-claro text-white hover:bg-hpmm-verde-oscuro transition-colors"
-            >
-              Agregar Producto
-            </Button>
-          )}
+        <div className="flex justify-end space-x-3 mt-6">
           <Button
             type="button"
             onClick={onCancel}
@@ -380,7 +353,7 @@ const GenericForm = <T extends Record<string, any>>({
           <Button
             type="submit"
             className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={ submitLabel === "Crear" ? dataList?.length === 0 : submitDisabled}
+            disabled={submitDisabled}
           >
             {submitLabel}
           </Button>

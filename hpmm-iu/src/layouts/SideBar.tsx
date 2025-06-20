@@ -252,7 +252,7 @@ export function Sidebar() {
         { label: "Productos / Requisiciones", path: "/ProductRequisition", icon: ShoppingCartIcon },
       ],
       pacts: [
-        { label: "Lista de Pactos", path: "/pacts", icon: DocumentDuplicateIcon },
+        { label: "Configuracion de Pactos", path: "/pacts", icon: DocumentDuplicateIcon },
         { label: "Registro de Pactos", path: "/detalle_pactos", icon: DocumentDuplicateIcon },
       ],
       inventario: [

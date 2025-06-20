@@ -38,16 +38,14 @@ export const createUnitPactService = async (
 
 export const updateUnitPactService = async (
   id_units_x_pacts: string,
-  data: NewUnitPact,
-  estado: boolean,
-  cantidad: number
+  cantidad: number,
+  estado: boolean
+
 ) => {
   const updatedUnitPact = await UnitPactModel.updateUnitPactModel(
     id_units_x_pacts,
-    data,
     cantidad,
     estado
-    
   );
   return updatedUnitPact;
 };

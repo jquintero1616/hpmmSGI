@@ -76,7 +76,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Subdirección", accessor: "subdireccion" },
     { header: "Dirección", accessor: "direccion" },
     { header: "Nombre", accessor: "name" },
-    { header: "Email", accessor: "email" },
+    { header: "Correo Personal", accessor: "email" },
     { header: "Teléfono", accessor: "telefono" },
     { header: "Puesto", accessor: "puesto" },
     {
@@ -137,7 +137,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       required: true,
     },
     { name: "name", label: "Nombre", type: "text", required: true },
-    { name: "email", label: "Email", type: "email", required: true },
+    { name: "email", label: "Correo Personal", type: "email", required: true },
     {
       name: "telefono",
       label: "Teléfono",

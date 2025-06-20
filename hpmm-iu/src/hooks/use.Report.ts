@@ -8,7 +8,8 @@ export const useReport = () => {
         GetReportByIdContext,
         PostCreateReportContext,
         PutUpdateReportContext,
-        DeleteReportContext
+        DeleteReportContext,
+
     } = useContext(ReportContext);
 
     if (
@@ -28,6 +29,7 @@ export const useReport = () => {
         GetReportByIdContext,
         PostCreateReportContext,
         PutUpdateReportContext,
-        DeleteReportContext
+        DeleteReportContext,
+
     };
 }

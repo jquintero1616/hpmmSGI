@@ -6,6 +6,7 @@ import {
     PostCreateReportService,
     PutUpdateReportService,
     DeleteReportService,
+
 } from '../services/Report.service';
 
 import { ReportContextType, ProviderProps } from '../interfaces/Context.interface';
@@ -21,6 +22,7 @@ export const ReportContext = createContext<ReportContextType>({
     PostCreateReportContext: async () => { },
     PutUpdateReportContext: async () => { },
     DeleteReportContext: async () => { },
+
 });
 
 
@@ -104,6 +106,7 @@ export const ReportProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     };
 
+   
     return (
         <ReportContext.Provider
             value={{
@@ -113,6 +116,7 @@ export const ReportProvider: React.FC<ProviderProps> = ({ children }) => {
                 PostCreateReportContext,
                 PutUpdateReportContext,
                 DeleteReportContext,
+
             }}
         >
             {children}

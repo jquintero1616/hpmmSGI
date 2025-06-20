@@ -7,6 +7,7 @@ export const getallUnitsPactsModel = async (): Promise<NewUnitPact[]> => {
     .join("units as u", "up.id_units", "u.id_units")
     .join("pacts as p", "up.id_pacts", "p.id_pacts")
     .join("product as sc", "up.id_product", "sc.id_product")
+    .where("up.estado", true)
     .select(
       "up.*",
       "u.name as unit_name",
@@ -22,12 +23,12 @@ export async function getUnitPactByIdModel(
     .where({ "up.id_units_x_pacts": id_units_x_pacts })
     .join("units as u", "up.id_units", "u.id_units")
     .join("pacts as p", "up.id_pacts", "p.id_pacts")
-    .join("subcategory as sc", "up.id_subcategory", "sc.id_subcategory")
+    .join("product as sc", "up.id_product", "sc.id_product")
     .select(
       "up.*",
       "u.name as unit_name",
       "p.name as pact_name",
-      "sc.nombre as subcategory_name"
+      "sc.nombre as nombre"
     )
     .first();
   return UnitPact || null;
@@ -44,15 +45,15 @@ export const createUnitPactModel = async (
 
 export async function updateUnitPactModel(
   id_units_x_pacts: string,
-  data: NewUnitPact,
   cantidad: number,
-  estado: boolean
+  estado: boolean,
+  
+ 
 ): Promise<NewUnitPact | null> {
   const updated_at = new Date();
   const [updatedUnitPact] = await knexTableName()
     .where({ id_units_x_pacts })
     .update({
-      data,
       cantidad,
       estado,
       updated_at,

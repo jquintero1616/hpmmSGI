@@ -379,7 +379,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Compras</h1>
+      <h1 className="text-2xl font-bold mb-4 text-lefth">Lista de Compras</h1>
 
       <div className="flex justify-end mb-4">
         <Button

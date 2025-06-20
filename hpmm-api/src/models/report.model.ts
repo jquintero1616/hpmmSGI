@@ -1,7 +1,17 @@
 import db from "../db";
-import { up } from "../db/migrations/20250508171035_create_role";
 import { NewReport } from "../types/report";
 import { randomUUID } from "crypto";
+
+
+// Ejemplo: productos con stock bajo
+export const getProductosStockBajoModel = async (stockMinimo: number) => {
+  return db("product")
+    .select("id_product", "nombre", "stock_actual", "stock_maximo")
+    .where("stock_actual", "<=", stockMinimo)
+    .andWhere("estado", true)
+    .orderBy("stock_actual", "asc");
+};
+
 
 
 export const getAllreports = async (): Promise<NewReport[]> => {

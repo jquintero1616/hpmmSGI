@@ -10,6 +10,7 @@ import { usePacts } from "../../hooks/use.Pacts";
 import { useProducts } from "../../hooks/use.Product";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GroupedInlineTable from "../molecules/GroupedInlineTable";
 
 const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Hooks
@@ -41,6 +42,10 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   // Estado local para el filtro
   const [estadoFiltro] = useState<string>("Todo");
+
+  // NUEVOS ESTADOS PARA LISTA DE DETALLES DE PACTOS
+  const [dataListForm, setDataListForm] = useState<any[]>([]);
+  const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
   // Función para validar si la combinación ya existe
   const isCombinationTaken = (
@@ -94,7 +99,7 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     }
     return errors;
   };
-
+  
   // Columnas de la tabla
   const detallePactosColumns: Column<DetallePactInterface>[] = [
     {
@@ -126,6 +131,28 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Fecha Actualización",
       accessor: (row) =>
         row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
+    },
+  ];
+
+  const detallePactosListColumns: Column<DetallePactInterface>[] = [
+    {
+      header: "Pacto",
+      accessor: (row) =>
+        pacts.find((p) => p.id_pacts === row.id_pacts)?.name || "",
+    },
+    {
+      header: "Unidad",
+      accessor: (row) =>
+        units.find((u) => u.id_units === row.id_units)?.name || "",
+    },
+    {
+      header: "Producto",
+      accessor: (row) =>
+        products.find((p) => p.id_product === row.id_product)?.nombre || "",
+    },
+    {
+      header: "Cantidad",
+      accessor: "cantidad",
     },
   ];
 
@@ -185,9 +212,14 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       filtrados = filtrados.filter((d) => d.estado === false);
     }
 
-    // Ordenar por id de forma segura
+    // Ordenar primero por unidad y luego por id_units_x_pacts
     const ordenados = filtrados.sort((a, b) => {
-      // Verificar que ambos elementos tengan id_units_x_pacts
+      // Primero por nombre de unidad (o id_units si prefieres)
+      const unidadA = a.unit_name?.toLowerCase() || "";
+      const unidadB = b.unit_name?.toLowerCase() || "";
+      if (unidadA < unidadB) return -1;
+      if (unidadA > unidadB) return 1;
+      // Si son iguales, por id_units_x_pacts
       const aId = a.id_units_x_pacts || "";
       const bId = b.id_units_x_pacts || "";
       return aId.localeCompare(bId);
@@ -301,6 +333,51 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     closeAll();
   };
 
+  // FUNCIONES PARA AGREGAR, EDITAR Y ELIMINAR DE LA LISTA
+  const deleteItemList = (id: string) => {
+    setFilteredData((prev) => prev.filter((item) => item.id_units_x_pacts !== id));
+  };
+
+  const handleAddItem = (item: any) => {
+    const newItem = { ...item };
+    if (itemToEditList) {
+      setDataListForm((prev) =>
+        prev.map((p) =>
+          p.id_units_x_pacts === itemToEditList.id_units_x_pacts
+            ? { ...newItem, id_units_x_pacts: itemToEditList.id_units_x_pacts }
+            : p
+        )
+      );
+      setItemToEditList(null);
+    } else {
+      setDataListForm((prev) => [
+        ...prev,
+        { ...newItem, id_units_x_pacts: crypto.randomUUID() },
+      ]);
+    }
+  };
+
+  const handleCreateAll = async () => {
+    if (dataListForm.length === 0) {
+      toast.error("Debes agregar al menos un detalle a la lista.");
+      return;
+    }
+    setSaving(true);
+    try {
+      for (const item of dataListForm) {
+        await PostCreateDetallePactosContext(item as DetallePactInterface);
+      }
+      await GetDetallePactosContext();
+      toast.success("Detalles de pacto creados correctamente");
+      setDataListForm([]);
+      closeAll();
+    } catch (error) {
+      toast.error("Error al crear los detalles de pacto");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Effects
   useEffect(() => {
     setLoading(true);
@@ -328,8 +405,8 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Lista de Detalles de Pactos
+      <h1 className="text-2xl font-bold mb-4 text-left">
+        Lista de Pactos a Unidades
       </h1>
 
       <div className="flex justify-end mb-4">
@@ -341,13 +418,12 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         </Button>
       </div>
 
-      <GenericTable
-        columns={detallePactosColumns}
+      <GroupedInlineTable
         data={filteredData}
-        rowKey={(row) => row.id_units_x_pacts}
+        columns={detallePactosColumns}
         actions={[
           {
-            header: "Editar",
+            header: "Acciones",
             label: "Editar",
             onClick: (row) => openEdit(row.id_units_x_pacts),
           },
@@ -357,9 +433,9 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             onClick: (row) => openDelete(row.id_units_x_pacts),
           },
         ]}
-        rowClassName={(row) =>
-          row.estado === false ? "opacity-40 line-through" : ""
-        }
+        rowKey={(row) => row.id_units_x_pacts}
+        pactCol="pact_name"   // accessor de la columna Pacto
+        unitCol="unit_name"   // accessor de la columna Unidad
       />
 
       {/* Modal Editar */}
@@ -397,34 +473,82 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          {itemToEditList
+            ? "Editar detalle de la lista"
+            : "Agregar detalle a la lista"}
+        </h2>
         <GenericForm<Partial<DetallePactInterface>>
-          initialValues={{
-            id_units: "",
-            id_pacts: "",
-            id_product: "",
-            cantidad: 1,
-            estado: true,
-          }}
+          initialValues={
+            itemToEditList
+              ? itemToEditList
+              : {
+                  id_units: "",
+                  id_pacts: "",
+                  id_product: "",
+                  cantidad: 1,
+                  estado: true,
+                }
+          }
           fields={detallePactosFields.map((f) =>
             f.name === "estado" ? { ...f, disabled: true } : f
           )}
-          onSubmit={handleCreate}
-          onCancel={closeAll}
+          onSubmit={handleAddItem}
+          onCancel={() => setItemToEditList(null)}
           validate={validateCreate}
-          submitLabel={
-            saving ? (
+          submitLabel={itemToEditList ? "Actualizar" : "Agregar a lista"}
+          cancelLabel="Cancelar edición"
+          title={
+            itemToEditList
+              ? "Editar detalle de la lista"
+              : "Agregar detalle a la lista"
+          }
+          submitDisabled={saving}
+        />
+        <GenericTable
+          columns={detallePactosListColumns}
+          data={dataListForm}
+          rowKey={(row) => row.id_units_x_pacts}
+          actions={[
+            {
+              header: "Acciones",
+              label: "Editar",
+              onClick: (row) => setItemToEditList(row),
+            },
+            {
+              header: "Eliminar",
+              label: "Eliminar",
+              onClick: (row) => deleteItemList(row.id_units_x_pacts),
+            },
+          ]}
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            onClick={handleCreateAll}
+            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+            disabled={saving || dataListForm.length === 0}
+          >
+            {saving ? (
               <span>
                 <span className="animate-spin inline-block mr-2">⏳</span>
                 Creando...
               </span>
             ) : (
-              "Crear"
-            )
-          }
-          cancelLabel="Cancelar"
-          title="Crear Detalle de Pacto"
-          submitDisabled={saving}
-        />
+              "Crear todos"
+            )}
+          </Button>
+          <Button
+            onClick={() => {
+              setItemToEditList(null);
+              setDataListForm([]);
+              closeAll();
+            }}
+            className="bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+        </div>
       </Modal>
 
       {/* Modal Eliminar */}

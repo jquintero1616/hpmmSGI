@@ -297,7 +297,64 @@ const GenericTable = <T extends Record<string, any>>({
                     typeof col.accessor === "function"
                       ? col.accessor(row)
                       : (row[col.accessor] as React.ReactNode);
-                  // Ejemplo: si es numérico, text-right; si no, text-left
+
+                  const isEstadoCol =
+                    (typeof col.accessor === "string" &&
+                      col.accessor.toLowerCase().includes("estado")) ||
+                    (typeof col.header === "string" &&
+                      col.header.toLowerCase().includes("estado"));
+
+                  if (isEstadoCol) {
+                    // Normaliza el valor para comparar
+                    const cellValue = String(cell).trim().toLowerCase();
+                    let bg = "bg-gray-100 text-gray-700";
+
+                    if (
+                      cellValue === "activo" ||
+                      cellValue === "active" ||
+                      cellValue === "true" ||
+                      cell === true
+                    ) {
+                      bg = "bg-green-100 text-green-700";
+                    } else if (
+                      cellValue === "inactivo" ||
+                      cellValue === "inactive" ||
+                      cellValue === "false" ||
+                      cell === false
+                    ) {
+                      bg = "bg-red-100 text-red-700";
+                    } else if (
+                      cellValue === "pendiente" ||
+                      cellValue === "pending"
+                    ) {
+                      bg = "bg-yellow-100 text-yellow-700";
+                    } else if (
+                      cellValue === "aprobado" ||
+                      cellValue === "approved"
+                    ) {
+                      bg = "bg-green-100 text-blue-500";
+                    } else if (
+                      cellValue === "cancelado" ||
+                      cellValue === "canceled"
+                    ) {
+                      bg = "bg-red-100 text-green-700";
+                    }
+
+                    return (
+                      <td
+                        key={`${uniqueRowKey}-col-${idx}`}
+                        className="px-4 py-3 whitespace-nowrap text-center"
+                      >
+                        <span
+                          className={`px-3 py-1 rounded-full font-semibold text-xs ${bg}`}
+                        >
+                          {cell}
+                        </span>
+                      </td>
+                    );
+                  }
+
+                  // ...resto de columnas normales
                   const isNumeric =
                     typeof cell === "number" ||
                     (typeof cell === "string" && !isNaN(Number(cell)));
@@ -344,7 +401,12 @@ const GenericTable = <T extends Record<string, any>>({
           {paginatedData.length === 0 && (
             <tr>
               <td
-                colSpan={columns.length + (roleName === "Jefe Almacen" || roleName === "Super Admin" ? 1 : 0)}
+                colSpan={
+                  columns.length +
+                  (roleName === "Jefe Almacen" || roleName === "Super Admin"
+                    ? 1
+                    : 0)
+                }
                 className="text-center py-6 text-gray-500 dark:text-gray-400"
               >
                 Sin datos para mostrar.

@@ -14,6 +14,7 @@ import GenericTable, { Column } from "../../components/molecules/GenericTable";
 import { useProducts } from "../../hooks/use.Product";
 import { useShopping } from "../../hooks/use.Shopping";
 import { useDetallePactos } from "../../hooks/use.DetallePactos";
+import { ToastContainer, toast } from "react-toastify"; // Si no lo tienes ya
 
 type KardexRow = KardexDetail & { calculado_stock?: number };
 
@@ -43,6 +44,10 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // Estados de items seleccionados
   const [itemToEdit, setItemToEdit] = useState<kardexInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<KardexDetail | null>(null);
+
+  // NUEVOS ESTADOS para la lista temporal en el modal de creación
+  const [dataListForm, setDataListForm] = useState<any[]>([]);
+  const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
   // 3. CONFIGURACIONES 
   const kardexColumns: Column<KardexRow>[] = [
@@ -256,6 +261,33 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     closeAll();
   };
 
+  // NUEVA función para eliminar de la lista temporal
+  const deleteItemList = (id_temp: string) => {
+    setDataListForm((prev) => prev.filter((p) => p.id_temp !== id_temp));
+  };
+
+  // NUEVA función para crear varios movimientos
+  const handleCreateBatch = async () => {
+    if (dataListForm.length === 0) {
+      toast.error("Debes agregar al menos un movimiento a la lista.");
+      return;
+    }
+    try {
+      await Promise.all(
+        dataListForm.map(async (item) => {
+          await PostCreateKardexContext(item);
+        })
+      );
+      toast.success("Movimientos agregados con éxito.");
+    } catch (error) {
+      toast.error("Error al agregar movimientos: " + error);
+      return;
+    }
+    setDataListForm([]);
+    await GetKardexContext();
+    closeAll();
+  };
+
   // Handlers específicos
   // Función helper para cambiar estado del kardex
   const changeKardexStatus = (
@@ -334,6 +366,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <h2>Gestión de Kardex</h2>
+      <ToastContainer />
       <Button onClick={() => setCreateOpen(true)}>+ Nuevo movimiento</Button>
 
       <GenericTable
@@ -357,36 +390,92 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         )}
       </Modal>
 
-      {/* Modal Crear */}
+      {/* Modal Crear con lista temporal */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
-        <GenericForm
-          initialValues={{
-            id_producto: null,
-            id_shopping: null,
-            id_units_x_pacts: null,
-            anio_creacion: 2025,
-            tipo_movimiento: "Entrada",
-            fecha_movimiento: new Date().toISOString().slice(0, 10),
-            numero_factura: "",
-            cantidad: 0,
-            precio_unitario: 0,
-            tipo_solicitud: "",
-            requisicion_numero: "",
-            tipo: "Pendiente",
-            observacion: "",
-            descripcion: "",
-            fecha_vencimiento: new Date().toISOString().slice(0, 10),
-            numero_lote: "",
-            estado: true,
-          }}
-          fields={kardexFields}
-          onSubmit={handleCreate}
-          onCancel={closeAll}
-          submitLabel="Crear"
-          cancelLabel="Cancelar"
-        />
+        <div className="p-2 md:p-4">
+          <h3 className="text-xl font-semibold mb-4">Agregar movimientos a Kardex</h3>
+          <GenericForm
+            initialValues={
+              itemToEditList
+                ? itemToEditList
+                : {
+                    id_producto: null,
+                    id_shopping: null,
+                    id_units_x_pacts: null,
+                    anio_creacion: 2025,
+                    tipo_movimiento: "Entrada",
+                    fecha_movimiento: new Date().toISOString().slice(0, 10),
+                    numero_factura: "",
+                    cantidad: 0,
+                    precio_unitario: 0,
+                    tipo_solicitud: "",
+                    requisicion_numero: "",
+                    tipo: "Pendiente",
+                    observacion: "",
+                    descripcion: "",
+                    fecha_vencimiento: new Date().toISOString().slice(0, 10),
+                    numero_lote: "",
+                    estado: true,
+                  }
+            }
+            fields={kardexFields}
+            onSubmit={(item) => {
+              if (itemToEditList) {
+                setDataListForm((prev) =>
+                  prev.map((p) =>
+                    p.id_temp === itemToEditList.id_temp
+                      ? { ...item, id_temp: itemToEditList.id_temp }
+                      : p
+                  )
+                );
+                setItemToEditList(null);
+              } else {
+                setDataListForm((prev) => [
+                  ...prev,
+                  { ...item, id_temp: crypto.randomUUID() },
+                ]);
+              }
+            }}
+            onCancel={() => {
+              setItemToEditList(null);
+              setDataListForm([]);
+              closeAll();
+            }}
+            submitLabel={itemToEditList ? "Actualizar" : "Agregar a lista"}
+            cancelLabel="Cancelar"
+          />
+
+          <div className="mt-6">
+            <h4 className="font-semibold mb-2">Movimientos a agregar</h4>
+            <GenericTable
+              columns={kardexColumns}
+              data={dataListForm}
+              rowKey={(row: any) => row.id_temp}
+              actions={[
+                {
+                  header: "Acciones",
+                  label: "Editar",
+                  onClick: (row: any) => setItemToEditList(row),
+                },
+                {
+                  header: "Eliminar",
+                  label: "Eliminar",
+                  onClick: (row: any) => deleteItemList(row.id_temp),
+                },
+              ]}
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end gap-2">
+            <Button isPrimary onClick={handleCreateBatch}>
+              Guardar todos
+            </Button>
+            <Button onClick={closeAll}>Cerrar</Button>
+          </div>
+        </div>
       </Modal>
 
+      {/* Modal Eliminar */}
       <Modal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete && (
           <>

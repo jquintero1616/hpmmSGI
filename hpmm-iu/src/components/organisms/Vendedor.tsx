@@ -146,9 +146,20 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const openEdit = (id_vendedor: string) => {
-    setItemToEdit(vendedor.find((v) => v.id_vendedor === id_vendedor) || null);
-    setEditOpen(true);
-  };
+    if (!vendedor || vendedor.length === 0) {
+      return
+    }
+    const item = vendedor.find (
+      (item) => item && item.id_vendedor === id_vendedor
+    );
+
+    if(item) {
+      setItemToEdit(item);
+      setEditOpen(true);
+    } else {
+      toast.error("Vendedor no encontrado.");
+    }
+  }
 
   const openDelete = (id_vendedor: string) => {
     setItemToDelete(vendedor.find((v) => v.id_vendedor === id_vendedor) || null);
@@ -156,9 +167,16 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const handleConfirmDelete = async (id_vendedor: string) => {
-    await DeleteVendedorContext(id_vendedor);
-    await GetVendedorContext();
-    closeAll();
+    try {
+      // En vez de eliminar, solo actualiza el estado a inactivo
+      await PutUpdateVendedorContext(id_vendedor, { estado: false });
+      await GetVendedorContext();
+      closeAll();
+      toast.success("Vendedor eliminado correctamente.");
+    } catch (error) {
+      console.error("Error al inactivar el vendedor:", error);
+      toast.error("Error al inactivar el vendedor. Inténtalo de nuevo.");
+    }
   };
 
   // Handlers de CRUD

@@ -34,7 +34,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   // 1) Columnas de la tabla
   const subcategoryColumns: Column<SubcategoryInterface>[] = [
-    { header: "Nombre", accessor: "nombre" },
+    { header: "Nombre", accessor: "subcategory_name" },
     { header: "Categoria", 
       accessor: 
       (row) => category.find((c) => c.id_category === row.id_category)?.name || "" },
@@ -54,8 +54,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-  // 2) Campos para el formulario - Memo para evitar recreaciones innecesarias
-  const subcategoryFields: FieldConfig[] = React.useMemo(
+   const subcategoryFields: FieldConfig[] = React.useMemo(
     () => [
       { name: "nombre", label: "Nombre", type: "text" },
       {

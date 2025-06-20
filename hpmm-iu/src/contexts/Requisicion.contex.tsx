@@ -50,6 +50,22 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      GetRequisicionesContext()
+        .then((data) => {
+          if (data !== null) {
+            setRequisitions(data);
+          } else {
+            console.error("Error al recuperar las requisiciones");
+          }
+        })
+        .catch((error) => {
+          console.error("Error al recuperar las requisiciones", error);
+        });
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
       if (isAuthenticated) {
         GetRequisiDetailsContext()
           .then((data) => {
@@ -72,6 +88,8 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
       const requisitions = await GetRequisicionesService(axiosPrivate);
       if (requisitions !== null) {
         setRequisitions(requisitions);
+        // También actualiza los detalles
+        await GetRequisiDetailsContext();
       }
       return requisitions;
     } catch (error) {
@@ -114,15 +132,15 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
 
   const PostCreateRequisicionContext = async (
     requisicion: RequisiInterface
-  ): Promise<RequisiInterface> => {
+  ): Promise<void> => {
     try {
-      const newRequisition = await PostRequisicionService(
+      const nuevaRequisicion = await PostRequisicionService(
         requisicion,
         axiosPrivate
       );
-      setRequisitions((prev) => [...prev, newRequisition]);
-      return newRequisition;
-    } catch (error) {
+      setRequisitions((prev) => [ nuevaRequisicion,...prev]);
+      await GetRequisiDetailsContext(); // <-- Esto actualiza el estado de requisiDetail
+     } catch (error) {
       console.error("Error al crear la requisición", error);
       throw error;
     }

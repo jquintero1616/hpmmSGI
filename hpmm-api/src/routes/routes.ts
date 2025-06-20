@@ -21,6 +21,7 @@ import * as RequiXproductControllers from "../controllers/requisi.x.product.cont
 import * as DirectionControllers from "../controllers/direction.controller";
 import * as BitacoraControllers from "../controllers/bitacora.controller";
 import * as ReportControllers from "../controllers/report.controller";
+
 import * as AuthControllers from "../controllers/auth.controller";
 
 //---------------------------------------------------------------------------
@@ -33,6 +34,13 @@ import { authenticateSession } from "../middlewares/auth.middleware";
 
 const router = Router(); //
 
+
+router.get(
+  "/reports/stock-bajo",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.reports),
+  ReportControllers.getProductosStockBajoController
+);
 router.get(
   "/reports",
   authenticateSession,

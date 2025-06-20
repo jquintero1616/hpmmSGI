@@ -216,6 +216,7 @@ export interface ReportContextType {
   PostCreateReportContext: (report: Report) => Promise<Report>;
   PutUpdateReportContext: (id_report: string, report: Report) => Promise<void>;
   DeleteReportContext: (id_report: string) => Promise<void>;
+
 }
 
 export interface ProviderProps {

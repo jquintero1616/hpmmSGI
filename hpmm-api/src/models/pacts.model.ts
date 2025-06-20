@@ -6,7 +6,8 @@ export const getAllPactsModel = async (): Promise<Pact[]> => {
   .select(
     "p.id_pacts",           
     "p.name", 
-    "p.estado",             
+    "p.estado",
+    "p.tipo",             
     "p.created_at",
     "p.updated_at"
   );

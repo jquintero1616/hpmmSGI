@@ -87,7 +87,7 @@ const Header: React.FC = () => {
             <img 
               src={LogoUrl} 
               alt="Logo HPMM"
-              className="w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12 object-contain drop-shadow-md group-hover:drop-shadow-lg group-hover:scale-105 transition-all duration-300 filter brightness-100 group-hover:brightness-110"
+              className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-contain drop-shadow-md group-hover:drop-shadow-lg group-hover:scale-110 transition-all duration-300 filter brightness-100 group-hover:brightness-110 scale-125 -my-2"
             />
             
             <div className="flex flex-col">

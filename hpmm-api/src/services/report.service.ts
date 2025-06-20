@@ -2,6 +2,13 @@ import * as ReportModel from "../models/report.model";
 import { NewReport } from "../types/report";
 import logger from "../utils/loggers";
 
+
+import { getProductosStockBajoModel } from "../models/report.model";
+
+export const getProductosStockBajoService = async (stockMinimo: number) => {
+  return getProductosStockBajoModel(stockMinimo);
+};
+
 export const getAllReportsService = async (): Promise<NewReport[]> => {
   try {
     return await ReportModel.getAllreports();
