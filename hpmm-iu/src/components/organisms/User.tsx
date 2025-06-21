@@ -72,14 +72,14 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       name: "email",
       label: "Correo Electrónico",
       type: "email",
-      required: true,
       pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+      disabled: false
     },
     {
       name: "password",
       label: "Contraseña",
       type: "password",
-      required: true,
+        
     },
     {
       name: "id_rol",

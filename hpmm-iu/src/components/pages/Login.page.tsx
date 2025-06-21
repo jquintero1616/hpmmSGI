@@ -15,18 +15,41 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { authenticate } = useAuth();
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // Si el usuario ya escribió el dominio, no lo agregues
+    if (value.endsWith("@hpmm.com")) {
+      setEmail(value);
+    } else {
+      setEmail(value.replace(/@hpmm\.com$/, ""));
+    }
+  };
+
+  const handleEmailBlur = () => {
+    // Al perder el foco, agrega el dominio si no está presente
+    if (email && !email.endsWith("@hpmm.com")) {
+      setEmail(email + "@hpmm.com");
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
+    let emailToUse = email;
+    if (!emailToUse.endsWith("@hpmm.com")) {
+      emailToUse = emailToUse + "@hpmm.com";
+      setEmail(emailToUse); // Opcional: actualiza el input
+    }
+
+    if (!emailToUse || !password) {
       setError("Por favor, ingresa tu correo y contraseña.");
       return;
     }
 
     setLoading(true);
     try {
-      await authenticate(email, password);
+      await authenticate(emailToUse, password);
       toast.success("¡Bienvenido!", { position: "top-right" });
       navigate("/home", { state: { showWelcome: true } });
     } catch (error) {
@@ -58,10 +81,11 @@ const LoginPage: React.FC = () => {
             password={password}
             error={error}
             isLoading={loading}
-            onEmailChange={(e) => setEmail(e.target.value)}
+            onEmailChange={handleEmailChange}
             onPasswordChange={(e) => setPassword(e.target.value)}
             onSubmit={handleLogin}
             onForgotPassword={handleForgotPassword}
+            onEmailBlur={handleEmailBlur} // <-- Asegúrate de pasar esta prop
           />
         </div>
       </LoginFormProps>

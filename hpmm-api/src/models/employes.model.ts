@@ -8,6 +8,10 @@ export const getallEmployesModel = async (): Promise<NewEmploye[]> => {
   return db("employes as e")
     .select(
       "e.id_employes",
+      "e.id_user",
+      "e.id_units",
+      "e.id_subdireccion",
+      "e.id_direction",
       "u.username     as usuario",
       "un.name        as unidad",
       "sd.nombre      as subdireccion",

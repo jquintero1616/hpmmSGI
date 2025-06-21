@@ -120,6 +120,12 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   const kardexFields: FieldConfig[] = [
     {
+      name: "tipo_solicitud",
+      label: "Solicitud",
+      type: "select",
+      options: ["Requisicion", "Pacto"],
+    },
+    {
       name: "id_detalle_pacto",
       label: "Pactos",
       type: "select",
@@ -160,12 +166,6 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     { name: "numero_factura", label: "Numero deFactura", type: "text" },
     { name: "cantidad", label: "Cantidad", type: "number" },
     { name: "precio_unitario", label: "Precio", type: "number" },
-    {
-      name: "tipo_solicitud",
-      label: "Solicitud",
-      type: "select",
-      options: ["Requisicion", "Pacto"],
-    },
     { name: "requisicion_numero", label: "Req No.", type: "text" },
     {
       name: "tipo",
@@ -391,9 +391,8 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       </Modal>
 
       {/* Modal Crear con lista temporal */}
-      <Modal isOpen={isCreateOpen} onClose={closeAll}>
+      <Modal isOpen={isCreateOpen} onClose={closeAll} title="Agregar movimientos a Kardex">
         <div className="p-2 md:p-4">
-          <h3 className="text-xl font-semibold mb-4">Agregar movimientos a Kardex</h3>
           <GenericForm
             initialValues={
               itemToEditList

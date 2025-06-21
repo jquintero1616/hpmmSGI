@@ -12,6 +12,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [username, setUsername] = useState<string | undefined>();
+  const [idEmployes, setIdEmployes] = useState<string | undefined>();
   const [userId, setUserId] = useState<string | undefined>();
   const [idRol, setIdRol] = useState<string>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUserId(response.id_user);
       setRoleName(response.role_name);
       setEmployeName(response.employe_name);
+      setIdEmployes(response.id_employes);
     } catch (error) {
       setUserId(undefined);
       setIsAuthenticated(false);
@@ -34,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIdRol(undefined);
       setRoleName(undefined);
       setEmployeName(undefined);
+      setIdEmployes(undefined);
       throw error;
     }
   };
@@ -50,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIdRol(undefined);
       setRoleName(undefined);
       setEmployeName(undefined);
+      setIdEmployes(undefined);
     }
   };
 
@@ -57,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const response = await axiosPublic().get("/check-session");
       // El servidor confirma que la sesión existe y devuelve datos del usuario
-      const { username, id_rol, id_user, role_name, employe_name } =
+      const { username, id_rol, id_user, role_name, employe_name, id_employes } =
         response.data;
 
       setIsAuthenticated(true);
@@ -66,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUserId(id_user);
       setRoleName(role_name);
       setEmployeName(employe_name);
+      setIdEmployes(id_employes);
     } catch (error) {
       // 401 o cualquier otro error: no hay sesión válida
       setUserId(undefined);
@@ -74,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIdRol(undefined);
       setRoleName(undefined);
       setEmployeName(undefined);
+      setIdEmployes(undefined);
     } finally {
       setLoading(false);
     }
@@ -111,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         userId,
         roleName,
         employeName,
+        idEmployes
       }}
     >
       {children}

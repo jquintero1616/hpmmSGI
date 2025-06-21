@@ -13,6 +13,7 @@ export const login = asyncWrapper(async (req: Request, res: Response) => {
   }
 
   const auth = await authenticateUser(email, password);
+
   if (!auth) {
     res.status(401).json({ msg: "Credenciales inválidas" });
     return;

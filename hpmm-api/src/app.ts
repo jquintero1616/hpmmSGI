@@ -11,7 +11,7 @@ import Redis from "ioredis";
 import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser";
 
-const FRONTEND_ORIGINS = "http://localhost:5173"
+const FRONTEND_ORIGINS = "https://192.168.1.98:5173"
 
 const corsOptions: CorsOptions = {
   origin: FRONTEND_ORIGINS, 

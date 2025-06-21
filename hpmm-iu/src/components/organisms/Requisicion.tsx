@@ -17,6 +17,7 @@ import { useRequisicion } from "../../hooks/use.Requisicion";
 import { useEmploye } from "../../hooks/use.Employe";
 import { useProducts } from "../../hooks/use.Product";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
+import { useAuth } from "../../hooks/use.Auth"; // Asegúrate de tener este hook
 
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
@@ -51,6 +52,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
+  // Obtén userId y roleName del contexto de autenticación
+  const { userId, roleName, idEmployes } = useAuth();
+
   // 3. FUNCIONES DE VALIDACIÓN
   const validateCreate = (values: any) => {
     const errors: any = {};
@@ -82,6 +86,21 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     
   ];
 
+
+    const requisicionListColumns: Column<any>[] = [
+    { header: "Empleado", accessor: "employee_name" },
+    { header: "Producto", accessor: "product_name" },
+    { header: "Cantidad", accessor: "cantidad" },
+    {
+      header: "Fecha de Solicitud",
+      accessor: (row) =>
+        row.fecha ? new Date(row.fecha).toLocaleDateString() : "",
+    },
+    { header: "Descripción", accessor: "descripcion" },
+
+  
+    
+  ];
   const requisicionFields: FieldConfig[] = [
     {
       name: "id_product",
@@ -142,6 +161,15 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 5. FUNCIÓN PARA MANEJAR EL CONTENIDO DE LA TABLA
   const handleTableContent = (list: RequisiDetail[]) => {
     let filtrados = [...list];
+
+    console.log("Filtrando requisiciones...", filtrados);
+    console.log("Filtrando empleado", idEmployes);
+
+
+    // Filtrar por usuario si no es Administrador
+    if (roleName !== "Administrador" && roleName !== "Super Admin") {
+      filtrados = filtrados.filter((item) => item.id_employes === idEmployes);
+    }
 
     // Verificar IDs duplicados
     const ids = filtrados.map((item) => item.id_requisi);
@@ -526,7 +554,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           submitDisabled={saving}
         />
         <GenericTable
-          columns={requisicionColumns}
+          columns={requisicionListColumns}
           data={dataListFormDisplay}
           rowKey={(row) => row.id_requisi}
           actions={[

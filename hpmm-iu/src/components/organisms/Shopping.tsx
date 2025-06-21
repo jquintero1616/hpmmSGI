@@ -31,10 +31,12 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ShoppingInterface | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<ShoppingInterface | null>(
-    null
-  );
+  const [itemToDelete, setItemToDelete] = useState<ShoppingInterface | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Estados para lista temporal de compras
+  const [dataListForm, setDataListForm] = useState<any[]>([]);
+  const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
   // Estado local para el filtro
   const [estadoFiltro] = useState<string>("Todo");
@@ -76,21 +78,19 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     return errors;
   };
 
-  // 4) CONFIGURACIÓN DE COLUMNAS Y CAMPOS
-  // Columnas de la tabla
   const shoppingColumns: Column<ShoppingInterface>[] = [
-    { header: "ID Solicitud", accessor: "id_scompra" },
+    { header: "N.º Solicitud", accessor: "id_scompra" },
     { header: "Vendedor", accessor: "vendedor_nombre" },
     {
       header: "Fecha Compra",
       accessor: (row) =>
         row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : "",
     },
-    { header: "Numero Orden", accessor: "shopping_order_id" },
+    { header: "N.º Orden", accessor: "shopping_order_id" },
     { header: "Nombre Unidad", accessor: "nombre_unidad" },
     { header: "Lugar Entrega", accessor: "lugar_entrega" },
-    { header: "Numero Cotización", accessor: "numero_cotizacion" },
-    { header: "Numero Pedido", accessor: "numero_pedido" },
+    { header: "N.º Cotización", accessor: "numero_cotizacion" },
+    { header: "N.º Pedido", accessor: "numero_pedido" },
     { header: "Total", accessor: "total" },
     {
       header: "Estado",
@@ -106,6 +106,27 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       accessor: (row) =>
         row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
     },
+  ];
+
+
+
+    const shoppingListColumns: Column<ShoppingInterface>[] = [
+    { header: "N.º solicitud", accessor: "id_scompra" },
+    { header: "Vendedor", accessor: "vendedor_nombre" },
+    {
+      header: "Fecha Compra",
+      accessor: (row) =>
+        row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : "",
+    },
+    { header: "N.º orden", accessor: "shopping_order_id" },
+    { header: "Nombre Unidad", accessor: "nombre_unidad" },
+    { header: "Lugar Entrega", accessor: "lugar_entrega" },
+    { header: "N.º cotización", accessor: "numero_cotizacion" },
+    { header: "N.º pedido", accessor: "numero_pedido" },
+    { header: "Total", accessor: "total" },
+    
+    
+    
   ];
 
   // Campos para el formulario
@@ -172,7 +193,13 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {
         name: "lugar_entrega",
         label: "Lugar Entrega",
-        type: "text",
+        type: "select",
+        options: [
+          { label: "Almacen Materiales HPMMM", value: "Almacen Materiales HPMMM" },
+          { label: "Almacen Materiales HPMM", value: "Almacen Materiales HPMM" },
+          { label: "Almacen Medicamentos HPMM", value: "Almacen Medicamentos HPMM" },
+        ],
+        required: true,
       },
       {
         name: "estado",
@@ -272,6 +299,10 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       values.id_vendedor !== itemToEdit.id_vendedor ||
       values.fecha_compra !== itemToEdit.fecha_compra ||
       values.shopping_order_id !== itemToEdit.shopping_order_id ||
+      values.numero_cotizacion !== itemToEdit.numero_cotizacion ||
+      values.numero_pedido !== itemToEdit.numero_pedido ||
+      values.nombre_unidad !== itemToEdit.nombre_unidad ||
+      values.lugar_entrega !== itemToEdit.lugar_entrega ||
       parseFloat(values.total) !== itemToEdit.total ||
       values.estado !== itemToEdit.estado;
 
@@ -339,6 +370,69 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     } catch (error) {
       console.error("Error creando compra:", error);
       toast.error("Error al crear la compra");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // FUNCIONES PARA AGREGAR, EDITAR Y ELIMINAR DE LA LISTA
+  const deleteItemList = (id: string) => {
+    setDataListForm((prev) => prev.filter((item) => item.id_temp !== id));
+  };
+
+  const handleAddItem = (item: any) => {
+    let fecha_compra = "";
+    if (typeof item.fecha_compra === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.fecha_compra)) {
+      fecha_compra = item.fecha_compra;
+    } else if (item.fecha_compra instanceof Date) {
+      fecha_compra = item.fecha_compra.toISOString().slice(0, 10);
+    } else {
+      fecha_compra = new Date().toISOString().slice(0, 10);
+    }
+
+    const newItem = { ...item, fecha_compra };
+
+    if (itemToEditList) {
+      setDataListForm((prev) =>
+        prev.map((p) =>
+          p.id_temp === itemToEditList.id_temp
+            ? { ...newItem, id_temp: itemToEditList.id_temp }
+            : p
+        )
+      );
+      setItemToEditList(null);
+    } else {
+      setDataListForm((prev) => [
+        ...prev,
+        { ...newItem, id_temp: crypto.randomUUID() },
+      ]);
+    }
+  };
+
+  const handleCreateList = async () => {
+    setSaving(true);
+    try {
+      if (dataListForm.length === 0) {
+        toast.error("Debes agregar al menos una compra a la lista.");
+        return;
+      }
+      await Promise.all(
+        dataListForm.map(async (item) => {
+          const payload = {
+            ...item,
+            estado: item.estado === true,
+            total: parseFloat(item.total) || 0,
+            fecha_compra: new Date(item.fecha_compra),
+          };
+          await PostShoppingContext(payload as ShoppingInterface);
+        })
+      );
+      await GetShoppingContext();
+      toast.success("Compras creadas correctamente");
+      setDataListForm([]);
+      closeAll();
+    } catch (error) {
+      toast.error("Error al crear las compras");
     } finally {
       setSaving(false);
     }
@@ -421,8 +515,12 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               id_vendedor: itemToEdit.id_vendedor ?? "",
               fecha_compra: itemToEdit.fecha_compra ?? new Date(),
               shopping_order_id: itemToEdit.shopping_order_id ?? "",
+              numero_cotizacion: itemToEdit.numero_cotizacion ?? "",
+              numero_pedido: itemToEdit.numero_pedido ?? "",
+              nombre_unidad: itemToEdit.nombre_unidad ?? "HPMM",
+              lugar_entrega: itemToEdit.lugar_entrega ?? "",
               total: itemToEdit.total ?? 0,
-              estado: itemToEdit.estado ?? true,
+              estado: itemToEdit.estado ?? "",
             }}
             fields={shoppingFields}
             onSubmit={handleSave}
@@ -447,40 +545,88 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          {itemToEditList ? "Editar compra de la lista" : "Agregar compra a la lista"}
+        </h2>
         <GenericForm<Partial<ShoppingInterface>>
-          initialValues={{
-            id_scompra: "",
-            id_vendedor: "",
-            fecha_compra: new Date(),
-            shopping_order_id: "",
-            numero_cotizacion: "",
-            numero_pedido: "",
-            nombre_unidad: "HPMM", // Asignar un valor por defecto
-            lugar_entrega: "",
-
-            total: 0,
-            estado: true,
-          }}
+          initialValues={
+            itemToEditList
+              ? itemToEditList
+              : {
+                  id_scompra: "",
+                  id_vendedor: "",
+                  fecha_compra: new Date().toISOString().slice(0, 10),
+                  shopping_order_id: "",
+                  numero_cotizacion: "",
+                  numero_pedido: "",
+                  nombre_unidad: "HPMM",
+                  lugar_entrega: "",
+                  total: 0,
+                  estado: true,
+                }
+          }
           fields={shoppingFields.map((f) =>
             f.name === "estado" ? { ...f, disabled: true } : f
           )}
-          onSubmit={handleCreate}
-          onCancel={closeAll}
+          onSubmit={handleAddItem}
+          onCancel={() => setItemToEditList(null)}
           validate={validateCreate}
-          submitLabel={
-            saving ? (
+          submitLabel={itemToEditList ? "Actualizar" : "Agregar a lista"}
+          cancelLabel="Cancelar edición"
+          title={
+            itemToEditList
+              ? "Editar compra de la lista"
+              : "Agregar compra a la lista"
+          }
+          submitDisabled={saving}
+        />
+        <GenericTable
+          columns={shoppingListColumns}
+          data={dataListForm}
+          rowKey={(row) => (row as any).id_temp}
+          actions={[
+            {
+              header: "Acciones",
+              label: "Editar",
+              onClick: (row) => setItemToEditList(row),
+            },
+            {
+              header: "Eliminar",
+              label: "Eliminar",
+              onClick: (row) => deleteItemList((row as any).id_temp),
+            },
+          ]}
+          rowClassName={(row) =>
+            row.estado === false ? "opacity-40 line-through" : ""
+          }
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            onClick={handleCreateList}
+            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+            disabled={saving || dataListForm.length === 0}
+          >
+            {saving ? (
               <span>
                 <span className="animate-spin inline-block mr-2">⏳</span>
                 Creando...
               </span>
             ) : (
-              "Crear"
-            )
-          }
-          cancelLabel="Cancelar"
-          title="Crear Compra"
-          submitDisabled={saving}
-        />
+              "Crear todas"
+            )}
+          </Button>
+          <Button
+            onClick={() => {
+              setItemToEditList(null);
+              setDataListForm([]);
+              closeAll();
+            }}
+            className="bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+        </div>
       </Modal>
 
       {/* Modal Eliminar */}

@@ -9,23 +9,29 @@ export interface SelectOption {
 
 export interface SelectProps {
   name: string;
-  value: string;
+  value?: string; // <-- Ahora opcional
   onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
   options: SelectOption[];
   placeholder?: string;
   className?: string;
-  disabled?: boolean; // <-- Agregado aquí
+  disabled?: boolean;
+  defaultValue?: string; // <-- Agregado aquí
 }
 
 const Select: React.FC<SelectProps> = ({
+
   name,
   value,
   onChange,
   options,
   placeholder = 'Seleccione...',
   className = '',
-  disabled = false, // <-- Valor por defecto
-}) => (
+  disabled = false,
+  defaultValue, // <-- Agregado aquí
+
+}) => {
+  console.log (defaultValue);
+  return (
   <div className="mb-5">
     <select
       id={name}
@@ -39,6 +45,7 @@ const Select: React.FC<SelectProps> = ({
         ${disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
       `}
       disabled={disabled}
+      defaultValue={defaultValue} // <-- Agregado aquí
     >
       <option value="" disabled>
         {placeholder}
@@ -50,6 +57,7 @@ const Select: React.FC<SelectProps> = ({
       ))}
     </select>
   </div>
-);
+)};
+
 
 export default Select;

@@ -9,7 +9,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { useRequisicion } from "../../hooks/use.Requisicion";
 
-const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
+const SolicitudCompras: React.FC<{ status?: string }> = ({
+  status = "Todo",
+}) => {
   // 1. HOOKS
   const {
     scompras,
@@ -28,14 +30,17 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ScomprasInterface | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<ScomprasInterface | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<ScomprasInterface | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
 
   // 3. FUNCIONES DE VALIDACIÓN
   const validateCreate = (values: any) => {
     const errors: any = {};
     if (isRequisicionTaken(values.id_requisi)) {
-      errors.id_requisi = "Esta requisición ya tiene una solicitud de compra asignada.";
+      errors.id_requisi =
+        "Esta requisición ya tiene una solicitud de compra asignada.";
     }
     return errors;
   };
@@ -47,15 +52,24 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
       values.id_requisi !== itemToEdit.id_requisi &&
       isRequisicionTaken(values.id_requisi, itemToEdit.id_scompra)
     ) {
-      errors.id_requisi = "Esta requisición ya tiene una solicitud de compra asignada.";
+      errors.id_requisi =
+        "Esta requisición ya tiene una solicitud de compra asignada.";
     }
     return errors;
   };
 
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const solicitudComprasColumns: Column<ScomprasInterface>[] = [
-    { header: "ID Solicitud", accessor: "id_scompra" },
-    { header: "ID Requisición", accessor: "id_requisi" },
+    {
+      header: "ID Solicitud",
+      accessor: (row) =>
+        `SOLICITUD-${row.id_scompra.split("-")[0].toLocaleUpperCase()}`,
+    },
+    {
+      header: "ID Requisición",
+      accessor: (row) =>
+        `REQUISICIÓN-${row.id_requisi.split("-")[0].toLocaleUpperCase()}`,
+    },
     {
       header: "Estado",
       accessor: "estado",
@@ -80,7 +94,7 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
       options: requisitions
         .filter((r) => r.id_requisi) // Filtrar requisiciones válidas
         .map((r) => ({
-          label: `${r.id_requisi} - ${r.estado }`,
+          label: `${r.id_requisi} - ${r.estado}`,
           value: r.id_requisi,
         })),
       required: true,
@@ -182,7 +196,9 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
       values.id_requisi !== itemToEdit.id_requisi &&
       isRequisicionTaken(values.id_requisi, itemToEdit.id_scompra)
     ) {
-      toast.error("Esta requisición ya tiene una solicitud de compra asignada.");
+      toast.error(
+        "Esta requisición ya tiene una solicitud de compra asignada."
+      );
       return;
     }
 
@@ -202,7 +218,9 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
   const handleCreate = async (values: any) => {
     // Validar si la requisición ya está asignada
     if (isRequisicionTaken(values.id_requisi)) {
-      toast.error("Esta requisición ya tiene una solicitud de compra asignada.");
+      toast.error(
+        "Esta requisición ya tiene una solicitud de compra asignada."
+      );
       return;
     }
 
@@ -214,6 +232,26 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
       closeAll();
     } catch (error) {
       toast.error("Error al crear la solicitud de compra");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Nueva función para cambiar el estado rápidamente
+  const handleQuickEstado = async (
+    row: ScomprasInterface,
+    nuevoEstado: "Comprado" | "Cancelado"
+  ) => {
+    setSaving(true);
+    try {
+      await PutUpdateSolicitudCompraContext(row.id_scompra, {
+        ...row,
+        estado: nuevoEstado,
+      });
+      await GetSolicitudesComprasContext();
+      toast.success(`Solicitud marcada como ${nuevoEstado}`);
+    } catch (error) {
+      toast.error("Error al actualizar el estado");
     } finally {
       setSaving(false);
     }
@@ -231,16 +269,15 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
   // 8. EFFECTS
   useEffect(() => {
     setLoading(true);
-    Promise.all([GetSolicitudesComprasContext(), GetRequisicionesContext()]).finally(() =>
-      setLoading(false)
-    );
+    Promise.all([
+      GetSolicitudesComprasContext(),
+      GetRequisicionesContext(),
+    ]).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     handleTableContent(scompras);
   }, [scompras, status]);
-
-  
 
   // 9. RENDER CONDICIONAL
   if (loading) {
@@ -251,8 +288,10 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Solicitudes de Compras</h1>
-
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Gestión de Solicitudes de Compras
+      </h1>
+{/* 
       <div className="flex justify-end mb-4">
         <Button
           className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
@@ -260,7 +299,7 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
         >
           + Nueva solicitud de compra
         </Button>
-      </div>
+      </div> */}
 
       <GenericTable
         columns={solicitudComprasColumns}
@@ -269,13 +308,16 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
         actions={[
           {
             header: "Acciones",
-            label: "Editar",
-            onClick: (row) => openEdit(row.id_scompra),
+            label: "Comprado",
+            onClick: (row) => handleQuickEstado(row, "Comprado"),
+            // Opcional: deshabilitar si ya está en ese estado
+            disabled: (row) => row.estado === "Comprado",
           },
           {
             header: "Acciones",
-            label: "Eliminar",
-            onClick: (row) => openDelete(row.id_scompra),
+            label: "Cancelado",
+            onClick: (row) => handleQuickEstado(row, "Cancelado"),
+            disabled: (row) => row.estado === "Cancelado",
           },
         ]}
         rowClassName={(row) =>
@@ -390,4 +432,3 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({ status = "Todo" }) =>
 };
 
 export default SolicitudCompras;
-

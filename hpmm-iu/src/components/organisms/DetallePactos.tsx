@@ -103,7 +103,7 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Columnas de la tabla
   const detallePactosColumns: Column<DetallePactInterface>[] = [
     {
-      header: "Pacto",
+      header: "Frecuencia",
       accessor: "pact_name",
     },
     {

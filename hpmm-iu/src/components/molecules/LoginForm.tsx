@@ -12,6 +12,7 @@ export interface LoginFormProps {
   onPasswordChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: FormEvent) => void;
   onForgotPassword?: () => void;
+  onEmailBlur?: () => void; // <-- Agregado
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
@@ -23,6 +24,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onPasswordChange,
   onSubmit,
   onForgotPassword,
+  onEmailBlur, // <-- Agregado
 }) => {
   const [remember, setRemember] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
@@ -67,6 +69,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           type="email"
           value={email}
           onChange={handleEmailChange}
+          onBlur={onEmailBlur} // <-- Agregado
           placeholder="Correo electrónico"
           disabled={isLoading}
         />

@@ -25,6 +25,7 @@ export interface AuthContextType {
   idRol?: string;
   userId?: string;
   roleName?: string;
+  idEmployes?: string;
   employeName?: string;
   authenticate: (email: string, password: string) => Promise<void>;
   logout: () => void;

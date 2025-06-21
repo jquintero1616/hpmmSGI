@@ -21,7 +21,7 @@ const GenericModal: React.FC<ModalProps> = ({
   children,
   isOpen,
   onClose,
-  title = "",
+  title,
   showHeader = true,
   showFooter = true,
   onSave,
@@ -30,7 +30,6 @@ const GenericModal: React.FC<ModalProps> = ({
 
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-
   // Cerrar con ESC
   useEffect(() => {
     if (!isOpen) return;
@@ -79,10 +78,10 @@ const GenericModal: React.FC<ModalProps> = ({
         className="w-full h-full md:h-auto md:w-auto flex items-center justify-center"
         tabIndex={0}
       >
-        <div className="bg-white rounded-2xl shadow-xl w-full h-full max-w-lg md:max-w-2xl mx-auto flex flex-col overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl w-full h-full max-w-4xl mx-2 md:mx-auto flex flex-col overflow-hidden">
           {/* Header */}
           {showHeader && (
-            <header className="bg-hpmm-primary h-12 px-4 flex items-center justify-between rounded-t-2xl">
+            <header className="bg-hpmm-primary h-12 px-4 flex items-center justify-between text-center rounded-t-2xl">
               <h2
                 id="modal-title"
                 className="text-base font-semibold text-white truncate"
@@ -100,7 +99,7 @@ const GenericModal: React.FC<ModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 max-h-[80vh]">
             {children}
           </div>
 

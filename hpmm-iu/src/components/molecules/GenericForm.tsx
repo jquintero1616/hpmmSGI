@@ -4,7 +4,7 @@ import React, {
   useRef,
   useEffect,
   ChangeEvent,
-  FormEvent
+  FormEvent,
 } from "react";
 import Input from "../atoms/Inputs/Input";
 import Button from "../atoms/Buttons/Button";
@@ -35,6 +35,7 @@ export interface FieldConfig {
   pattern?: string; // Para validaciones custom
   rows?: number; // Para textarea
   disabled?: boolean; // Para deshabilitar el campo
+  defaultValue?: string; // <-- Agregado aquí
 }
 
 interface GenericFormProps<T> {
@@ -48,10 +49,10 @@ interface GenericFormProps<T> {
   submitDisabled?: boolean;
   validate?: (values: T) => Record<string, string>;
   extraFields?: Record<string, React.ReactNode>;
-  // Nuevas props para manejar la lista de productos
   dataList?: any[];
   setDataList?: React.Dispatch<React.SetStateAction<any[]>>;
-  onAddItem?: (item: T) => void; // Función para agregar items a la lista
+  onAddItem?: (item: T) => void;
+  onChange?: (values: T) => void; // <-- Agrega esta línea
 }
 
 function normalizeOptions(o?: string[] | SelectOption[]): SelectOption[] {
@@ -79,6 +80,8 @@ const GenericForm = <T extends Record<string, any>>({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const errorTimeouts = useRef<Record<string, number>>({});
 
+  console.log("Initial values:", fields);
+
   useEffect(() => {
     // Limpiar timeouts al desmontar
     return () => {
@@ -93,7 +96,7 @@ const GenericForm = <T extends Record<string, any>>({
     setValues(initialValues);
   }, [initialValues]);
 
-  // Modifica handleChange para validar en tiempo real
+  // Modifica handleChange para aplicar trim a los strings
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -214,8 +217,17 @@ const GenericForm = <T extends Record<string, any>>({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+
+    // Aplica trim a todos los valores string antes de enviar
+    const trimmedValues = Object.fromEntries(
+      Object.entries(values).map(([key, val]) => [
+        key,
+        typeof val === "string" ? val.trim() : val,
+      ])
+    ) as T;
+
     if (validateAll()) {
-      onSubmit(values);
+      onSubmit(trimmedValues);
     }
   };
 
@@ -246,19 +258,25 @@ const GenericForm = <T extends Record<string, any>>({
         ? "border-red-500 focus:ring-1 focus:ring-red-400"
         : "border-gray-300 focus:ring-1 focus:ring-blue-400"
     }`;
+    const fieldValue =
+    values[field.name] !== undefined && values[field.name] !== ""
+      ? values[field.name]
+      : field.defaultValue !== undefined
+      ? field.defaultValue
+      : "";
 
     if (field.type === "select" && opts.length > 0) {
       return (
         <Select
           name={field.name}
-          value={values[field.name] || ""}
+          value={fieldValue}
           onChange={handleChange}
           options={opts as SelectOption[]}
           placeholder={
             field.placeholder || `Seleccionar ${field.label.toLowerCase()}`
           }
           className={`${commonClasses} ${
-            !values[field.name] ? "text-gray-400" : "text-gray-900"
+            !fieldValue ? "text-gray-400" : "text-gray-900"
           }`}
           disabled={field.disabled}
         />
@@ -269,7 +287,7 @@ const GenericForm = <T extends Record<string, any>>({
       return (
         <textarea
           name={field.name}
-          value={String(values[field.name] ?? "")}
+          value={String(fieldValue)}
           onChange={handleChange}
           placeholder={getPlaceholder(field)}
           rows={field.rows || 3}
@@ -283,7 +301,7 @@ const GenericForm = <T extends Record<string, any>>({
       <Input
         name={field.name}
         type={field.type === "tel" ? "telefono" : field.type}
-        value={String(values[field.name] ?? "")}
+        value={String(fieldValue)}
         onChange={handleChange}
         placeholder={getPlaceholder(field)}
         className={commonClasses}
@@ -297,25 +315,7 @@ const GenericForm = <T extends Record<string, any>>({
     );
   };
 
-  // Nueva función para manejar agregar producto
-  const handleAddProduct = () => {
-    if (validateAll()) {
-      // Si hay función personalizada para agregar, la usa
-      if (onAddItem) {
-        onAddItem(values);
-      } 
-      // Si no, usa setDataList directamente
-      else if (setDataList) {
-        setDataList((prev) => [...prev, { ...values, id_product: crypto.randomUUID() }]); // Agregar ID único
-      }
-      
-      // Limpiar el formulario después de agregar
-      setValues(initialValues);
-      setErrors({});
-    }
-  };
 
-  
 
   return (
     <div className="max-w-xl mx-auto bg-white rounded-lg p-6">
@@ -325,7 +325,9 @@ const GenericForm = <T extends Record<string, any>>({
           {fields.map((field) => (
             <div
               key={field.name}
-              className={`flex flex-col ${field.type === "textarea" ? "md:col-span-2" : ""}`}
+              className={`flex flex-col ${
+                field.type === "textarea" ? "md:col-span-2" : ""
+              }`}
             >
               <label className="text-sm font-semibold text-gray-700 mb-1">
                 {field.label}

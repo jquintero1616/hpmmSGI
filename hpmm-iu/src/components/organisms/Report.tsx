@@ -1,266 +1,200 @@
-import React, { useEffect, useState } from "react";
-import { useReport } from "../../hooks/use.Report";
-import { ToastContainer, toast } from "react-toastify";
-import Modal from "../molecules/GenericModal";
-import GenericForm, { FieldConfig } from "../molecules/GenericForm";
-import GenericTable, { Column } from "../molecules/GenericTable";
+import React, { useEffect, useState, useRef } from "react";
+import { useKardex } from "../../hooks/use.Kardex";
+import { useProducts } from "../../hooks/use.Product";
+import GenericReportTable, { ReportColumn } from "../molecules/GenericReportTable";
 import Button from "../atoms/Buttons/Button";
-import "react-toastify/dist/ReactToastify.css";
-import { Reportinterface } from "../../interfaces/Report.interface";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import GenericPDF from "../molecules/GenericPDF";
+import { HiOutlineDocumentArrowDown } from "react-icons/hi2";
 
-const Report: React.FC = () => {
-  const {
-    report: reports,
-    GetReportsContext,
-    PostCreateReportContext,
-    PutUpdateReportContext,
-    DeleteReportContext,
-  } = useReport();
-
+const ImpresionReporte: React.FC = () => {
+  const { kardexDetail, GetKardexContext } = useKardex();
+  const { products, GetProductsContext } = useProducts();
   const [loading, setLoading] = useState(true);
-  const [filteredData, setFilteredData] = useState<Reportinterface[]>([]);
-  const [isEditOpen, setEditOpen] = useState(false);
-  const [isCreateOpen, setCreateOpen] = useState(false);
-  const [isDeleteOpen, setDeleteOpen] = useState(false);
-  const [itemToEdit, setItemToEdit] = useState<Reportinterface | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<Reportinterface | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // Columnas de la tabla
-  const reportColumns: Column<Reportinterface>[] = [
-    { header: "Tipo", accessor: "tipo" },
-    { header: "Periodo", accessor: "periodo" },
-    {
-      header: "Fecha",
-      accessor: (row) => (row.fecha ? new Date(row.fecha).toLocaleDateString() : ""),
-    },
-    {
-      header: "Estado",
-      accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
-    },
-    {
-      header: "Fecha Creación",
-      accessor: (row) =>
-        row.created_at ? new Date(row.created_at).toLocaleString() : "",
-    },
-    {
-      header: "Fecha Actualización",
-      accessor: (row) =>
-        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
-    },
-  ];
-
-  // Campos del formulario
-  const reportFields: FieldConfig[] = [
-    {
-      name: "tipo",
-      label: "Tipo",
-      type: "select",
-      options: [
-        { label: "Producto Adquirido", value: "Producto Adquirido" },
-        { label: "Consumo", value: "Consumo" },
-        { label: "Pactos", value: "Pactos" },
-        { label: "Existencia", value: "Existencia" },
-        { label: "Vencimientos", value: "Vencimientos" },
-      ],
-      required: true,
-    },
-    {
-      name: "periodo",
-      label: "Periodo",
-      type: "select",
-      options: [
-        { label: "Semanal", value: "Semanal" },
-        { label: "Mensual", value: "Mensual" },
-        { label: "Trimestral", value: "Trimestral" },
-        { label: "Anual", value: "Anual" },
-      ],
-      required: true,
-    },
-    {
-      name: "fecha",
-      label: "Fecha",
-      type: "date",
-      required: true,
-    },
-    {
-      name: "estado",
-      label: "Estado",
-      type: "select",
-      options: [
-        { label: "Activo", value: true },
-        { label: "Inactivo", value: false },
-      ],
-      required: true,
-    },
-  ];
+  const [listapv, setListapv] = useState<any[]>([]);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(true);
-    GetReportsContext().finally(() => setLoading(false));
+    Promise.all([GetKardexContext(), GetProductsContext()]).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    // Ordena por tipo y luego por periodo (o el campo que prefieras)
-    setFilteredData(
-      [...(reports ?? [])].sort((a, b) =>
-        (a.tipo ?? "").localeCompare(b.tipo ?? "")
-      )
+    const entradas = kardexDetail.filter((k) => k.tipo_movimiento === "Entrada");
+    setListapv(
+      entradas.map((k) => ({
+        ...k,
+        nombre_producto:
+          products.find((p) => p.id_product === (k.id_producto || k.id_producto))?.nombre ||
+          "Sin nombre",
+      }))
     );
-  }, [reports]);
+  }, [kardexDetail, products]);
 
-  const closeAll = () => {
-    setEditOpen(false);
-    setCreateOpen(false);
-    setDeleteOpen(false);
-    setItemToEdit(null);
-    setItemToDelete(null);
+  const columns: ReportColumn<any>[] = [
+    { header: "Unidad", accessor: "nombre_unidad" },
+    { header: "Solicitante de Fusión", accessor: "nombre_empleado_sf" },
+    { header: "Lote", accessor: "numero_lote" },
+    { header: "Producto", accessor: "nombre_producto" },
+    { header: "Cantidad", accessor: "cantidad", align: "right" },
+    {
+      header: "Precio Unitario",
+      accessor: (row) =>
+        row.precio_unitario != null
+          ? `L${Number(row.precio_unitario).toLocaleString("es-HN", { minimumFractionDigits: 2 })}`
+          : "-",
+      align: "right",
+    },
+    {
+      header: "Precio Total",
+      accessor: (row) =>
+        row.precio_unitario != null && row.cantidad != null
+          ? `L${(Number(row.precio_unitario) * Number(row.cantidad)).toLocaleString("es-HN", { minimumFractionDigits: 2 })}`
+          : "-",
+      align: "right",
+    },
+    {
+      header: "Fecha Movimiento",
+      accessor: (row) =>
+        row.fecha_movimiento
+          ? new Date(row.fecha_movimiento).toLocaleDateString()
+          : "",
+    },
+    {
+      header: "Fecha Vencimiento",
+      accessor: (row) =>
+        row.fecha_vencimiento
+          ? new Date(row.fecha_vencimiento).toLocaleDateString()
+          : "",
+    },
+  ];
+
+  const totalGeneral = listapv.reduce(
+    (acc, row) =>
+      acc +
+      (row.precio_unitario != null && row.cantidad != null
+        ? Number(row.precio_unitario) * Number(row.cantidad)
+        : 0),
+    0
+  );
+
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    const cartaWidth = 279; // mm (ancho en landscape)
+    const cartaHeight = 216; // mm (alto en landscape)
+
+    await html2canvas(reportRef.current, {
+      backgroundColor: "#fff",
+      scale: 2,
+      useCORS: true,
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      const imgWidthMm = canvas.width * 0.264583;
+      const imgHeightMm = canvas.height * 0.264583;
+
+      let renderWidth = cartaWidth;
+      let renderHeight = (imgHeightMm * cartaWidth) / imgWidthMm;
+      if (renderHeight > cartaHeight) {
+        renderHeight = cartaHeight;
+        renderWidth = (imgWidthMm * cartaHeight) / imgHeightMm;
+      }
+
+      const marginX = (cartaWidth - renderWidth) / 2;
+      const marginY = (cartaHeight - renderHeight) / 2;
+
+      const pdf = new jsPDF("landscape", "mm", "letter");
+      pdf.addImage(imgData, "JPEG", marginX, marginY, renderWidth, renderHeight);
+      const currentTime = new Date();
+      pdf.save(`Reporte_Kardex_${currentTime.toISOString().slice(0, 10)}.pdf`);
+    });
   };
-
-  const openEdit = (id_report: string) => {
-    setItemToEdit(reports.find((r) => r.id_report === id_report) || null);
-    setEditOpen(true);
-  };
-
-  const openDelete = (id_report: string) => {
-    setItemToDelete(reports.find((r) => r.id_report === id_report) || null);
-    setDeleteOpen(true);
-  };
-
-  const handleConfirmDelete = async (id_report: string) => {
-    await DeleteReportContext(id_report);
-    await GetReportsContext();
-    closeAll();
-  };
-
-  const handleSave = async (values: any) => {
-    if (!itemToEdit) return;
-    setSaving(true);
-    await PutUpdateReportContext(itemToEdit.id_report, values);
-    await GetReportsContext();
-    setSaving(false);
-    toast.success(`Reporte actualizado correctamente`);
-    closeAll();
-  };
-
-  const handleCreate = async (values: any) => {
-    setSaving(true);
-    await PostCreateReportContext(values);
-    await GetReportsContext();
-    setSaving(false);
-    toast.success(`Reporte creado correctamente`);
-    closeAll();
-  };
-
-  if (loading) {
-    return <div>Cargando reportes…</div>;
-  }
 
   return (
-    <div>
-      <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Reportes</h1>
-      <div className="flex justify-end mb-4">
-        <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
-          onClick={() => setCreateOpen(true)}
-        >
-          + Nuevo reporte
-        </Button>
-      </div>
-      <GenericTable
-        columns={reportColumns}
-        data={filteredData}
-        rowKey={(row) => row.id_report}
-        actions={[
-          {
-            header: "Editar",
-            label: "Editar",
-            onClick: (row) => openEdit(row.id_report),
-          },
-          {
-            header: "Eliminar",
-            label: "Eliminar",
-            onClick: (row) => openDelete(row.id_report),
-          },
-        ]}
-        rowClassName={(row) =>
-          row.estado === false ? "opacity-40 line-through" : ""
-        }
-      />
+    <div className="p-4">
+      <h1 className="text-3xl font-bold mb-2 text-center text-hpmm-claro">Reporte Kardex</h1>
+      <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">Entradas + Vencimiento</h2>
+      {loading ? (
+        <div className="flex justify-center items-center h-32">
+          <span className="animate-spin text-3xl">🔄</span>
+        </div>
+      ) : (
+        <>
+          {/* Vista para el usuario */}
+          <GenericReportTable columns={columns} data={listapv} rowKey={(row) => row.id_kardex} />
 
-      {/* Modal Editar */}
-      <Modal isOpen={isEditOpen} onClose={closeAll}>
-        {itemToEdit && (
-          <GenericForm<Partial<Reportinterface>>
-            initialValues={{
-              tipo: itemToEdit?.tipo ?? undefined,
-              periodo: itemToEdit?.periodo ?? undefined,
-              fecha: itemToEdit?.fecha ?? undefined, // <-- aquí
-              estado: itemToEdit?.estado ?? true,
+          {/* Botón de descarga PDF debajo de la tabla */}
+          <div className="flex justify-end mt-6 print:hidden">
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+              onClick={handleDownloadPDF}
+            >
+              <HiOutlineDocumentArrowDown className="text-xl" />
+              Descargar PDF
+            </Button>
+          </div>
+
+          {/* PDF oculto solo para exportar */}
+          <div
+            ref={reportRef}
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              top: 0,
+              width: "1056px",  // landscape carta
+              height: "816px",
+              background: "#fff",
             }}
-            fields={reportFields}
-            onSubmit={handleSave}
-            onCancel={closeAll}
-            submitLabel={saving ? "Guardando..." : "Guardar"}
-            cancelLabel="Cancelar"
-            title="Editar Reporte"
-            submitDisabled={saving}
-          />
-        )}
-      </Modal>
-
-      {/* Modal Crear */}
-      <Modal isOpen={isCreateOpen} onClose={closeAll}>
-        <GenericForm<Partial<Reportinterface>>
-          initialValues={{
-            tipo: undefined,
-            periodo: undefined,
-            fecha: undefined, // <-- aquí
-            estado: true,
-          }}
-          fields={reportFields}
-          onSubmit={handleCreate}
-          onCancel={closeAll}
-          submitLabel={saving ? "Creando..." : "Crear"}
-          cancelLabel="Cancelar"
-          title="Crear Reporte"
-          submitDisabled={saving}
-        />
-      </Modal>
-
-      {/* Modal Eliminar */}
-      <Modal isOpen={isDeleteOpen} onClose={closeAll}>
-        {itemToDelete && (
-          <>
-            <h3 className="text-xl font-semibold mb-4">
-              Confirmar Eliminación
-            </h3>
-            <p>¿Seguro que deseas borrar este reporte?</p>
-            <GenericTable
-              rowKey={(row) => row.id_report}
-              data={[itemToDelete]}
-              columns={reportColumns}
-            />
-            <div className="mt-4 text-right gap-2 flex justify-center">
-              <Button
-                onClick={() => handleConfirmDelete(itemToDelete.id_report)}
-                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
-              >
-                Eliminar
-              </Button>
-              <Button
-                onClick={closeAll}
-                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
-              >
-                Cancelar
-              </Button>
-            </div>
-          </>
-        )}
-      </Modal>
+          >
+            <GenericPDF
+              columns={columns}
+              data={listapv}
+              rowKey={(row) => row.id_kardex}
+              title="Reporte Kardex"
+              date={new Date().toLocaleDateString("es-HN", { year: "numeric", month: "long", day: "numeric" })}
+            >
+              {/* Total general solo para el PDF */}
+              <div className="flex justify-end mb-16">
+                <div className="bg-gray-100 rounded px-8 py-3 font-bold text-xl text-gray-700 shadow">
+                  Total : <span className="text-yellow-700">{`L${totalGeneral.toLocaleString("es-HN", { minimumFractionDigits: 2 })}`}</span>
+                </div>
+              </div>
+              {/* Firmas */}
+              <div className="grid grid-cols-3 gap-24 mt-20">
+                <div className="flex flex-col items-center">
+                  <div className="border-b-2 border-gray-400 w-56 mb-2" />
+                  <input
+                    type="text"
+                    className="w-56 text-center outline-none bg-transparent font-semibold text-gray-800"
+                    placeholder="Dr. Aguilar Mendoza"
+                    readOnly
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="border-b-2 border-gray-400 w-56 mb-2" />
+                  <input
+                    type="text"
+                    className="w-56 text-center outline-none bg-transparent font-semibold text-gray-800"
+                    placeholder="Nombre Subdirección"
+                    readOnly
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="border-b-2 border-gray-400 w-56 mb-2" />
+                  <input
+                    type="text"
+                    className="w-56 text-center outline-none bg-transparent font-semibold text-gray-800"
+                    placeholder="Nombre Logística"
+                    readOnly
+                  />
+                </div>
+              </div>
+            </GenericPDF>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
-export default Report;
+export default ImpresionReporte;

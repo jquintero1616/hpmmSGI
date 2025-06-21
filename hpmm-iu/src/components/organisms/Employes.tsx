@@ -36,8 +36,17 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [itemToEdit, setItemToEdit] = useState<EmployesInterface | null>(null);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<EmployesInterface | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<EmployesInterface | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
+
+  const empleadosIds = employes.map((e) => e.id_user);
+  const usersSinEmpleado = users.filter(
+    (u) =>
+      (!empleadosIds.includes(u.id_user) && u.estado === true) ||
+      (itemToEdit && u.id_user === itemToEdit.id_user)
+  );
 
   // 3. FUNCIONES DE VALIDACIÓN
   const isEmailTaken = (email: string, excludeId?: string) => {
@@ -71,10 +80,13 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const employeeColumns: Column<EmployesInterface>[] = [
-    { header: "Usuario", accessor: "usuario" },
-    { header: "Unidad", accessor: "unidad" },
-    { header: "Subdirección", accessor: "subdireccion" },
     { header: "Dirección", accessor: "direccion" },
+    { header: "Subdirección", accessor: "subdireccion" },
+    { header: "Unidad", accessor: "unidad" },
+    {
+      header: "Usuario",
+      accessor: (row) => row.email.split("@")[0] || row.email,
+    },
     { header: "Nombre", accessor: "name" },
     { header: "Correo Personal", accessor: "email" },
     { header: "Teléfono", accessor: "telefono" },
@@ -97,44 +109,58 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   const employeeFields: FieldConfig[] = [
     {
-      name: "id_user",
-      label: "Usuario",
+      name: "id_direction",
+      label: "Dirección",
       type: "select",
-      options: users.map((user) => ({
-        label: user.username,
-        value: user.id_user,
-      })),
+      options: [
+        ...directions.map((dir) => ({
+          label: dir.nombre,
+          value: dir.id_direction,
+        })),
+      ],
+      //required: true,
+      disabled: true,
+      defaultValue: "ca112a2a-982c-467b-80c4-65163b6ddb6f", // debe coincidir con el value de la opción
+    },
+    {
+      name: "id_subdireccion",
+      label: "Subdirección",
+      type: "select",
+      options: subdireccion
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .map((sub) => ({
+          label: sub.nombre,
+          value: sub.id_subdireccion,
+        })),
       required: true,
     },
     {
       name: "id_units",
       label: "Unidad",
       type: "select",
-      options: units.map((unit) => ({
-        label: unit.name,
-        value: unit.id_units,
-      })),
+      options: units
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((unit) => ({
+          label: unit.name,
+          value: unit.id_units,
+        })),
       required: true,
     },
     {
-      name: "id_subdireccion",
-      label: "Subdirección",
+      name: "id_user",
+      label: "Usuario",
       type: "select",
-      options: subdireccion.map((sub) => ({
-        label: sub.nombre,
-        value: sub.id_subdireccion,
+      options: usersSinEmpleado.map((u) => ({
+        label: u.email.split("@")[0] || u.email,
+        value: u.id_user,
       })),
       required: true,
-    },
-    {
-      name: "id_direction",
-      label: "Dirección",
-      type: "select",
-      options: directions.map((dir) => ({
-        label: dir.nombre,
-        value: dir.id_direction,
-      })),
-      required: true,
+      defaultValue: "id_user",
+      placeholder:
+        usersSinEmpleado.length === 0
+          ? "No hay usuarios disponibles"
+          : "Selecciona un usuario",
+      disabled: usersSinEmpleado.length === 0 || itemToEdit !== null,
     },
     { name: "name", label: "Nombre", type: "text", required: true },
     { name: "email", label: "Correo Personal", type: "email", required: true },
@@ -167,9 +193,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       filtrados = list.filter((e) => e.estado === false);
     }
     // Ordenar por nombre del empleado
-    const ordenados = filtrados.sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    const ordenados = filtrados.sort((a, b) => a.name.localeCompare(b.name));
     setFilteredData(ordenados);
   };
 
@@ -189,14 +213,14 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const openDelete = (id_employes: string) => {
-    setItemToDelete(employes.find((e) => e.id_employes === id_employes) || null);
+    setItemToDelete(
+      employes.find((e) => e.id_employes === id_employes) || null
+    );
     setDeleteOpen(true);
   };
 
   // 7. HANDLERS DE CRUD
   const handleCreate = async (values: any) => {
-   
-    
     if (isEmailTaken(values.email)) {
       toast.error("El correo ya está registrado en otro empleado.");
       return;
@@ -210,9 +234,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     closeAll();
 
     // Esperar un momento para que React actualice
-    setTimeout(() => {
-    
-    }, 100);
+    setTimeout(() => {}, 100);
   };
 
   const handleSave = async (values: any) => {
@@ -280,7 +302,9 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h2 className="text-2xl font-bold mb-4 text-center">Gestión de Empleados</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Gestión de Empleados
+      </h2>
       <div className="flex justify-end mb-4">
         <Button
           className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
@@ -354,14 +378,14 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             id_user: "",
             id_units: "",
             id_subdireccion: "",
-            id_direction: "",
+            id_direction: "ca112a2a-982c-467b-80c4-65163b6ddb6f",
             name: "",
             email: "",
             telefono: "",
             puesto: "",
             estado: true,
           }}
-          fields={employeeFields.map(f =>
+          fields={employeeFields.map((f) =>
             f.name === "estado" ? { ...f, disabled: true } : f
           )}
           onSubmit={handleCreate}
