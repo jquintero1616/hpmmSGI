@@ -11,6 +11,8 @@ interface GenericReportTableProps<T> {
   data: T[];
   rowKey: (row: T) => string | number;
   emptyText?: string;
+  fontSizeClass?: string;
+  headerFontSizeClass?: string; // NUEVO
 }
 
 const GenericReportTable = <T extends Record<string, any>>({
@@ -18,15 +20,20 @@ const GenericReportTable = <T extends Record<string, any>>({
   data,
   rowKey,
   emptyText = "Sin datos para mostrar.",
+  fontSizeClass = "text-xs",
+  headerFontSizeClass = "text-xs", // NUEVO
 }: GenericReportTableProps<T>) => (
-  <div className="overflow-x-auto bg-white rounded-lg shadow-sm p-4">
-    <table className="w-full min-w-[600px] table-auto border-collapse text-sm">
+  <div className="overflow-x-auto bg-white rounded-lg shadow-sm p-1">
+    <table className={`w-full table-auto border-collapse ${fontSizeClass}`}>
       <thead>
         <tr>
           {columns.map((col, idx) => (
             <th
               key={idx}
-              className={`px-4 py-3 text-xs font-bold uppercase bg-gray-200 border-b border-gray-300 text-gray-900 text-center`}
+              className={`px-2 py-1 font-bold uppercase bg-gray-200 border-b border-gray-300 text-gray-900 whitespace-normal text-left ${headerFontSizeClass} ${
+                idx !== 0 ? "border-l border-gray-200" : ""
+              }`}
+              style={{ maxWidth: 110, minWidth: 80 }} // Ajusta según tus datos
             >
               {col.header}
             </th>
@@ -52,13 +59,15 @@ const GenericReportTable = <T extends Record<string, any>>({
               {columns.map((col, cidx) => (
                 <td
                   key={cidx}
-                  className={`px-4 py-3 whitespace-nowrap text-gray-700 ${
-                    col.align === "right"
-                      ? "text-right"
-                      : col.align === "center"
-                      ? "text-center"
-                      : "text-left"
+                  className={`px-2 py-1 whitespace-nowrap text-gray-700 overflow-hidden text-ellipsis text-left ${fontSizeClass} ${
+                    cidx !== 0 ? "border-l border-gray-200" : ""
                   }`}
+                  style={{ maxWidth: 110, minWidth: 90 }} // Igual que en <th>
+                  title={
+                    typeof col.accessor === "function"
+                      ? undefined
+                      : String(row[col.accessor])
+                  }
                 >
                   {typeof col.accessor === "function"
                     ? col.accessor(row)

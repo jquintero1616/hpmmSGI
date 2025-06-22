@@ -28,9 +28,9 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     DeleteKardexContext,
   } = useKardex();
   const { shopping, GetShoppingContext } = useShopping();
-  const { products, GetProductsContext, PutUpdateProductContext } = useProducts();
+  const { products, GetProductsContext, PutUpdateProductContext } =
+    useProducts();
   const { detallePactos, GetDetallePactosContext } = useDetallePactos();
-
 
   // 2. ESTADOS (agrupados por función)
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
-  // 3. CONFIGURACIONES 
+  // 3. CONFIGURACIONES
   const kardexColumns: Column<KardexRow>[] = [
     {
       header: "Numero de Orden",
@@ -118,13 +118,90 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-  const kardexFields: FieldConfig[] = [
+  const kardexListColumns: Column<KardexRow>[] = [
     {
-      name: "tipo_solicitud",
-      label: "Solicitud",
-      type: "select",
-      options: ["Requisicion", "Pacto"],
+      header: "Solicitud de compra",
+      accessor: (row) =>
+        row.nombre_de_factura ? row.nombre_de_factura : "N/A",
     },
+    {
+      header: "Tipo de Solicitud",
+      accessor: (row) => (row.id_units_x_pacts ? "Pacto" : "Requisición"),
+    },
+    { header: "T. Movimiento", accessor: "tipo_movimiento" },
+    { header: "Factura", accessor: "numero_factura" },
+    {
+      header: "Producto",
+      accessor: (row) =>
+        products.find((p) => p.id_product === row.id_product)?.nombre || "N/A",
+    },
+    { header: "Unidad", accessor: "nombre_unidad" },
+    {
+      header: "Solicitante de Compra",
+      accessor: "nombre_empleado_sc",
+    },
+
+    {
+      header: "Solicitante de Fusion",
+      accessor: "nombre_empleado_sf",
+    },
+    { header: "Descripción del producto", accessor: "descripcion" },
+    { header: "Proveedor", accessor: (row) => row.nombre_proveedor || "N/A" },
+    {
+      header: "Vendedor",
+      accessor: (row) => row.nombre_contacto_vendedor || "N/A",
+    },
+    {
+      header: "Fecha de Ingreso",
+      accessor: (row) => new Date(row.fecha_movimiento).toLocaleString(),
+    },
+    {
+      header: "Cantidad Ingresada",
+      accessor: (row) => {
+        const quantity = Number(row.cantidad);
+        return <span className="font-medium">{quantity.toFixed(2)}</span>;
+      },
+    },
+    {
+      header: "Precio Unitario",
+      accessor: (row) => {
+        const price = Number(row.precio_unitario);
+        return <span className="font-medium">{`L.${price.toFixed(2)}`}</span>;
+      },
+    },
+    {
+      header: "Total",
+      accessor: (row) => {
+        const total = Number(row.cantidad) * Number(row.precio_unitario);
+        return (
+          <span className="font-semibold text-blue-600">{`L.${total.toFixed(
+            2
+          )}`}</span>
+        );
+      },
+    },
+    /* {
+      header: "Existencias",
+      accessor: (row) => (
+        <span className="font-semibold text-green-600">
+          {row.calculado_stock?.toFixed(2)}
+        </span>
+      ),
+    }, */
+  ];
+
+  const kardexFields: FieldConfig[] = [
+
+    {
+      name: "id_shopping",
+      label: "N Compra",
+      type: "select",
+      options: shopping.map((shopping) => ({
+        label: shopping.shopping_order_id,
+        value: shopping.id_shopping,
+      })),
+    },
+   
     {
       name: "id_detalle_pacto",
       label: "Pactos",
@@ -134,20 +211,19 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         value: pacto.id_units_x_pacts,
       })),
     },
+     {
+      name: "tipo_solicitud",
+      label: "Solicitud",
+      type: "select",
+      options: ["Requisicion", "Pacto"],
+    },
     {
       name: "nombre_de_factura",
       label: "Orden de Compra",
-      type: "text",
+      type: "text"
+      
     },
-    {
-      name: "id_shopping",
-      label: "ID de Compra",
-      type: "select",
-      options: shopping.map((shopping) => ({
-          label: shopping.shopping_order_id,
-          value: shopping.id_shopping,
-        })),
-    },
+    
     {
       name: "tipo_movimiento",
       label: "Tipo de Movimiento",
@@ -155,7 +231,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       options: ["Entrada", "Salida"],
     },
     {
-      name: "id_producto",
+      name: "id_product",
       label: "Nombre del Producto",
       type: "select",
       options: products.map((p) => ({ label: p.nombre, value: p.id_product })),
@@ -166,7 +242,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     { name: "numero_factura", label: "Numero deFactura", type: "text" },
     { name: "cantidad", label: "Cantidad", type: "number" },
     { name: "precio_unitario", label: "Precio", type: "number" },
-    { name: "requisicion_numero", label: "Req No.", type: "text" },
+    { name: "requisicion_numero", label: "Numero Requisicion.", type: "text" },
     {
       name: "tipo",
       label: "Tipo",
@@ -174,8 +250,8 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       options: ["Pendiente", "Aprobado", "Rechazado", "Cancelado"],
       required: true,
     },
-    { name: "observacion", label: "Obs.", type: "text" },
-    { name: "descripcion", label: "Descripción", type: "text" },
+    { name: "observacion", label: "Obs.", type: "textarea" },
+    { name: "descripcion", label: "Descripción", type: "textarea" },
     { name: "fecha_vencimiento", label: "Fecha de Vencimiento", type: "date" },
     { name: "numero_lote", label: "Numero de Lote", type: "text" },
     {
@@ -189,29 +265,35 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 4. EFFECTS
   useEffect(() => {
     // Carga productos y kardex al montar
-    Promise.all([GetKardexContext(), GetProductsContext(),GetShoppingContext(), GetDetallePactosContext()]).finally(() =>
-      setLoading(false)
-    );
+    Promise.all([
+      GetKardexContext(),
+      GetProductsContext(),
+      GetShoppingContext(),
+      GetDetallePactosContext(),
+    ]).finally(() => setLoading(false));
   }, []);
 
-  
   useEffect(() => {
     let data = [...kardexDetail];
-    if (status !== "Todo") data = data.filter(item => item.tipo === status);
-    data.sort((a, b) => new Date(a.fecha_movimiento).getTime() - new Date(b.fecha_movimiento).getTime());
+    if (status !== "Todo") data = data.filter((item) => item.tipo === status);
+    data.sort(
+      (a, b) =>
+        new Date(a.fecha_movimiento).getTime() -
+        new Date(b.fecha_movimiento).getTime()
+    );
 
     const runningStock: Record<string, number> = {};
-    const processed: KardexRow[] = data.map(row => {
-      const key = `${row.id_producto}-${row.nombre_de_factura}`;
+    const processed: KardexRow[] = data.map((row) => {
+      const key = `${row.id_product}-${row.nombre_de_factura}`;
       if (runningStock[key] === undefined) runningStock[key] = 0;
       const qty = Number(row.cantidad);
-      const delta = row.tipo_movimiento === 'Entrada' ? qty : -qty;
+      const delta = row.tipo_movimiento === "Entrada" ? qty : -qty;
       runningStock[key] += delta;
       return { ...row, calculado_stock: runningStock[key] };
     });
 
     setDisplayData(processed);
-  }, [kardexDetail, status]); 
+  }, [kardexDetail, status]);
 
   if (loading) return <div>Cargando kardex…</div>;
 
@@ -290,16 +372,13 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // Handlers específicos
   // Función helper para cambiar estado del kardex
-  const changeKardexStatus = (
-    row: KardexDetail, 
-    newStatus: string) => {
+  const changeKardexStatus = (row: KardexDetail, newStatus: string) => {
     const item = kardex.find((k) => k.id_kardex === row.id_kardex);
     if (item) {
       setItemToEdit({ ...item, tipo: newStatus });
       setEditOpen(true);
     }
   };
-
 
   const getActionsForStatus = (status: string) => {
     switch (status) {
@@ -391,7 +470,11 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       </Modal>
 
       {/* Modal Crear con lista temporal */}
-      <Modal isOpen={isCreateOpen} onClose={closeAll} title="Agregar movimientos a Kardex">
+      <Modal
+        isOpen={isCreateOpen}
+        onClose={closeAll}
+        title="Agregar movimientos a Kardex"
+      >
         <div className="p-2 md:p-4">
           <GenericForm
             initialValues={
@@ -447,7 +530,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           <div className="mt-6">
             <h4 className="font-semibold mb-2">Movimientos a agregar</h4>
             <GenericTable
-              columns={kardexColumns}
+              columns={kardexListColumns}
               data={dataListForm}
               rowKey={(row: any) => row.id_temp}
               actions={[

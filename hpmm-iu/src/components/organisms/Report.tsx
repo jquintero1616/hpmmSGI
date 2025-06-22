@@ -5,11 +5,13 @@ import GenericReportTable, { ReportColumn } from "../molecules/GenericReportTabl
 import Button from "../atoms/Buttons/Button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import GenericPDF from "../molecules/GenericPDF";
+import PdfReportLayout from "../molecules/PdfReportLayout";
 import { HiOutlineDocumentArrowDown } from "react-icons/hi2";
+import Employe from "./Employes";
+import Unit from "./Unit";
 
 const ImpresionReporte: React.FC = () => {
-  const { kardexDetail, GetKardexContext } = useKardex();
+  const { kardexDetail,kardex, GetKardexContext } = useKardex();
   const { products, GetProductsContext } = useProducts();
   const [loading, setLoading] = useState(true);
   const [listapv, setListapv] = useState<any[]>([]);
@@ -17,20 +19,35 @@ const ImpresionReporte: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([GetKardexContext(), GetProductsContext()]).finally(() => setLoading(false));
+    Promise.all([GetKardexContext(), GetProductsContext()])
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    const entradas = kardexDetail.filter((k) => k.tipo_movimiento === "Entrada");
-    setListapv(
-      entradas.map((k) => ({
-        ...k,
-        nombre_producto:
-          products.find((p) => p.id_product === (k.id_producto || k.id_producto))?.nombre ||
-          "Sin nombre",
-      }))
+  
+  }, [kardex, products, Employe, Unit]);
+
+  useEffect(() => {
+    // Filtrar solo entradas y que estén aprobadas en kardex
+    const entradas = kardex.filter(
+      (k) => k.tipo_movimiento === "Entrada" && k.estado === true && k.tipo === "Aprobado"
     );
-  }, [kardexDetail, products]);
+
+    // Combinar con kardexDetail por id_kardex
+    const listaCombinada = entradas.map((k) => {
+      const detalle = kardexDetail.find((d) => d.id_kardex === k.id_kardex);
+      return {
+        ...k,
+        ...detalle,
+        nombre_producto:
+          products.find((p) => p.id_product === k.id_product)?.nombre || "Sin nombre",
+        nombre_unidad: detalle?.nombre_unidad || "N/A",
+        nombre_empleado_sf: detalle?.nombre_empleado_sf || "N/A",
+      };
+    });
+
+    setListapv(listaCombinada);
+  }, [kardex, kardexDetail, products, Employe, Unit]);
 
   const columns: ReportColumn<any>[] = [
     { header: "Unidad", accessor: "nombre_unidad" },
@@ -110,6 +127,8 @@ const ImpresionReporte: React.FC = () => {
     });
   };
 
+  console.log(listapv);
+
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-2 text-center text-hpmm-claro">Reporte Kardex</h1>
@@ -130,7 +149,7 @@ const ImpresionReporte: React.FC = () => {
               onClick={handleDownloadPDF}
             >
               <HiOutlineDocumentArrowDown className="text-xl" />
-              Descargar PDF
+              Generar PDF
             </Button>
           </div>
 
@@ -141,55 +160,24 @@ const ImpresionReporte: React.FC = () => {
               position: "absolute",
               left: "-9999px",
               top: 0,
-              width: "1056px",  // landscape carta
+              width: "1056px",
               height: "816px",
               background: "#fff",
             }}
           >
-            <GenericPDF
+            <PdfReportLayout
               columns={columns}
               data={listapv}
               rowKey={(row) => row.id_kardex}
               title="Reporte Kardex"
               date={new Date().toLocaleDateString("es-HN", { year: "numeric", month: "long", day: "numeric" })}
             >
-              {/* Total general solo para el PDF */}
-              <div className="flex justify-end mb-16">
-                <div className="bg-gray-100 rounded px-8 py-3 font-bold text-xl text-gray-700 shadow">
-                  Total : <span className="text-yellow-700">{`L${totalGeneral.toLocaleString("es-HN", { minimumFractionDigits: 2 })}`}</span>
-                </div>
-              </div>
-              {/* Firmas */}
-              <div className="grid grid-cols-3 gap-24 mt-20">
-                <div className="flex flex-col items-center">
-                  <div className="border-b-2 border-gray-400 w-56 mb-2" />
-                  <input
-                    type="text"
-                    className="w-56 text-center outline-none bg-transparent font-semibold text-gray-800"
-                    placeholder="Dr. Aguilar Mendoza"
-                    readOnly
-                  />
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="border-b-2 border-gray-400 w-56 mb-2" />
-                  <input
-                    type="text"
-                    className="w-56 text-center outline-none bg-transparent font-semibold text-gray-800"
-                    placeholder="Nombre Subdirección"
-                    readOnly
-                  />
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="border-b-2 border-gray-400 w-56 mb-2" />
-                  <input
-                    type="text"
-                    className="w-56 text-center outline-none bg-transparent font-semibold text-gray-800"
-                    placeholder="Nombre Logística"
-                    readOnly
-                  />
-                </div>
-              </div>
-            </GenericPDF>
+              <div className="flex justify-end mb-2 mt-0">
+    <div className="bg-gray-100 rounded px-4 py-1 font-semibold text-[10px] text-gray-700 shadow">
+      Total: <span className="text-green-700">{`L${totalGeneral.toLocaleString("es-HN", { minimumFractionDigits: 2 })}`}</span>
+    </div>
+  </div>
+            </PdfReportLayout>
           </div>
         </>
       )}

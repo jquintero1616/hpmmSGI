@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useCategory } from "../../hooks/use.Category";
+import { useSubcategory } from "../../hooks/use.Subcategory";
+import { SubcategoryInterface } from "../../interfaces/subcategory.interface";
 import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
-// 
-import { useSubcategory } from "../../hooks/use.Subcategory";
-import { SubcategoryInterface } from "../../interfaces/subcategory.interface";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
+// Hooks y estados locales
 const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
     subcategory,
@@ -19,7 +21,6 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   const { category, GetCategoriesContext } = useCategory();
 
-  // Estados locales para manejar la UI
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<SubcategoryInterface[]>([]);
   const [isEditOpen, setEditOpen] = useState(false);
@@ -31,6 +32,7 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [itemToDelete, setItemToDelete] = useState<SubcategoryInterface | null>(
     null
   );
+  const [saving, setSaving] = useState(false);
 
   // 1) Columnas de la tabla
   const subcategoryColumns: Column<SubcategoryInterface>[] = [
@@ -54,60 +56,74 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
   ];
 
-   const subcategoryFields: FieldConfig[] = React.useMemo(
+  // Campos del formulario
+  const subcategoryFields: FieldConfig[] = useMemo(
     () => [
-      { name: "nombre", label: "Nombre", type: "text" },
+      {
+        name: "nombre",
+        label: "Nombre",
+        type: "text",
+        required: true,
+      },
       {
         name: "id_category",
-        label: "Categoria",
+        label: "Categoría",
         type: "select",
-        options: category.map((c) => ({ label: c.name, value: c.id_category })),
+        options: category.map((c) => ({
+          label: c.name,
+          value: c.id_category,
+        })),
+        required: true,
       },
       {
         name: "estado",
         label: "Estado",
         type: "select",
         options: [
-          { label: "Activo", value: "true" },
-          { label: "Inactivo", value: "false" },
+          { label: "Activo", value: true },
+          { label: "Inactivo", value: false },
         ],
+        required: true,
       },
     ],
     [category]
   );
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([GetSubcategoriesContext(), GetCategoriesContext()]);
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [GetSubcategoriesContext, GetCategoriesContext]);
-
-  // Filtrar datos cuando cambie el status o subcategory
-  useEffect(() => {
-    if (!subcategory || subcategory.length === 0) {
-      setFilteredData([]);
-      return;
-    }
-
-    // Filtrar elementos válidos antes de procesar
-    const validSubcategories = subcategory.filter(
-      (item) =>
-        item && item.id_subcategory && typeof item.id_subcategory === "string"
+  // Validación personalizada para nombre duplicado (case-insensitive)
+  const isNameTaken = (nombre: string, excludeId?: string) => {
+    return subcategory.some(
+      (s) =>
+        s.nombre.trim().toLowerCase() === nombre.trim().toLowerCase() &&
+        (!excludeId || s.id_subcategory !== excludeId)
     );
+  };
 
-    handleTableContent(validSubcategories);
-  }, [status, subcategory]);
-// ------------------------------------------------------------------------------------
+  // Validación para crear (sin validación de nombre duplicado)
+  const validateCreate = (_values: any) => {
+    return {};
+  };
+
+  // Validación para editar (sin validación de nombre duplicado)
+  const validateEdit = (_values: any) => {
+    return {};
+  };
+
+  // Filtrado y ordenamiento
+  const handleTableContent = (list: SubcategoryInterface[]) => {
+    let filtrados = list;
+    if (status === "Activos") {
+      filtrados = list.filter((s) => s.estado === true);
+    } else if (status === "Inactivos") {
+      filtrados = list.filter((s) => s.estado === false);
+    }
+    // Ordenar por nombre, asegurando que siempre sea string
+    const ordenados = filtrados.sort((a, b) =>
+      (a.nombre ?? "").localeCompare(b.nombre ?? "")
+    );
+    setFilteredData(ordenados);
+  };
+
+  // Manejo de modales
   const closeAll = () => {
     setEditOpen(false);
     setCreateOpen(false);
@@ -115,141 +131,141 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setItemToEdit(null);
     setItemToDelete(null);
   };
-  // ------------------------------------------------------------------------------------
+
   const openEdit = (id_subcategory: string) => {
-    if (!subcategory || subcategory.length === 0) {
-      return;
-    }
-
-    const item = subcategory.find(
-      (item) => item && item.id_subcategory === id_subcategory
+    setItemToEdit(
+      subcategory.find((s) => s.id_subcategory === id_subcategory) || null
     );
-
-    if (item) {
-     
-      setItemToEdit(item);
-      setEditOpen(true);
-    } else {
-      console.error("No se encontró la subcategoría con ID:", id_subcategory);
-    }
+    setEditOpen(true);
   };
 
   const openDelete = (id_subcategory: string) => {
-    if (!subcategory || subcategory.length === 0) {
-      return;
-    }
-
-    const item = subcategory.find(
-      (item) => item && item.id_subcategory === id_subcategory
+    setItemToDelete(
+      subcategory.find((s) => s.id_subcategory === id_subcategory) || null
     );
-
-    if (item) {
-      setItemToDelete(item);
-      setDeleteOpen(true);
-    } else {
-      console.error("No se encontró la subcategoría con ID:", id_subcategory);
-    }
+    setDeleteOpen(true);
   };
-  //-----------------------------------------------------------------------------------------
+
+  // Handlers CRUD
   const handleConfirmDelete = async (id_subcategory: string) => {
+    setSaving(true);
     try {
       await DeleteSubcategoryContext(id_subcategory);
       await GetSubcategoriesContext();
+      toast.success("Subcategoría eliminada correctamente");
       closeAll();
     } catch (error) {
-      console.error("Error eliminando subcategoría:", error);
-    }
-  };
-
-  const handleTableContent = (list: SubcategoryInterface[]) => {
-    // Asegurar que todos los elementos sean válidos
-    const validList = list.filter(
-      (item) =>
-        item && item.id_subcategory && typeof item.id_subcategory === "string"
-    );
-
-    if (status === "Todo") {
-      setFilteredData(validList);
-    } else {
-      // Filtrar solo activos
-      const activeItems = validList.filter((item) => item.estado === true);
-    
-      setFilteredData(activeItems);
+      toast.error("Error eliminando subcategoría");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSave = async (values: any) => {
-    if (!itemToEdit) {
-      console.error("No hay item para editar");
+    if (!itemToEdit) return;
+
+    // Validar si hay cambios
+    const hasChanges =
+      values.nombre !== itemToEdit.nombre ||
+      values.id_category !== itemToEdit.id_category ||
+      values.estado !== itemToEdit.estado;
+
+    if (!hasChanges) {
+      toast.error("No se detectaron cambios para guardar.");
       return;
     }
 
-   
+    setSaving(true);
     try {
-      // Arma el objeto de actualización
       const payload: Partial<SubcategoryInterface> = {
         ...itemToEdit,
         ...values,
-        estado: values.estado === "true" || values.estado === true,
+        estado: values.estado === true,
       };
-
-   
-
-      await PutUpdateSubcategoryContext(
-        itemToEdit.id_subcategory,
-        payload as SubcategoryInterface
-      );
+      await PutUpdateSubcategoryContext(itemToEdit.id_subcategory, payload as SubcategoryInterface);
       await GetSubcategoriesContext();
+      toast.success(`Subcategoría ${values.nombre} actualizada correctamente`);
       closeAll();
     } catch (error) {
-      console.error("Error actualizando subcategoría:", error);
+      toast.error("Error actualizando subcategoría");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleCreate = async (values: any) => {
+    setSaving(true);
     try {
       const payload = {
         ...values,
-        estado: values.estado === "true" || values.estado === true,
+        estado: values.estado === true,
       };
-
- 
-
       await PostCreateSubcategoryContext(payload as SubcategoryInterface);
       await GetSubcategoriesContext();
+      toast.success(`Subcategoría ${values.nombre} creada correctamente`);
       closeAll();
     } catch (error) {
-      console.error("Error creando subcategoría:", error);
+      toast.error("Error creando subcategoría");
+    } finally {
+      setSaving(false);
     }
   };
 
+  // Effects
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([GetSubcategoriesContext(), GetCategoriesContext()]).finally(() =>
+      setLoading(false)
+    );
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    handleTableContent(subcategory);
+    // eslint-disable-next-line
+  }, [status, subcategory]);
+
+  // Render condicional
   if (loading) {
-    return <div>Cargando Subcategorías...</div>;
+    return <div>Cargando subcategorías…</div>;
   }
 
+  // Render principal
   return (
     <div>
-      <h1>Lista de Subcategorías</h1>
-      <Button onClick={() => setCreateOpen(true)}>+ Nueva Subcategoría</Button>
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Lista de Subcategorías
+      </h1>
+
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nueva subcategoría
+        </Button>
+      </div>
 
       <GenericTable
         columns={subcategoryColumns}
-        data={filteredData.filter((item) => item && item.id_subcategory)} // Filtro adicional de seguridad
-        rowKey={(row) => row?.id_subcategory || ""}
+        data={filteredData}
+        rowKey={(row) => row.id_subcategory}
         actions={[
           {
             header: "Editar",
             label: "Editar",
-            onClick: (row) =>
-              row?.id_subcategory && openEdit(row.id_subcategory),
+            onClick: (row) => openEdit(row.id_subcategory),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
-            onClick: (row) =>
-              row?.id_subcategory && openDelete(row.id_subcategory),
+            onClick: (row) => openDelete(row.id_subcategory),
           },
         ]}
+        rowClassName={(row) =>
+          row.estado === false ? "opacity-40 line-through" : ""
+        }
       />
 
       {/* Modal Editar */}
@@ -257,15 +273,27 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         {itemToEdit && (
           <GenericForm<Partial<SubcategoryInterface>>
             initialValues={{
-              nombre: itemToEdit.nombre || "",
-              id_category: itemToEdit.id_category || "",
-              estado: itemToEdit.estado,
+              nombre: itemToEdit.nombre ?? "",
+              id_category: itemToEdit.id_category ?? "",
+              estado: itemToEdit.estado ?? true,
             }}
             fields={subcategoryFields}
             onSubmit={handleSave}
             onCancel={closeAll}
-            submitLabel="Guardar"
+            validate={validateEdit}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
             cancelLabel="Cancelar"
+            title="Editar Subcategoría"
+            submitDisabled={saving}
           />
         )}
       </Modal>
@@ -274,15 +302,29 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<SubcategoryInterface>>
           initialValues={{
-            id_category: "",
             nombre: "",
-            estado: true, // Cambié de true a "true" para consistencia
+            id_category: "",
+            estado: true,
           }}
-          fields={subcategoryFields}
+          fields={subcategoryFields.map((f) =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validateCreate}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          title="Crear Subcategoría"
+          submitDisabled={saving}
         />
       </Modal>
 
@@ -299,15 +341,27 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               data={[itemToDelete]}
               rowKey={(row) => row.id_subcategory}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">
-                Cancelar
+            <div className="mt-4 text-right gap-2 flex justify-center">
+              <Button
+                onClick={() => handleConfirmDelete(itemToDelete.id_subcategory)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
+                disabled={saving}
+              >
+                {saving ? (
+                  <span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    Eliminando...
+                  </span>
+                ) : (
+                  "Eliminar"
+                )}
               </Button>
               <Button
-                isPrimary
-                onClick={() => handleConfirmDelete(itemToDelete.id_subcategory)}
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+                disabled={saving}
               >
-                Eliminar
+                Cancelar
               </Button>
             </div>
           </>

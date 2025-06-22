@@ -2,33 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { useRole } from "../../hooks/use.Role";
+import { RolesInterface } from "../../interfaces/role.interface";
 import Button from "../atoms/Buttons/Button";
 import GenericModal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
-import GenericTable, { Column, Action } from "../molecules/GenericTable";
-import { RolesInterface } from "../../interfaces/role.interface";
+import GenericTable, { Column,} from "../molecules/GenericTable";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const roleColumns: Column<RolesInterface>[] = [
-  { header: "Nombre", accessor: "name" },
-  { header: "Descripción", accessor: "descripcion" },
-  { header: "Estado", accessor: row => (row.estado ? "Activo" : "Inactivo") },
-  {
-    header: "Fecha Creación",
-    accessor: row =>
-      row.created_at ? new Date(row.created_at).toLocaleString() : "",
-  },
-  {
-    header: "Fecha Actualización",
-    accessor: row =>
-      row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
-  },
-];
-
-const roleFields: FieldConfig[] = [
-  { name: "name", label: "Nombre", type: "text" },
-  { name: "descripcion", label: "Descripción", type: "text" },
-];
-
+// 1. Hooks y estados locales
 const Roles: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
     roles,
@@ -40,180 +22,338 @@ const Roles: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<RolesInterface[]>([]);
-  const [isCreateOpen, setCreateOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
+  const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<RolesInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<RolesInterface | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // 1) Fetch inicial
-  useEffect(() => {
-    GetRolesContext()
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  }, [GetRolesContext]);
+  // 2. Validaciones personalizadas (solo nombre duplicado)
+  const isNameTaken = (name: string, excludeId?: string) => {
+    return roles.some(
+      (r) =>
+        r.name.trim().toLowerCase() === name.trim().toLowerCase() &&
+        (!excludeId || r.id_rol !== excludeId)
+    );
+  };
 
-  // 2) Filtrar solo estado=true
-  useEffect(() => {
-    if (roles) {
-     handleTableContent(roles);
+  const validateCreate = (values: any) => {
+    const errors: any = {};
+    if (isNameTaken(values.name)) {
+      errors.name = "El nombre del rol ya existe.";
     }
-  }, [roles, status]);
-
-  const closeAll = () => {
-    setCreateOpen(false);
-    setEditOpen(false);
-    setDeleteOpen(false);
-    setItemToEdit(null);
-    setItemToDelete(null);
+    return errors;
   };
 
-  const openEdit = (id: string) => {
-    setItemToEdit(roles.find(r => r.id_rol === id) || null);
-    setEditOpen(true);
+  const validateEdit = (values: any) => {
+    const errors: any = {};
+    if (
+      itemToEdit &&
+      values.name.trim().toLowerCase() !== itemToEdit.name.trim().toLowerCase() &&
+      isNameTaken(values.name, itemToEdit.id_rol)
+    ) {
+      errors.name = "El nombre del rol ya existe.";
+    }
+    return errors;
   };
 
-  const openDelete = (id: string) => {
-    setItemToDelete(roles.find(r => r.id_rol === id) || null);
-    setDeleteOpen(true);
-  };
-
-  // Definir las acciones de la tabla
-  const roleActions: Action<RolesInterface>[] = [
+  // 3. Configuración de columnas y campos
+  const roleColumns: Column<RolesInterface>[] = [
+    { header: "Nombre", accessor: "name" },
+    { header: "Descripción", accessor: "descripcion" },
     {
-      header: "Editar",
-      label: "Editar",
-      onClick: (row) => openEdit(row.id_rol),
+      header: "Estado",
+      accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
     },
     {
-      header: "Eliminar",
-      label: "Eliminar",
-      onClick: (row) => openDelete(row.id_rol),
+      header: "Fecha Creación",
+      accessor: (row) =>
+        row.created_at ? new Date(row.created_at).toLocaleString() : "",
+    },
+    {
+      header: "Fecha Actualización",
+      accessor: (row) =>
+        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
     },
   ];
 
-  // 3) Crear rol → POST + recarga
+  const roleFields: FieldConfig[] = [
+    {
+      name: "name",
+      label: "Nombre",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "descripcion",
+      label: "Descripción",
+      type: "text",
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      options: [
+        { label: "Activo", value: true },
+        { label: "Inactivo", value: false },
+      ],
+      required: true,
+      disabled: true, // Solo para crear, se ajusta abajo
+    },
+  ];
+
+  // 4. Función para filtrar y ordenar la tabla
+  const handleTableContent = (list: RolesInterface[]) => {
+    let filtrados = list;
+    if (status === "Activos") {
+      filtrados = list.filter((r) => r.estado === true);
+    } else if (status === "Inactivos") {
+      filtrados = list.filter((r) => r.estado === false);
+    }
+    // Ordenar por nombre
+    const ordenados = filtrados.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+    setFilteredData(ordenados);
+  };
+
+  // 5. Funciones de manejo de modales
+  const closeAll = () => {
+    setEditOpen(false);
+    setCreateOpen(false);
+    setDeleteOpen(false);
+    setItemToEdit(null);
+    setItemToDelete(null);
+    setSaving(false);
+  };
+
+  const openEdit = (id_rol: string) => {
+    setItemToEdit(roles.find((r) => r.id_rol === id_rol) || null);
+    setEditOpen(true);
+  };
+
+  const openDelete = (id_rol: string) => {
+    setItemToDelete(roles.find((r) => r.id_rol === id_rol) || null);
+    setDeleteOpen(true);
+  };
+
+  // 6. Handlers de CRUD
   const handleCreate = async (values: any) => {
-    await PostCreateRoleContext({
-      name: values.name,
-      descripcion: values.descripcion,
-      estado: true,
-    });
-    await GetRolesContext();
-    closeAll();
-  };
-
-  const handleSave = async (vals: any) => {
-    if (!itemToEdit) return;
-    await PutUpdateRoleContext(itemToEdit.id_rol, {
-      ...itemToEdit,
-      name: vals.name,
-      descripcion: vals.descripcion,
-      estado: itemToEdit.estado,
-    });
-    await GetRolesContext();
-    closeAll();
-  };
-
-  // 5) Desactivar → PUT {estado:false} + recarga
-  const handleConfirmDelete = async (id: string) => {
-    await DeleteRoleContext(id);
-    await GetRolesContext();
-    closeAll();
-  };
-
-   const handleTableContent = (emp: RolesInterface[]) => {
-      // Verificar que emp existe y tiene elementos
-      if (!emp || emp.length === 0) {
-        setFilteredData([]);
-        return;
-      }
-  
-      const rowContent = emp.filter((item) => {
-        // Verificar que el item existe y tiene la propiedad estado
-        return (
-          item && item.estado !== undefined && item.estado === (status === "Todo")
-        );
+    if (isNameTaken(values.name)) {
+      toast.error("El nombre del rol ya existe.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await PostCreateRoleContext({
+        name: values.name,
+        descripcion: values.descripcion,
+        estado: true,
       });
-      setFilteredData(rowContent);
-    };
+      await GetRolesContext();
+      toast.success(`Rol ${values.name} creado correctamente`);
+      closeAll();
+    } catch (error) {
+      toast.error("Error al crear el rol.");
+      setSaving(false);
+    }
+  };
 
+  const handleSave = async (values: any) => {
+    if (!itemToEdit) return;
+    // Validar si hay cambios
+    const hasChanges =
+      values.name !== itemToEdit.name ||
+      values.descripcion !== itemToEdit.descripcion;
+    if (!hasChanges) {
+      toast.error("No se detectaron cambios para guardar.");
+      return;
+    }
+    // Validar nombre duplicado
+    if (
+      values.name.trim().toLowerCase() !== itemToEdit.name.trim().toLowerCase() &&
+      isNameTaken(values.name, itemToEdit.id_rol)
+    ) {
+      toast.error("El nombre del rol ya existe.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await PutUpdateRoleContext(itemToEdit.id_rol, {
+        ...itemToEdit,
+        name: values.name,
+        descripcion: values.descripcion,
+        estado: itemToEdit.estado,
+      });
+      await GetRolesContext();
+      toast.success(`Rol ${values.name} actualizado correctamente`);
+      closeAll();
+    } catch (error) {
+      toast.error("Error al actualizar el rol.");
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmDelete = async (id_rol: string) => {
+    setSaving(true);
+    try {
+      await DeleteRoleContext(id_rol);
+      await GetRolesContext();
+      toast.success("Rol desactivado correctamente");
+      closeAll();
+    } catch (error) {
+      toast.error("Error al desactivar el rol.");
+      setSaving(false);
+    }
+  };
+
+  // 7. Effects
+  useEffect(() => {
+    setLoading(true);
+    GetRolesContext().finally(() => setLoading(false));
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    handleTableContent(roles);
+    // eslint-disable-next-line
+  }, [roles, status]);
+
+  // 8. Render condicional
   if (loading) return <div>Cargando roles…</div>;
 
+  // 9. Render principal
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Gestión de Roles</h2>
-      <Button onClick={() => setCreateOpen(true)}>+ Nuevo rol</Button>
-
-      {filteredData.length > 0 ? (
-        <GenericTable
-          columns={roleColumns}
-          data={filteredData}
-          rowKey={r => r.id_rol}
-          actions={roleActions}
-        />
-      ) : (
-        <p className="mt-4 text-gray-600">No hay roles activos.</p>
-      )}
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Roles</h1>
+      <div className="flex justify-end mb-4">
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nuevo rol
+        </Button>
+      </div>
+      <GenericTable
+        columns={roleColumns}
+        data={filteredData}
+        rowKey={(row) => row.id_rol}
+        actions={[
+          {
+            header: "Editar",
+            label: "Editar",
+            onClick: (row) => openEdit(row.id_rol),
+          },
+          {
+            header: "Eliminar",
+            label: "Eliminar",
+            onClick: (row) => openDelete(row.id_rol),
+          },
+        ]}
+        rowClassName={(row) =>
+          row.estado === false ? "opacity-40 line-through" : ""
+        }
+      />
 
       {/* Modal Crear */}
       <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
-        
         <GenericForm
-          initialValues={{ 
-            name: "", 
-            descripcion: "", 
-            estado: "true" }}
-          fields={roleFields}
+          initialValues={{
+            name: "",
+            descripcion: "",
+            estado: true,
+          }}
+          fields={roleFields.map((f) =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validateCreate}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          title="Crear Rol"
+          submitDisabled={saving}
         />
       </GenericModal>
 
       {/* Modal Editar */}
       <GenericModal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
-          <>
-            <h3 className="text-xl font-semibold mb-4">Editar Rol</h3>
-            <GenericForm
-              initialValues={{
-                name: itemToEdit.name,
-                descripcion: itemToEdit.descripcion,
-              
-              }}
-              fields={roleFields}
-              onSubmit={handleSave}
-              onCancel={closeAll}
-              submitLabel="Guardar"
-              cancelLabel="Cancelar"
-            />
-          </>
+          <GenericForm
+            initialValues={{
+              name: itemToEdit.name ?? "",
+              descripcion: itemToEdit.descripcion ?? "",
+              estado: itemToEdit.estado,
+            }}
+            fields={roleFields}
+            onSubmit={handleSave}
+            onCancel={closeAll}
+            validate={validateEdit}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
+            cancelLabel="Cancelar"
+            title="Editar Rol"
+            submitDisabled={saving}
+          />
         )}
       </GenericModal>
 
-      {/* Modal Desactivar */}
+      {/* Modal Eliminar */}
       <GenericModal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete && (
           <>
-            <h3 className="text-xl font-semibold mb-4">Confirmar Desactivación</h3>
-            <p>
+            <h3 className="text-xl font-semibold mb-4 text-center">
+              Confirmar Desactivación
+            </h3>
+            <p className="text-center mb-2">
               ¿Seguro que deseas desactivar el rol{" "}
               <strong>{itemToDelete.name}</strong>?
             </p>
             <GenericTable
               columns={roleColumns}
               data={[itemToDelete]}
-              rowKey={r => r.id_rol}
+              rowKey={(row) => row.id_rol}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">Cancelar</Button>
+            <div className="mt-4 text-right gap-2 flex justify-center">
               <Button
-                isPrimary
                 onClick={() => handleConfirmDelete(itemToDelete.id_rol)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
+                disabled={saving}
               >
-                Desactivar
+                {saving ? (
+                  <span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    Desactivando...
+                  </span>
+                ) : (
+                  "Desactivar"
+                )}
+              </Button>
+              <Button
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+                disabled={saving}
+              >
+                Cancelar
               </Button>
             </div>
           </>

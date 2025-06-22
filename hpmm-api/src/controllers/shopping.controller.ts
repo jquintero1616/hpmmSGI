@@ -54,6 +54,7 @@ export const UpdateShoppingController = asyncWrapper(
       numero_cotizacion,
       numero_pedido,
       nombre_unidad,
+      ISV,
       estado,
     } = req.body;
 
@@ -67,7 +68,8 @@ export const UpdateShoppingController = asyncWrapper(
       numero_cotizacion,   
       numero_pedido,      
       nombre_unidad,       
-      shopping_order_id,   
+      shopping_order_id,  
+      ISV, 
       total,              
       estado               
     );

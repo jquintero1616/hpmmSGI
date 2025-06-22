@@ -15,6 +15,7 @@ export interface Action<T> {
   header: string;
   label: React.ReactNode;
   onClick: (row: T) => void;
+  disabled?: (row: T) => boolean; // <-- Agregado aquí
 }
 
 interface GenericTableProps<T> {
@@ -304,7 +305,7 @@ const GenericTable = <T extends Record<string, any>>({
                     if (isEstadoCol) {
                       // Normaliza el valor para comparar
                       const cellValue = String(cell).trim().toLowerCase();
-                      let bg = "bg-gray-100 text-gray-700";
+                      let bg = "bg-gray-300 text-gray-700";
 
                       if (
                         cellValue === "activo" ||
@@ -335,6 +336,11 @@ const GenericTable = <T extends Record<string, any>>({
                         cellValue === "canceled"
                       ) {
                         bg = "bg-red-300 text-white";
+                      }else if (
+                        cellValue === "comprado" ||
+                        cellValue === "canceled"
+                      ) {
+                        bg = "bg-green-300 text-white";
                       }
 
                       return (
@@ -384,6 +390,7 @@ const GenericTable = <T extends Record<string, any>>({
                               : "bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro"
                           }`}
                           onClick={() => act.onClick(row)}
+                          disabled={act.disabled ? act.disabled(row) : false} // <-- Agregado aquí
                         >
                           {act.label}
                         </Button>

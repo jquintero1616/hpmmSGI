@@ -2,7 +2,7 @@ import { KardexDetail } from "../../interfaces/kardex.interface";
 
 export interface kardex {
   id_kardex: string;
-  id_product: string;
+  id_product?: string;
   id_shopping?: string;
   id_units_x_pacts?: string;
   anio_creacion: string;

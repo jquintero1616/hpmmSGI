@@ -7,7 +7,7 @@ const baseKardexQuery = () =>
  db('Kardex as k')
     .select(
       'k.id_kardex',
-      'k.id_product as id_producto',
+      'k.id_product as id_product',
       'e_sc.id_employes as id_empleado_sc',
       'pa.id_units_x_pacts as id_units_x_pacts',
       'k.id_empleado_solicitud_f as id_empleado_sf',

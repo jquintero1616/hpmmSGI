@@ -16,6 +16,7 @@ export async function seed(knex: Knex): Promise<void> {
       shopping_order_id: "F.01",
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Medicamentos HPMM",
+      ISV: false,
       total: 1000.50,
       estado: true
     },
@@ -29,6 +30,7 @@ export async function seed(knex: Knex): Promise<void> {
       shopping_order_id: "F.01",
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Materiales HPMMM",
+      ISV: false,
       total: 1000.50,
       estado: true
     },
@@ -42,6 +44,7 @@ export async function seed(knex: Knex): Promise<void> {
       shopping_order_id: "F.01",
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Materiales HPMMM",
+      ISV: false,
       total: 1000.50,
       estado: true
     }

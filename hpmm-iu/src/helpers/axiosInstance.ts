@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://192.168.1.98:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://localhost:3000/api";
 
 export function axiosPublic(): AxiosInstance {
   // Esta función no necesita autenticación, así que no hacemos nada especial

@@ -162,7 +162,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           ?.subcategory_name || "N/A",
     },
     { header: "Nombre", accessor: "nombre" },
-    { header: "Descripcion", accessor: "descripcion" },
+   
     {
       header: "Existencias",
       accessor: (row) => {
@@ -191,11 +191,8 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         );
       },
     },
-    {
-      header: "Fecha de Vencimiento",
-      accessor: (row) => new Date(row.fecha_vencimiento).toLocaleDateString(),
-    },
-    { header: "Numero de Lote", accessor: "numero_lote" },
+    
+    
   ];
 
   // Campos del formulario
@@ -208,6 +205,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         label: c.name,
         value: c.id_category,
       })),
+      // NO required
     },
     {
       name: "id_subcategory",
@@ -217,10 +215,11 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         label: sub.subcategory_name,
         value: sub.id_subcategory,
       })),
+      // NO required
     },
-    { name: "nombre", label: "Nombre", type: "text" },
-    { name: "stock_actual", label: "Stock Actual", type: "number" },
-    { name: "stock_maximo", label: "Stock Máximo", type: "number" },
+    { name: "nombre", label: "Nombre Producto", type: "text", required: true },
+    { name: "stock_actual", label: "Stock Actual", type: "number", required: true },
+    { name: "stock_maximo", label: "Stock Máximo", type: "number", required: true },
     
   ];
 
@@ -298,6 +297,44 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     }
   };
 
+  // Nueva función para validar duplicados en la lista
+  const isDuplicateInList = (item: any) => {
+    return dataListForm.some(
+      (p) =>
+        p.nombre.trim().toLowerCase() === item.nombre.trim().toLowerCase() &&
+        p.id_category === item.id_category &&
+        p.id_subcategory === item.id_subcategory &&
+        (!itemToEditList || p.id_product !== itemToEditList.id_product)
+    );
+  };
+
+  // Handler para agregar o editar en la lista
+  const handleAddItem = (item: any) => {
+    // Validar duplicados
+    if (isDuplicateInList(item)) {
+      toast.error("Ya existe un producto con ese nombre, categoría y subcategoría en la lista.");
+      return;
+    }
+
+    if (itemToEditList) {
+      setDataListForm((prev) =>
+        prev.map((p) =>
+          p.id_product === itemToEditList.id_product
+            ? { ...item, id_product: itemToEditList.id_product }
+            : p
+        )
+      );
+      setItemToEditList(null);
+    } else {
+      setDataListForm((prev) => [
+        ...prev,
+        { ...item, id_product: crypto.randomUUID() },
+      ]);
+    }
+    setSelectedCategory("");
+    setSelectedSubcategory("");
+  };
+
   if (loading) return <div>Cargando productos…</div>;
 
   return (
@@ -306,9 +343,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <ToastContainer />
 
       {/* Controles: Nuevo + Filtro de stock */}
-      <div className="flex flex-wrap items-center gap-4 mb-4">
-        <Button onClick={() => setCreateOpen(true)}>+ Nuevo producto</Button>
-
+      <div className="flex flex-wrap items-center justify-between mb-4">
         <div className="flex items-center">
           <label htmlFor="stockFilter" className="mr-2 font-medium">
             Filtro de stock:
@@ -327,6 +362,12 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             className="w-48"
           />
         </div>
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nuevo producto
+        </Button>
       </div>
 
       {filteredData.length > 0 ? (
@@ -353,6 +394,9 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
       {/* Modales Crear / Editar / Eliminar */}
       <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          {itemToEditList ? "Editar producto de la lista" : "Agregar producto a la lista"}
+        </h2>
         <GenericForm
           initialValues={
             itemToEditList
@@ -363,39 +407,18 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
                   nombre: "",
                   stock_actual: 0,
                   stock_maximo: 0,
-
                   estado: "true",
                 }
           }
           fields={productFieldsNoEstado}
-          onSubmit={handleCreate}
+          onSubmit={handleAddItem}
           onCancel={() => {
             setItemToEditList(null);
-            setDataListForm([]); // <-- Limpia la lista al cancelar
-            closeAll();
           }}
-          submitLabel="Crear"
-          cancelLabel="Cancelar"
+          submitLabel={itemToEditList ? "Actualizar" : "Agregar a lista"}
+          cancelLabel="Cancelar edición"
           dataList={dataListForm}
           setDataList={setDataListForm}
-          onAddItem={(item) => {
-            if (itemToEditList) {
-              // Editar en vez de agregar
-              setDataListForm((prev) =>
-                prev.map((p) =>
-                  p.id_product === itemToEditList.id_product ? { ...item, id_product: itemToEditList.id_product } : p
-                )
-              );
-              setItemToEditList(null);
-            } else {
-              setDataListForm((prev) => [
-                ...prev,
-                { ...item, id_product: crypto.randomUUID() },
-              ]);
-            }
-            setSelectedCategory(""); // Limpiar selección después de agregar
-            setSelectedSubcategory("");
-          }}
           extraFields={{
             id_category: (
               <Select
@@ -403,7 +426,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
                 value={selectedCategory}
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
-                  setSelectedSubcategory(""); // Limpiar subcategoría al cambiar categoría
+                  setSelectedSubcategory("");
                 }}
                 options={category.map((c) => ({
                   label: c.name,
@@ -431,15 +454,20 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         />
         <GenericTable
           columns={productFormListColumns}
-          data={dataListForm}
+          data={dataListForm.map((item) => ({
+            ...item,
+            category_name:
+              category.find((c) => c.id_category === item.id_category)?.name || "N/A",
+            subcategory_name:
+              subcategory.find((s) => s.id_subcategory === item.id_subcategory)
+                ?.subcategory_name || "N/A",
+          }))}
           rowKey={(row) => row.id_product}
           actions={[
             {
               header: "Acciones",
               label: "Editar",
-              onClick: (row) => {
-                setItemToEditList(row);
-              },
+              onClick: (row) => setItemToEditList(row),
             },
             {
               header: "Eliminar",
@@ -448,6 +476,25 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             },
           ]}
         />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            onClick={handleCreate}
+            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+            disabled={dataListForm.length === 0}
+          >
+            Crear todos
+          </Button>
+          <Button
+            onClick={() => {
+              setItemToEditList(null);
+              setDataListForm([]);
+              closeAll();
+            }}
+            className="bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+          >
+            Cancelar
+          </Button>
+        </div>
       </GenericModal>
 
       <GenericModal isOpen={isEditOpen} onClose={closeAll}>

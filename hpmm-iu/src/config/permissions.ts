@@ -7,9 +7,9 @@ export const subMenuVisibility = {
     "Jefe de Logistica": ["/kardex", "/KardexRechazadas", "/KardexPendiente","/KardexHistorico"],
   },
   requisiciones: {
-    Administrador: ["/requisicionPendiente", "/requisicionAprobado", "/requisicionRechazado", "/requisicionCancelado", "/requisicionHistorico"],
+    Administrador: ["/requisicionPendiente", "/requisicionAprobado", "/requisicionRechazado", "/requisicionCancelado", "/requisicionHistorico", "/requisicionSeguimiento"],
     "Jefe Almacen": ["/requisicionPendiente", "/requisicionAprobado"],
-    "Super Admin": ["/requisicionPendiente", "/requisicionAprobado", "/requisicionRechazado", "/requisicionCancelado", "/requisicionHistorico"],
+    "Super Admin": ["/requisicionPendiente", "/requisicionAprobado", "/requisicionRechazado", "/requisicionCancelado", "/requisicionHistorico", "/requisicionSeguimiento"],
     "Usuario": ["/requisicionPendiente", "/requisicionAprobado", "/requisicionRechazado", "/requisicionCancelado", "/requisicionSeguimiento"],
   },
   comprasProductos: {

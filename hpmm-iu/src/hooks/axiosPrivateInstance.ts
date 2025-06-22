@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 import { useEffect, useRef } from "react";
 import { useAuth } from "./use.Auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://192.168.1.98:3000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://localhost:3000/api";
 
 function useAxiosPrivate(): AxiosInstance {
   // Ya no necesitamos el token aquí, solo logout

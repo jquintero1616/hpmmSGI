@@ -26,7 +26,8 @@ export interface FieldConfig {
     | "select"
     | "email"
     | "tel"
-    | "textarea";
+    | "textarea"
+    | "checkbox"; // <-- Agregado checkbox
   options?: string[] | { value: string | number | boolean; label: string }[];
   placeholder?: string;
   required?: boolean;
@@ -35,7 +36,7 @@ export interface FieldConfig {
   pattern?: string; // Para validaciones custom
   rows?: number; // Para textarea
   disabled?: boolean; // Para deshabilitar el campo
-  defaultValue?: string; // <-- Agregado aquí
+  defaultValue?: string | boolean; // <-- Modificado para aceptar boolean también
 }
 
 interface GenericFormProps<T> {
@@ -100,10 +101,12 @@ const GenericForm = <T extends Record<string, any>>({
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target as HTMLInputElement;
     let processedValue: any = value;
 
-    if (type === "number") {
+    if (type === "checkbox") {
+      processedValue = checked;
+    } else if (type === "number") {
       processedValue = value === "" ? "" : Number(value);
     } else if (type === "email") {
       processedValue = value.toLowerCase().trim();
@@ -265,6 +268,25 @@ const GenericForm = <T extends Record<string, any>>({
       ? field.defaultValue
       : "";
 
+    if (field.type === "checkbox") {
+      return (
+        <div className="flex items-center mt-1">
+          <input
+            type="checkbox"
+            name={field.name}
+            checked={Boolean(values[field.name])}
+            onChange={handleChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+            disabled={field.disabled}
+            aria-invalid={hasError}
+          />
+          <span className="ml-2 text-sm text-gray-600">
+            {field.placeholder || `${field.label.toLowerCase()}`}
+          </span>
+        </div>
+      );
+    }
+
     if (field.type === "select" && opts.length > 0) {
       return (
         <Select
@@ -327,9 +349,13 @@ const GenericForm = <T extends Record<string, any>>({
               key={field.name}
               className={`flex flex-col ${
                 field.type === "textarea" ? "md:col-span-2" : ""
+              } ${
+                field.type === "checkbox" ? "justify-start" : ""
               }`}
             >
-              <label className="text-sm font-semibold text-gray-700 mb-1">
+              <label className={`text-sm font-semibold text-gray-700 mb-1 ${
+                field.type === "checkbox" ? "mb-0" : ""
+              }`}>
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>

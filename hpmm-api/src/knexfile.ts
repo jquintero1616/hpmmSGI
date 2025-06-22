@@ -16,15 +16,14 @@ const config: { [key: string]: Knex.Config } = {
       database: process.env.PSQL_DB_DATABASE,
       port: process.env.PSQL_DB_PORT ? parseInt(process.env.PSQL_DB_PORT, 10) : 5432,
     },
-    // 1) Definimos el searchPath para que el esquema exista en la ruta de búsqueda
-    //    De esta forma, cuando Knex genere SQL sin esquema explícito, usará el primero de aquí.
+
     searchPath: [esquema, "public"],
 
     migrations: {
-      // 2a) Nombre y carpeta de tus migraciones
+      //  Nombre y carpeta de tus migraciones
       tableName: "knex_migrations",
       directory: path.resolve(__dirname, "db/migrations"),
-      // 2b) Le decimos a Knex QUE la tabla knex_migrations viva en “mi_esquema”
+      //  Le decimos a Knex QUE la tabla knex_migrations viva en “mi_esquema”
       schemaName: esquema,
     },
 

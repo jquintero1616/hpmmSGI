@@ -79,7 +79,11 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   };
 
   const shoppingColumns: Column<ShoppingInterface>[] = [
-    { header: "N.º Solicitud", accessor: "id_scompra" },
+    {
+      header: "N.º Solicitud",
+      accessor: (row) =>
+        `C-${row.id_scompra.split("-")[0].toLocaleUpperCase()}`,
+    },
     { header: "Vendedor", accessor: "vendedor_nombre" },
     {
       header: "Fecha Compra",
@@ -91,6 +95,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Lugar Entrega", accessor: "lugar_entrega" },
     { header: "N.º Cotización", accessor: "numero_cotizacion" },
     { header: "N.º Pedido", accessor: "numero_pedido" },
+    { header: "ISV 15%", accessor: (row) => (row.ISV ? "Sí" : "No") },
     { header: "Total", accessor: "total" },
     {
       header: "Estado",
@@ -123,6 +128,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Lugar Entrega", accessor: "lugar_entrega" },
     { header: "N.º cotización", accessor: "numero_cotizacion" },
     { header: "N.º pedido", accessor: "numero_pedido" },
+    { header: "ISV 15%", accessor: (row) => (row.ISV ? "Sí" : "No") },
     { header: "Total", accessor: "total" },
     
     
@@ -163,6 +169,13 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         label: "Numero Orden",
         type: "text",
         required: true,
+      },
+      {
+        name: "ISV",
+        label: "ISV 15%",
+        type: "checkbox",
+        required: false, // ISV no es obligatorio
+        defaultValue: false, // Valor por defecto
       },
       {
         name: "total",
@@ -519,6 +532,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               numero_pedido: itemToEdit.numero_pedido ?? "",
               nombre_unidad: itemToEdit.nombre_unidad ?? "HPMM",
               lugar_entrega: itemToEdit.lugar_entrega ?? "",
+              ISV: itemToEdit.ISV ?? false,
               total: itemToEdit.total ?? 0,
               estado: itemToEdit.estado ?? "",
             }}
@@ -561,6 +575,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
                   numero_pedido: "",
                   nombre_unidad: "HPMM",
                   lugar_entrega: "",
+                  ISV: false,
                   total: 0,
                   estado: true,
                 }

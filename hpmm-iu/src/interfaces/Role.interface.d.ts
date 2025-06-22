@@ -3,6 +3,6 @@ export interface RolesInterface {
   name: string;
   descripcion: string;
   estado: boolean;
-  created_at?: Date;
-  updated_at?: Date;
+  created_at: Date;
+  updated_at: Date;
 }

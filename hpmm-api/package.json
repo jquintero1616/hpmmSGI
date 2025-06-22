@@ -10,7 +10,10 @@
     "db:seed": "knex seed:make $1 --knexfile src/knexfile.ts",
     "db:run": "knex --knexfile src/knexfile.ts migrate:latest",
     "db:rollback": "knex --knexfile src/knexfile.ts migrate:rollback",
+    "migrate:latest": "knex migrate:latest --knexfile src/knexfile.ts",
     "db:run:seed": "knex --knexfile src/knexfile.ts seed:run"
+    
+    
   },
   "keywords": [],
   "author": "",

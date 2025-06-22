@@ -29,8 +29,12 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
   const [isEditOpen, setEditOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
+  const [isDetailOpen, setDetailOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ScomprasInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<ScomprasInterface | null>(
+    null
+  );
+  const [itemToDetail, setItemToDetail] = useState<ScomprasInterface | null>(
     null
   );
   const [saving, setSaving] = useState(false);
@@ -61,12 +65,12 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const solicitudComprasColumns: Column<ScomprasInterface>[] = [
     {
-      header: "ID Solicitud",
+      header: "N.º Solicitud",
       accessor: (row) =>
         `SOLICITUD-${row.id_scompra.split("-")[0].toLocaleUpperCase()}`,
     },
     {
-      header: "ID Requisición",
+      header: "N.º Requisición",
       accessor: (row) =>
         `REQUISICIÓN-${row.id_requisi.split("-")[0].toLocaleUpperCase()}`,
     },
@@ -78,11 +82,6 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
       header: "Fecha Creación",
       accessor: (row) =>
         row.created_at ? new Date(row.created_at).toLocaleString() : "",
-    },
-    {
-      header: "Fecha Actualización",
-      accessor: (row) =>
-        row.updated_at ? new Date(row.updated_at).toLocaleString() : "",
     },
   ];
 
@@ -147,8 +146,10 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
     setEditOpen(false);
     setCreateOpen(false);
     setDeleteOpen(false);
+    setDetailOpen(false);
     setItemToEdit(null);
     setItemToDelete(null);
+    setItemToDetail(null);
   };
 
   const openEdit = (id_scompra: string) => {
@@ -161,6 +162,12 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
     const item = scompras.find((s) => s.id_scompra === id_scompra) || null;
     setItemToDelete(item);
     setDeleteOpen(true);
+  };
+
+  const openDetail = (id_scompra: string) => {
+    const item = scompras.find((s) => s.id_scompra === id_scompra);
+    setItemToDetail(item || null);
+    setDetailOpen(true);
   };
 
   // 7. HANDLERS DE CRUD
@@ -291,15 +298,6 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
       <h1 className="text-2xl font-bold mb-4 text-center">
         Gestión de Solicitudes de Compras
       </h1>
-{/* 
-      <div className="flex justify-end mb-4">
-        <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
-          onClick={() => setCreateOpen(true)}
-        >
-          + Nueva solicitud de compra
-        </Button>
-      </div> */}
 
       <GenericTable
         columns={solicitudComprasColumns}
@@ -308,9 +306,19 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
         actions={[
           {
             header: "Acciones",
+            label: "Ver",
+            onClick: (row) => openDetail(row.id_scompra),
+          },
+          {
+            header: "Acciones",
+            label: "Editar",
+            onClick: (row) => openEdit(row.id_scompra),
+            disabled: (row) => row.estado === "Cancelado",
+          },
+          {
+            header: "Acciones",
             label: "Comprado",
             onClick: (row) => handleQuickEstado(row, "Comprado"),
-            // Opcional: deshabilitar si ya está en ese estado
             disabled: (row) => row.estado === "Comprado",
           },
           {
@@ -324,6 +332,107 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
           row.estado === "Cancelado" ? "opacity-40 line-through" : ""
         }
       />
+
+      {/* Modal Detalle */}
+      <Modal isOpen={isDetailOpen} onClose={() => setDetailOpen(false)}>
+        {itemToDetail && (
+          <div>
+            <h3 className="text-2xl font-bold mb-6 text-hpmm-azul-oscuro text-center">
+              Detalle de Solicitud de Compra
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-2">
+              <div className="space-y-6 border-r border-gray-200 pr-4">
+                <div>
+                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
+                    Cantidad
+                  </span>
+                  <span className="block text-base text-gray-700">
+                    {itemToDetail.cantidad}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
+                    Empleado Solicitante
+                  </span>
+                  <span className="block text-base text-gray-700">
+                    {itemToDetail.nombre_empleado}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
+                    Unidad
+                  </span>
+                  <span className="block text-base text-gray-700">
+                    {itemToDetail.nombre_unidad}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-6 pl-4">
+                <div>
+                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
+                    Producto
+                  </span>
+                  <span className="block text-base text-gray-700">
+                    {itemToDetail.nombre_producto}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
+                    Descripción
+                  </span>
+                  <span className="block text-base text-gray-800 bg-gray-50 rounded p-3 min-h-[48px] max-h-48 overflow-auto">
+                    {itemToDetail.descripcion || "N/A"}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-between items-center gap-4 border-t pt-4 mb-4">
+              <div>
+                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
+                  N.º Solicitud
+                </span>
+                <span className="font-mono text-sm text-gray-700">
+                  {`SOLICITUD-${itemToDetail.id_scompra.split("-")[0].toLocaleUpperCase()}`}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
+                  N.º Requisición
+                </span>
+                <span className="font-mono text-sm text-gray-700">
+                  {`REQUISICIÓN-${itemToDetail.id_requisi.split("-")[0].toLocaleUpperCase()}`}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
+                  Estado
+                </span>
+                <span className="font-semibold text-sm text-gray-800">
+                  {itemToDetail.estado}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
+                  Fecha de Creación
+                </span>
+                <span className="text-sm text-gray-700">
+                  {itemToDetail.created_at
+                    ? new Date(itemToDetail.created_at).toLocaleString()
+                    : ""}
+                </span>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setDetailOpen(false)}
+                className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-6 rounded"
+              >
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Modal Editar */}
       <Modal isOpen={isEditOpen} onClose={closeAll}>

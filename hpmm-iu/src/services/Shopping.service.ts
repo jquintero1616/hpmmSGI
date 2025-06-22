@@ -46,6 +46,7 @@ export const PostShoppingService = async (
             numero_pedido: shopping.numero_pedido,
             nombre_unidad: shopping.nombre_unidad,
             lugar_entrega: shopping.lugar_entrega,
+            ISV: shopping.ISV,
             total: shopping.total,
             estado: shopping.estado,
             
@@ -72,6 +73,7 @@ export const PutShoppingService = async (
             numero_pedido: shopping.numero_pedido,
             nombre_unidad: shopping.nombre_unidad,
             lugar_entrega: shopping.lugar_entrega,
+            ISV: shopping.ISV,
             total: shopping.total,
             estado: shopping.estado,
         }

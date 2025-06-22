@@ -10,7 +10,7 @@ interface Props {
 }
 
 const estadosColores: Record<string, string> = {
-  espera: "#bdbdbd",
+  espera: "#e0e0e0",
   aprobado: "#4caf50",
   comprado: "#2196f3",
   rechazado: "#f44336",
@@ -72,39 +72,130 @@ export const SeguimientoTramite: React.FC<Props> = ({
   }, [requisitions, scompras, shopping, kardex, id_requisicion]);
 
   // Tamaño de las esferas
-  const sphereSize = size === "xl" ? 70 : 32;
-  const fontSize = size === "xl" ? 22 : 16;
+  const sphereSize = size === "xl" ? 80 : 50;
+  const fontSize = size === "xl" ? 20 : 14;
+  const lineHeight = size === "xl" ? 8 : 6;
 
   return (
-    <div style={{ display: "flex", gap: 40, alignItems: "center" }}>
-      {estados.map((item, idx) => (
-        <div key={item.label} style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: sphereSize,
-              height: sphereSize,
-              borderRadius: "50%",
-              background: getEstadoColor(item.estado),
-              margin: "0 auto",
-              border: "4px solid #888",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-              display: "flex",
+    <div style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "center",
+      padding: "30px 0",
+      position: "relative"
+    }}>
+      {estados.map((item, idx) => {
+        const isActive = item.estado !== "espera" && item.estado !== "pendiente";
+        const isCompleted = ["aprobado", "aceptado", "comprado", "kardex"].includes(item.estado.toLowerCase());
+        const isRejected = ["rechazado", "cancelado"].includes(item.estado.toLowerCase());
+        
+        // Sistema simple: Verde si completado, Rojo si rechazado, Gris si pendiente
+        const circleColor = isCompleted ? "#22c55e" : isRejected ? "#ef4444" : "#9ca3af";
+        
+        return (
+          <React.Fragment key={item.label}>
+            <div style={{ 
+              display: "flex", 
+              flexDirection: "column", 
               alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontWeight: "bold",
-              fontSize,
-              transition: "background 0.3s",
-            }}
-            title={item.estado}
-          >
-            {idx + 1}
-          </div>
-          <div style={{ marginTop: 8, fontSize: 15, fontWeight: 500 }}>
-            {item.label}
-          </div>
-        </div>
-      ))}
+              position: "relative",
+              zIndex: 2,
+              margin: "0 10px"
+            }}>
+              {/* Esfera principal */}
+              <div
+                style={{
+                  width: sphereSize,
+                  height: sphereSize,
+                  borderRadius: "50%",
+                  backgroundColor: circleColor,
+                  border: `4px solid ${circleColor}`,
+                  boxShadow: `0 6px 20px ${circleColor}40`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize,
+                  transition: "all 0.3s ease",
+                  position: "relative"
+                }}
+                title={`${item.label}: ${item.estado}`}
+              >
+                {/* Icono según el estado */}
+                {isCompleted && (
+                  <span style={{ fontSize: fontSize }}>✓</span>
+                )}
+                {isRejected && (
+                  <span style={{ fontSize: fontSize }}>✗</span>
+                )}
+                {!isActive && (
+                  <span style={{ fontSize: fontSize * 0.8 }}>{idx + 1}</span>
+                )}
+              </div>
+              
+              {/* Label */}
+              <div style={{ 
+                marginTop: 15, 
+                fontSize: size === "xl" ? 16 : 13, 
+                fontWeight: 600,
+                color: "#374151",
+                textAlign: "center",
+                maxWidth: "120px",
+                lineHeight: "1.2"
+              }}>
+                {item.label}
+              </div>
+              
+              {/* Estado actual con badge */}
+              <div style={{
+                marginTop: 8,
+                padding: "4px 12px",
+                borderRadius: "20px",
+                fontSize: size === "xl" ? 12 : 10,
+                fontWeight: 500,
+                textTransform: "capitalize",
+                backgroundColor: `${circleColor}20`,
+                color: circleColor,
+                border: `1px solid ${circleColor}40`
+              }}>
+                {item.estado}
+              </div>
+            </div>
+            
+            {/* Línea conectora */}
+            {idx < estados.length - 1 && (
+              <div style={{ display: "flex", alignItems: "center", flex: 1, minWidth: size === "xl" ? 80 : 60 }}>
+                <div
+                  style={{
+                    width: "100%",
+                    height: lineHeight,
+                    backgroundColor: estados[idx + 1].estado !== "espera" && estados[idx + 1].estado !== "pendiente"
+                      ? "#22c55e" 
+                      : "#d1d5db",
+                    borderRadius: lineHeight / 2,
+                    transition: "all 0.3s ease",
+                    position: "relative"
+                  }}
+                >
+                  {/* Puntos decorativos en la línea */}
+                  <div style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "6px",
+                    height: "6px",
+                    borderRadius: "50%",
+                    backgroundColor: "#fff",
+                    opacity: estados[idx + 1].estado !== "espera" && estados[idx + 1].estado !== "pendiente" ? 1 : 0.3
+                  }} />
+                </div>
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };

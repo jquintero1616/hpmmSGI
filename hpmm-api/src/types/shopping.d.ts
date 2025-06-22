@@ -8,6 +8,7 @@ export interface Shopping {
   numero_pedido: string;
   nombre_unidad: string;
   lugar_entrega?: string;
+  ISV: boolean
   
   vendedor_nombre: string;
   shopping_order_id: string;

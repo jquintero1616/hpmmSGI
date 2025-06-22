@@ -18,6 +18,7 @@ export const getAllshoppingModel = async (): Promise<NewShopping[]> => {
             "s.numero_pedido",
             "s.nombre_unidad",
             "s.lugar_entrega",
+            "s.ISV",
 
             "s.total",
             "s.estado",
@@ -56,6 +57,7 @@ export async function updateShoppingModel(
     fecha_compra: Date,
     lugar_entrega: string,
     shopping_order_id: string,
+    ISV: boolean,
     total: number,
     estado: boolean
 ): Promise<NewShopping> {
@@ -63,7 +65,7 @@ export async function updateShoppingModel(
       .where({
         id_shopping,
       })
-      .update({ numero_cotizacion,  lugar_entrega,numero_pedido,fecha_compra, nombre_unidad,total, id_scompra, id_vendedor, shopping_order_id, estado })
+      .update({ numero_cotizacion,  lugar_entrega,numero_pedido,fecha_compra, nombre_unidad,total, id_scompra, id_vendedor, shopping_order_id,ISV, estado })
       .returning("*");
     return updatedShopping;
 }

@@ -9,6 +9,7 @@ export interface ShoppingInterface {
   numero_pedido: string;
   nombre_unidad: string;
   lugar_entrega?: string;
+  ISV: boolean
   total: number;
   estado: boolean;
   created_at?: Date;

@@ -42,6 +42,7 @@ export const updateShoppingService = async (
   numero_pedido: string,
   nombre_unidad: string,
   shopping_order_id: string,
+  ISV: boolean,
   total: number,
   estado: boolean
 ): Promise<NewShopping> => {
@@ -56,6 +57,7 @@ export const updateShoppingService = async (
       fecha_compra,
       lugar_entrega,
       shopping_order_id,
+      ISV,
       total,
       estado
     );

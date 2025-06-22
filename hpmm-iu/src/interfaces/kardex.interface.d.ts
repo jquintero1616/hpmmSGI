@@ -1,6 +1,6 @@
 export interface kardexInterface {
   id_kardex: string;
-  id_product: string;
+  id_product?: string;
   id_shopping: string;
   anio_creacion: string;
   tipo_movimiento: "Entrada" | "Salida";
@@ -25,7 +25,8 @@ export interface kardexInterface {
 
 export interface KardexDetail {
   id_kardex: string;
-  id_producto: string;         // ID del producto
+  id_product?: string;   
+  nombre: string      // ID del producto
   id_units_x_pacts: string; // ID de las unidades por pacto
   nombre_unidad: string;         // nombre de la unidad
   nombre_de_factura: string; // ID de la orden de compra
