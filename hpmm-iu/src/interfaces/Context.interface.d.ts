@@ -18,6 +18,7 @@ import { Bitacora } from "./Bitacora.interface";
 import { Scompras } from "./SolicitudCompras.inteface";
 import { DetallePactos } from "./DetallePactos.interface";
 import { Report} from "./Report.interface";
+import { Notificacion } from "./Notifaciones.interface";
 
 
 export interface AuthContextType {
@@ -218,6 +219,15 @@ export interface ReportContextType {
   PutUpdateReportContext: (id_report: string, report: Report) => Promise<void>;
   DeleteReportContext: (id_report: string) => Promise<void>;
 
+}
+
+export interface NotificacionContextType {
+  notificaciones: Notificacion[];
+  GetNotificacionesContext: () => Promise<Notificacion[] | null>;
+  GetNotificacionByIdContext: (id_noti: string) => Promise<Notificacion | undefined>;
+  PostNotificacionContext: (noti: Notificacion) => Promise<Notificacion>;
+  PutNotificacionContext: (id_noti: string, noti: Notificacion) => Promise<void>;
+  DeleteNotificacionContext: (id_noti: string) => Promise<void>;
 }
 
 export interface ProviderProps {

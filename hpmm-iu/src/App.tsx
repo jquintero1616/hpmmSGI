@@ -23,6 +23,7 @@ import { BitacoraProvider } from "./contexts/Bitacora.context";
 import { SolicitudComprasProvider } from "./contexts/SolicitudCompras.context";
 import { DetallePactosProvider } from "./contexts/DetallePactos.context";
 import { ReportProvider } from "./contexts/Report.context";
+import { NotificacionProvider } from "./contexts/Notificacion.context";
 import PrivateRouteValidation from "./routes/PrivateRoute";
 
 function AppRoutes() {
@@ -112,9 +113,11 @@ export default function App() {
                                     <SolicitudComprasProvider>
                                       <DetallePactosProvider>
                                         <ReportProvider>
-                                          <Router>
-                                            <AppRoutes />
-                                          </Router>
+                                          <NotificacionProvider>
+                                            <Router>
+                                              <AppRoutes />
+                                            </Router>
+                                          </NotificacionProvider>
                                         </ReportProvider>
                                       </DetallePactosProvider>
                                     </SolicitudComprasProvider>

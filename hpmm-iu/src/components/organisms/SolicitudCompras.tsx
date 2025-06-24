@@ -21,7 +21,7 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
     DeleteSolicitudCompraContext,
   } = useSolicitudCompras();
 
-  const { requisitions, GetRequisicionesContext } = useRequisicion();
+  const { requisitions, GetRequisicionesContext } = useRequisicion()
 
   // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
@@ -156,12 +156,6 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
     const item = scompras.find((s) => s.id_scompra === id_scompra);
     setItemToEdit(item || null);
     setEditOpen(true);
-  };
-
-  const openDelete = (id_scompra: string) => {
-    const item = scompras.find((s) => s.id_scompra === id_scompra) || null;
-    setItemToDelete(item);
-    setDeleteOpen(true);
   };
 
   const openDetail = (id_scompra: string) => {
@@ -311,9 +305,9 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
           },
           {
             header: "Acciones",
-            label: "Editar",
+            label: "Re-Activar",
             onClick: (row) => openEdit(row.id_scompra),
-            disabled: (row) => row.estado === "Cancelado",
+            disabled: (row) => row.estado !== "Cancelado",
           },
           {
             header: "Acciones",

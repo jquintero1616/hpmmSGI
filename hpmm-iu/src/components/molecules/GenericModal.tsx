@@ -15,6 +15,7 @@ interface ModalProps {
   onCancel?: () => void;
   saveButtonText?: string;
   cancelButtonText?: string;
+  fullScreen?: boolean; // <-- NUEVO
 }
 
 const GenericModal: React.FC<ModalProps> = ({
@@ -25,9 +26,8 @@ const GenericModal: React.FC<ModalProps> = ({
   showHeader = true,
   showFooter = true,
   onSave,
-  onCancel,
   saveButtonText = "Guardar",
-
+  fullScreen = false, // <-- NUEVO
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   // Cerrar con ESC
@@ -51,10 +51,6 @@ const GenericModal: React.FC<ModalProps> = ({
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleCancel = () => {
-    if (onCancel) onCancel();
-    else onClose();
-  };
 
   const handleSave = () => {
     if (onSave) onSave();
@@ -78,10 +74,17 @@ const GenericModal: React.FC<ModalProps> = ({
         className="w-full h-full md:h-auto md:w-auto flex items-center justify-center"
         tabIndex={0}
       >
-        <div className="bg-white rounded-2xl shadow-xl w-full h-full max-w-4xl mx-2 md:mx-auto flex flex-col overflow-hidden">
+        <div
+          className={`bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden
+            ${fullScreen 
+              ? "w-full max-w-[98vw] h-full max-h-[98vh] m-0"
+              : "w-full h-full max-w-4xl mx-2 md:mx-auto"
+            }
+          `}
+        >
           {/* Header */}
           {showHeader && (
-            <header className="bg-hpmm-primary h-12 px-4 flex items-center justify-between text-center rounded-t-2xl">
+            <header className="bg-purple-700 h-12 px-4 flex items-center justify-between text-center rounded-t-2xl shadow-md">
               <h2
                 id="modal-title"
                 className="text-base font-semibold text-white truncate"
@@ -99,7 +102,9 @@ const GenericModal: React.FC<ModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 max-h-[80vh]">
+          <div className={`flex-1 overflow-y-auto space-y-4 max-h-[80vh] ${
+            fullScreen ? "p-2 md:p-4" : "p-4 md:p-8"
+          }`}>
             {children}
           </div>
 

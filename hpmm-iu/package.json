@@ -16,6 +16,7 @@
     "@tailwindcss/postcss": "^4.1.7",
     "axios": "^1.6.7",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.13",
     "framer-motion": "^12.12.2",
     "html2canvas": "^1.4.1",
     "html5-qrcode": "^2.3.8",

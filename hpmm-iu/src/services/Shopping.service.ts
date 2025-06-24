@@ -1,8 +1,6 @@
 import { AxiosInstance } from "axios";
 import { ShoppingInterface } from "../interfaces/shopping.interface";
 
-
-
 export const GetShoppingService = async (axiosPrivate: AxiosInstance):
 Promise<ShoppingInterface[] | null> => {
     try {
@@ -49,7 +47,10 @@ export const PostShoppingService = async (
             ISV: shopping.ISV,
             total: shopping.total,
             estado: shopping.estado,
-            
+            precio_unitario: shopping.precio_unitario,
+            cantidad_comprada: shopping.cantidad_comprada,
+            cantidad_solicitada: shopping.cantidad_solicitada,
+            nombre_producto: shopping.nombre_producto,
         }
     );
     
@@ -76,6 +77,10 @@ export const PutShoppingService = async (
             ISV: shopping.ISV,
             total: shopping.total,
             estado: shopping.estado,
+            precio_unitario: shopping.precio_unitario,
+            cantidad_comprada: shopping.cantidad_comprada,
+            cantidad_solicitada: shopping.cantidad_solicitada,
+            nombre_producto: shopping.nombre_producto,
         }
     );
 }

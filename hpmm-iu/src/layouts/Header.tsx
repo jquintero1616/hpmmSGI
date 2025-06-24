@@ -3,14 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use.Auth";
 import { toast } from "react-toastify";
 import LogoUrl from "../assets/logoBlancoHPMM.png";
+import UsuarioIcon from "../assets/usuario.svg";
+import Notificacion from "../components/organisms/Notificacion"; // Importa el organismo
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { logout, username, roleName } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
+  
+  const [pendientes, setPendientes] = useState(0);
+
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const avatarUrl = "https://www.material-tailwind.com/img/avatar1.jpg";
+  const avatarUrl = UsuarioIcon as string; // Si tu configuración no soporta SVG como componente, usa como string
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -50,6 +56,16 @@ const Header: React.FC = () => {
       document.body.style.overflow = "unset";
     };
   }, [profileModalOpen]);
+
+  // Mostrar toast si hay notificaciones pendientes al iniciar sesión
+  useEffect(() => {
+    if (pendientes > 0) {
+      toast.info(`Tienes ${pendientes} notificaciones pendientes`, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    }
+  }, [pendientes]);
 
   function getRoleAbbrev(role: string) {
     switch (role) {
@@ -107,13 +123,15 @@ const Header: React.FC = () => {
 
           {/* Menú derecho responsive */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Notificaciones - oculto en móvil muy pequeño */}
+            {/* Botón de notificaciones */}
             <button
-              className="hidden xs:block relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
+              className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
               title="Notificaciones"
+              onClick={() => setNotiOpen(true)}
             >
+              {/* Ícono de campana */}
               <svg
-                className="w-4 h-4 sm:w-5 sm:h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
@@ -125,8 +143,10 @@ const Header: React.FC = () => {
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
-              {/* Indicador de notificación */}
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-400 rounded-full border-2 border-white/50"></span>
+              {/* Indicador de notificaciones pendientes */}
+              {pendientes > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+              )}
             </button>
 
             {/* Perfil de usuario responsive */}
@@ -148,9 +168,9 @@ const Header: React.FC = () => {
                 {/* Avatar */}
                 <div className="relative">
                   <img
-                    src={avatarUrl}
+                    src={UsuarioIcon}
                     alt={username}
-                    className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full object-cover border-2 border-white/30 shadow-lg hover:shadow-xl hover:border-white/50 transition-all duration-200"
+                    className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full object-cover border-2 border-white/30 shadow-lg hover:shadow-xl hover:border-white/50 transition-all duration-200 bg-white p-1"
                   />
                   {/* Indicador de estado online */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></div>
@@ -242,6 +262,13 @@ const Header: React.FC = () => {
         </div>
       </header>
 
+      {/* Panel de Notificaciones */}
+      <Notificacion
+        open={notiOpen}
+        onClose={() => setNotiOpen(false)}
+        onUpdatePendientes={(pendientesArr) => setPendientes(pendientesArr.length)}
+      />
+
       {/* Modal de Perfil */}
       {profileModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -275,9 +302,9 @@ const Header: React.FC = () => {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img
-                    src={avatarUrl}
+                    src={UsuarioIcon}
                     alt={username}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-purple-100 shadow-lg"
+                    className="w-14 h-14 rounded-full object-cover border-4 border-purple-100 shadow-lg bg-white p-2"
                   />
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 border-3 border-white rounded-full"></div>
                 </div>
@@ -362,15 +389,6 @@ const Header: React.FC = () => {
 
               {/* Botones de acción */}
               <div className="flex gap-3 pt-4">
-                <button
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm"
-                  onClick={() => {
-                    // Aquí podrías abrir un modal de edición o navegar a una página de edición
-                    setProfileModalOpen(false);
-                  }}
-                >
-                  Editar Perfil
-                </button>
                 <button
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm"
                   onClick={() => setProfileModalOpen(false)}

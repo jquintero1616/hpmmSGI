@@ -12,30 +12,23 @@ import Select from "../atoms/Inputs/Select";
 
 interface SelectOption {
   label: string;
-  value: string | number;
+  value: string | number | boolean;
 }
 
 export interface FieldConfig {
   name: string;
   label: string;
-  type:
-    | "text"
-    | "date"
-    | "number"
-    | "password"
-    | "select"
-    | "email"
-    | "tel"
-    | "textarea"
-    | "checkbox"; // <-- Agregado checkbox
-  options?: string[] | { value: string | number | boolean; label: string }[];
-  placeholder?: string;
+  type: string;
+  options?: { label: string; value: any }[];
   required?: boolean;
+  hide?: boolean; // <-- NUEVO
+  showIf?: (values: any) => boolean;
+  placeholder?: string;
   min?: number; // Para números
   max?: number; // Para números
   pattern?: string; // Para validaciones custom
   rows?: number; // Para textarea
-  disabled?: boolean; // Para deshabilitar el campo
+  disabled?: boolean | ((values: any) => boolean); // Para deshabilitar el campo
   defaultValue?: string | boolean; // <-- Modificado para aceptar boolean también
 }
 
@@ -53,7 +46,8 @@ interface GenericFormProps<T> {
   dataList?: any[];
   setDataList?: React.Dispatch<React.SetStateAction<any[]>>;
   onAddItem?: (item: T) => void;
-  onChange?: (values: T) => void; // <-- Agrega esta línea
+  onChange?: (values: T, prevValues?: T) => void; // <-- Cambia aquí
+  fullScreen?: boolean; // <-- NUEVO
 }
 
 function normalizeOptions(o?: string[] | SelectOption[]): SelectOption[] {
@@ -68,20 +62,19 @@ const GenericForm = <T extends Record<string, any>>({
   fields,
   onSubmit,
   onCancel,
-  submitLabel = "Guardar",
-  cancelLabel = "Cancelar",
+  submitLabel,
+  cancelLabel,
   submitDisabled = false,
   validate,
   extraFields,
-  setDataList,
-  dataList,
-  onAddItem,
+  onChange,
+  title = "Formulario Genérico",
+  fullScreen = false,
 }: GenericFormProps<T>) => {
+  // Solo inicializa una vez
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const errorTimeouts = useRef<Record<string, number>>({});
-
-  console.log("Initial values:", fields);
 
   useEffect(() => {
     // Limpiar timeouts al desmontar
@@ -92,47 +85,26 @@ const GenericForm = <T extends Record<string, any>>({
     };
   }, []);
 
-  // Sincroniza los valores cuando cambian los initialValues (por ejemplo, al editar)
-  useEffect(() => {
-    setValues(initialValues);
-  }, [initialValues]);
-
-  // Modifica handleChange para aplicar trim a los strings
+  // handleChange
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    let processedValue: any = value;
+    const { name, type } = e.target;
+    let value: any;
 
-    if (type === "checkbox") {
-      processedValue = checked;
-    } else if (type === "number") {
-      processedValue = value === "" ? "" : Number(value);
-    } else if (type === "email") {
-      processedValue = value.toLowerCase().trim();
-    } else if (type === "tel") {
-      processedValue = value.replace(/[^0-9+\-()\s]/g, "");
+    if (
+      e.target instanceof HTMLInputElement &&
+      type === "checkbox"
+    ) {
+      value = e.target.checked;
+    } else {
+      value = e.target.value;
     }
 
     setValues((prev) => {
-      const newValues = { ...prev, [name]: processedValue };
-
-      // Validación en tiempo real usando validate del padre
-      if (validate) {
-        const validationErrors = validate(newValues);
-        setErrors(validationErrors);
-      } else {
-        // Limpiar error si existe
-        if (errors[name]) {
-          setErrors((prev) => ({ ...prev, [name]: "" }));
-          if (errorTimeouts.current[name]) {
-            clearTimeout(errorTimeouts.current[name]);
-            delete errorTimeouts.current[name];
-          }
-        }
-      }
-
-      return newValues;
+      const updated = { ...prev, [name]: value };
+      if (onChange) onChange(updated, prev);
+      return updated;
     });
   };
 
@@ -261,12 +233,13 @@ const GenericForm = <T extends Record<string, any>>({
         ? "border-red-500 focus:ring-1 focus:ring-red-400"
         : "border-gray-300 focus:ring-1 focus:ring-blue-400"
     }`;
+
     const fieldValue =
-    values[field.name] !== undefined && values[field.name] !== ""
-      ? values[field.name]
-      : field.defaultValue !== undefined
-      ? field.defaultValue
-      : "";
+      values[field.name] !== undefined && values[field.name] !== ""
+        ? values[field.name]
+        : field.defaultValue !== undefined
+        ? field.defaultValue
+        : "";
 
     if (field.type === "checkbox") {
       return (
@@ -277,7 +250,11 @@ const GenericForm = <T extends Record<string, any>>({
             checked={Boolean(values[field.name])}
             onChange={handleChange}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
-            disabled={field.disabled}
+            disabled={
+              typeof field.disabled === "function"
+                ? field.disabled(values)
+                : field.disabled ?? false
+            }
             aria-invalid={hasError}
           />
           <span className="ml-2 text-sm text-gray-600">
@@ -287,20 +264,21 @@ const GenericForm = <T extends Record<string, any>>({
       );
     }
 
-    if (field.type === "select" && opts.length > 0) {
+    if (field.type === "select") {
       return (
         <Select
           name={field.name}
-          value={fieldValue}
+          value={fieldValue?.toString() ?? ""}
           onChange={handleChange}
-          options={opts as SelectOption[]}
-          placeholder={
-            field.placeholder || `Seleccionar ${field.label.toLowerCase()}`
+          options={opts}
+          placeholder={getPlaceholder(field)}
+          className={commonClasses}
+          disabled={
+            typeof field.disabled === "function"
+              ? field.disabled(values)
+              : field.disabled ?? false
           }
-          className={`${commonClasses} ${
-            !fieldValue ? "text-gray-400" : "text-gray-900"
-          }`}
-          disabled={field.disabled}
+          defaultValue={field.defaultValue?.toString()}
         />
       );
     }
@@ -332,7 +310,11 @@ const GenericForm = <T extends Record<string, any>>({
           field.min !== undefined && { min: field.min })}
         {...(field.type === "number" &&
           field.max !== undefined && { max: field.max })}
-        disabled={field.disabled}
+        disabled={
+          typeof field.disabled === "function"
+            ? field.disabled(values)
+            : field.disabled ?? false
+        }
       />
     );
   };
@@ -340,22 +322,40 @@ const GenericForm = <T extends Record<string, any>>({
 
 
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-lg p-6">
+    <div
+      className={`${
+        fullScreen
+          ? "w-full max-w-[95vw] p-4"
+          : "max-w-xl mx-auto p-6"
+      } bg-white rounded-lg`}
+    >
       {/* Formulario */}
-      <form onSubmit={handleSubmit} className="w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          {fields.map((field) => (
+      {title && (
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {fields
+          .filter(
+            (field) =>
+              !field.hide && // Oculta si hide es true
+              (!field.showIf || field.showIf(values)) // <--- aquí el cambio
+          )
+          .map((field) => (
             <div
               key={field.name}
               className={`flex flex-col ${
-                field.type === "textarea" ? "md:col-span-2" : ""
-              } ${
-                field.type === "checkbox" ? "justify-start" : ""
-              }`}
+                field.type === "textarea" && fullScreen
+                  ? "lg:col-span-3 md:col-span-2"
+                  : field.type === "textarea"
+                  ? "md:col-span-2"
+                  : ""
+              } ${field.type === "checkbox" ? "justify-start" : ""}`}
             >
-              <label className={`text-sm font-semibold text-gray-700 mb-1 ${
-                field.type === "checkbox" ? "mb-0" : ""
-              }`}>
+              <label
+                className={`text-sm font-semibold text-gray-700 mb-1 ${
+                  field.type === "checkbox" ? "mb-0" : ""
+                }`}
+              >
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -369,22 +369,25 @@ const GenericForm = <T extends Record<string, any>>({
               )}
             </div>
           ))}
-        </div>
         <div className="flex justify-end space-x-3 mt-6">
-          <Button
-            type="button"
-            onClick={onCancel}
-            className="px-5 py-2 bg-hpmm-rojo-claro text-gray-700 hover:bg-hpmm-rojo-oscuro transition-colors"
-          >
-            {cancelLabel}
-          </Button>
-          <Button
-            type="submit"
-            className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={submitDisabled}
-          >
-            {submitLabel}
-          </Button>
+          {cancelLabel && (
+            <Button
+              type="button"
+              onClick={onCancel}
+              className="px-5 py-2 bg-hpmm-rojo-claro text-gray-700 hover:bg-hpmm-rojo-oscuro transition-colors"
+            >
+              {cancelLabel}
+            </Button>
+          )}
+          {submitLabel && (
+            <Button
+              type="submit"
+              className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={submitDisabled}
+            >
+              {submitLabel}
+            </Button>
+          )}
         </div>
       </form>
     </div>

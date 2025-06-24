@@ -127,8 +127,6 @@ const ImpresionReporte: React.FC = () => {
     });
   };
 
-  console.log(listapv);
-
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-2 text-center text-hpmm-claro">Reporte Kardex</h1>

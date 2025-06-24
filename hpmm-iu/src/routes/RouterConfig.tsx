@@ -25,6 +25,8 @@ import DetallePactos from "../components/organisms/DetallePactos";
 import Report from "../components/organisms/Report";
 import { subMenuVisibility } from "../config/permissions";
 import SeguimientoTramiteOrganism from "../components/organisms/SeguimientoTramiteOrganism";
+import DasboardGraficos from "../components/molecules/DasboardGraficos";
+import { ChartPieIcon } from "@heroicons/react/24/outline";
 
 // Utilidad para obtener roles permitidos para una ruta específica
 function getRolesForPath(
@@ -353,6 +355,15 @@ export const routes = [
           </GenericPage>
         ),
         valid: { roles: getRolesForPath("inventario", "/stock-critico") },
+      },
+      {
+        path: "dashboard",
+        element: (
+          <GenericPage title="Dashboard de Gráficos">
+            <DasboardGraficos />
+          </GenericPage>
+        ),
+        valid: { roles: getRolesForPath("report", "/dashboard") },
       },
     ],
   },

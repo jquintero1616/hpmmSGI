@@ -1,4 +1,3 @@
-import knex from "knex";
 import db from "../db";
 import { RequisiFilter, RequisiDetail, Requisi } from "../types/requisi";
 import { randomUUID } from "crypto";
@@ -8,14 +7,15 @@ const baseRequisiQuery = () => {
     .select(
       "r.id_requisi",
       "r.id_employes",
+      "rp.id_product",
+      db.raw("COALESCE(u.id_units, sd.id_subdireccion, d.id_direction) AS unit_id"),
+      db.raw("COALESCE(u.name, sd.nombre, d.nombre) AS unit_name"),
       "r.fecha",
       "r.estado",
       "r.descripcion",
       "r.created_at",
       "r.updated_at",
       "e.name             as employee_name",
-      "u.id_units         as id_unit",
-      "u.name             as unit_name",
       "rp.cantidad as     cantidad",
       "p.nombre           as product_name"
     )
@@ -23,6 +23,8 @@ const baseRequisiQuery = () => {
     .innerJoin("units as u", "u.id_units", "e.id_units")
     .innerJoin("Requi_x_Product as rp", "rp.id_requisi", "r.id_requisi")
     .innerJoin("product as p", "p.id_product", "rp.id_product")
+    .innerJoin("direction as d", "d.id_direction", "e.id_direction")
+    .innerJoin("subdireccion as sd", "sd.id_subdireccion", "e.id_subdireccion")
     .orderBy("r.created_at", "desc");
 };
 

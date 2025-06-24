@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardCard from "../molecules/DashboardCard";
 import {
   CubeIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   DocumentTextIcon,
+  ShoppingCartIcon,
+  ClipboardDocumentListIcon,
 } from "@heroicons/react/24/solid";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../hooks/use.Auth";
 import { useProducts } from "../../hooks/use.Product";
-import { useKardex } from "../../hooks/use.Kardex"; 
+import { useKardex } from "../../hooks/use.Kardex";
+import { useRequisicion } from "../../hooks/use.Requisicion";
+import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
+import { subMenuVisibility } from "../../config/permissions";
+import dayjs from "dayjs";
 
 // Simulación de servicios
 const useDashboardData = () => {
@@ -42,10 +48,31 @@ const useDashboardData = () => {
 
 const HomePage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const showWelcome = location.state?.showWelcome;
-  const { username } = useAuth();
+  const { username, roleName, idEmployes } = useAuth();
   const { products } = useProducts();
   const { kardex } = useKardex();
+  const { requisitions } = useRequisicion();
+  const { scompras } = useSolicitudCompras();
+
+  // Función para saber si el usuario puede ver la card (igual que en Sidebar)
+  const canViewCard = (menuKey: keyof typeof subMenuVisibility, path: string) => {
+    if (!roleName) return false;
+    const menu = subMenuVisibility[menuKey];
+    if (!menu) return false;
+    const allowed = (menu as Record<string, string[]>)[roleName];
+    return allowed ? allowed.includes(path) : false;
+  };
+
+  // Filtrar datos según el rol
+  const requisicionesUsuario = (roleName === "Administrador" || roleName === "Super Admin")
+    ? requisitions
+    : requisitions?.filter((r: any) => r.id_employes === idEmployes);
+
+  const solicitudesUsuario = (roleName === "Administrador" || roleName === "Super Admin")
+    ? scompras
+    : scompras?.filter((s: any) => s.id_employes === idEmployes);
 
   // Filtrar kardex pendientes y aprobados (insensible a mayúsculas/espacios)
   const kardexPendientes = kardex
@@ -56,15 +83,13 @@ const HomePage: React.FC = () => {
     ? kardex.filter((item: any) => item.tipo?.toLowerCase().trim() === "aprobado")
     : [];
 
-    // Función para obtener el saludo según la hora
+  // Función para obtener el saludo según la hora
   const getSaludo = () => {
     const hora = new Date().getHours();
     if (hora < 12) return "Buenos días";
     if (hora < 18) return "Buenas tardes";
     return "Buenas noches";
   };
-
-
 
   useEffect(() => {
     if (showWelcome) {
@@ -79,7 +104,62 @@ const HomePage: React.FC = () => {
     }
   }, [showWelcome, username]);
 
-  const { proximosAVencer, bajasExistencias, vencidos } = useDashboardData();
+  const hoy = dayjs();
+  const en30dias = hoy.add(30, "day");
+
+  // Calcula el stock actual por producto usando kardex
+  const computeStock = (productId: string) => {
+    return kardex
+      .filter((k: any) => k.id_product === productId && k.tipo === "Aprobado")
+      .reduce((acc: number, k: any) => {
+        const qty = parseFloat(k.cantidad);
+        return acc + (k.tipo_movimiento === "Entrada" ? qty : -qty);
+      }, 0);
+  };
+
+  // Obtiene todas las fechas de vencimiento de entradas aprobadas por producto
+  const getFechasVencimiento = (productId: string) => {
+    return kardex
+      .filter(
+        (k: any) =>
+          k.id_product === productId &&
+          k.tipo === "Aprobado" &&
+          k.tipo_movimiento === "Entrada" &&
+          k.fecha_vencimiento
+      )
+      .map((k: any) => k.fecha_vencimiento);
+  };
+
+  const productosConStock = products.map((p: any) => ({
+    ...p,
+    stock_actual: computeStock(p.id_product),
+    fechas_vencimiento: getFechasVencimiento(p.id_product),
+  }));
+
+  // Próximos a vencer: al menos una fecha de vencimiento entre hoy y 30 días, y stock > 0
+  const proximosAVencer = productosConStock.filter((p) =>
+    p.stock_actual > 0 &&
+    p.fechas_vencimiento.some((fv: string) => {
+      const fecha = dayjs(fv);
+      return fecha.isAfter(hoy) && fecha.isBefore(en30dias);
+    })
+  ).length;
+
+  // Vencidos: al menos una fecha de vencimiento menor a hoy, y stock > 0
+  const vencidos = productosConStock.filter((p) =>
+    p.stock_actual > 0 &&
+    p.fechas_vencimiento.some((fv: string) => {
+      const fecha = dayjs(fv);
+      return fecha.isBefore(hoy, "day");
+    })
+  ).length;
+
+  // Bajas existencias: stock actual menor al 30% del stock máximo
+  const bajasExistencias = productosConStock.filter(
+    (p) =>
+      p.stock_maximo > 0 &&
+      p.stock_actual / p.stock_maximo < 0.3
+  ).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -87,50 +167,102 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-        
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  {getSaludo()}, {username || "Usuario"}! 
-                </h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {getSaludo()}, {username || "Usuario"}!
+          </h1>
           <p className="text-gray-600">Resumen del estado actual del sistema</p>
         </div>
         {/* Grid de tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <DashboardCard
-            title="Productos"
-            subtitle="Registrados"
-            value={products.length}
-            icon={<CubeIcon className="w-5 h-5 text-blue-600" />}
-          />
-          <DashboardCard
-            title="Productos"
-            subtitle="Próximos a Vencer"
-            value={proximosAVencer}
-            icon={<ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />}
-          />
-          <DashboardCard
-            title="Productos"
-            subtitle="Bajas Existencias"
-            value={bajasExistencias}
-            icon={<CubeIcon className="w-5 h-5 text-red-600" />}
-          />
-          <DashboardCard
-            title="Productos"
-            subtitle="Vencidos"
-            value={vencidos}
-            icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
-          />
-          <DashboardCard
-            title="Kardex"
-            subtitle="Solicitudes a Fusiones"
-            value={kardexPendientes.length}
-            icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
-          />
-          <DashboardCard
-            title="Kardex"
-            subtitle="Aprobados"
-            value={kardexAprobados.length}
-            icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
-          />
+          {/* Productos Registrados */}
+          {canViewCard("inventario", "/products") && (
+            <DashboardCard
+              title="Productos"
+              subtitle="Registrados"
+              value={products.length}
+              icon={<CubeIcon className="w-5 h-5 text-blue-600" />}
+              onClick={() => navigate("/products")}
+            />
+          )}
+
+          {/* Productos Próximos a Vencer */}
+          {canViewCard("inventario", "/products") && (
+            <DashboardCard
+              title="Productos"
+              subtitle="Próximos a Vencer"
+              value={proximosAVencer}
+              icon={<ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />}
+              onClick={() => navigate("/products")}
+            />
+          )}
+
+          {/* Productos Bajas Existencias */}
+          {canViewCard("inventario", "/stock-critico") && (
+            <DashboardCard
+              title="Productos"
+              subtitle="Bajas Existencias"
+              value={bajasExistencias}
+              icon={<CubeIcon className="w-5 h-5 text-red-600" />}
+              onClick={() => navigate("/products")}
+            />
+          )}
+
+          {/* Productos Vencidos */}
+          {canViewCard("inventario", "/products") && (
+            <DashboardCard
+              title="Productos"
+              subtitle="Vencidos"
+              value={vencidos}
+              icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
+              onClick={() => navigate("/products")}
+            />
+          )}
+
+          {/* Kardex Solicitudes a Fusiones */}
+          {canViewCard("kardex", "/kardex") && (
+            <DashboardCard
+              title="Kardex"
+              subtitle="Solicitudes a Fusiones"
+              value={kardexPendientes.length}
+              icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
+              onClick={() => navigate("/kardex")}
+            />
+          )}
+
+          {/* Kardex Aprobados */}
+          {canViewCard("kardex", "/kardex") && (
+            <DashboardCard
+              title="Kardex"
+              subtitle="Aprobados"
+              value={kardexAprobados.length}
+              icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
+              onClick={() => navigate("/kardex")}
+            />
+          )}
+
+          {/* Requisiciones */}
+          {canViewCard("requisiciones", "/requisicionPendiente") && (
+            <DashboardCard
+              title="Requisiciones"
+              subtitle="Pendientes"
+              value={requisicionesUsuario?.length || 0}
+              icon={
+                <ClipboardDocumentListIcon className="w-5 h-5 text-indigo-600" />
+              }
+              onClick={() => navigate("/requisicionPendiente")}
+            />
+          )}
+
+          {/* Progreso de Requisición */}
+          {canViewCard("requisiciones", "/requisicionSeguimiento") && (
+            <DashboardCard
+              title="Solicitud de Requisición"
+              subtitle="En Espera"
+              value={solicitudesUsuario?.length || 0}
+              icon={<ShoppingCartIcon className="w-5 h-5 text-green-600" />}
+              onClick={() => navigate("/requisicionSeguimiento")}
+            />
+          )}
         </div>
       </div>
     </div>

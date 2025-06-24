@@ -41,11 +41,11 @@ export const subMenuVisibility = {
     "Super Admin": ["/bitacora"],
   },
   report: {
-    Administrador: ["/Report"],
-    "Jefe Almacen": ["/Report"],
-    "Tecnico Almacen": ["/Report"],
-    "Super Admin": ["/Report"],
-    "Jefe de Logistica": ["/Report"],
-    "Usuario": ["/Report"],
+    Administrador: ["/Report","/dashboard"],
+    "Jefe Almacen": ["/Report","/dashboard"],
+    "Tecnico Almacen": ["/Report","/dashboard"],
+    "Super Admin": ["/Report","/dashboard"],
+    "Jefe de Logistica": ["/Report","/dashboard"],
+    "Usuario": ["/Report","/dashboard"],
   },
 };

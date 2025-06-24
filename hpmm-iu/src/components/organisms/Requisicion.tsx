@@ -162,10 +162,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const handleTableContent = (list: RequisiDetail[]) => {
     let filtrados = [...list];
 
-    console.log("Filtrando requisiciones...", filtrados);
-    console.log("Filtrando empleado", idEmployes);
-
-
     // Filtrar por usuario si no es Administrador
     if (roleName !== "Administrador" && roleName !== "Super Admin") {
       filtrados = filtrados.filter((item) => item.id_employes === idEmployes);
@@ -309,7 +305,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         { ...newItem, id_requisi: crypto.randomUUID() },
       ]);
     }
-    console.log("Lista actualizada:", newItem);
   };
 
   

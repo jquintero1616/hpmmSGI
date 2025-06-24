@@ -16,9 +16,13 @@ export async function seed(knex: Knex): Promise<void> {
       shopping_order_id: "F.01",
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Medicamentos HPMM",
+      cantidad_comprada: 10,
+      precio_unitario: 100.05,
       ISV: false,
-      total: 1000.50,
-      estado: true
+      total: 1000.5,
+      estado: true,
+      cantidad_solicitada: 10,
+      nombre_producto: "Paracetamol",
     },
     {
       id_shopping: "11111111-1111-1111-1111-111111114444",
@@ -31,8 +35,12 @@ export async function seed(knex: Knex): Promise<void> {
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Materiales HPMMM",
       ISV: false,
-      total: 1000.50,
-      estado: true
+      cantidad_comprada: 5,
+      precio_unitario: 200.1,
+      total: 1000.5,
+      cantidad_solicitada: 5,
+      estado: true,
+      nombre_producto: "Guantes de Latex",
     },
     {
       id_shopping: "11111111-1111-1111-1111-111111115555",
@@ -40,13 +48,17 @@ export async function seed(knex: Knex): Promise<void> {
       id_vendedor: "cccccccc-cccc-3333-cccc-cccccccccccc",
       fecha_compra: "2025-05-10",
       numero_cotizacion: "cotizacion-12347",
-      numero_pedido: "pedido-12347",  
+      numero_pedido: "pedido-12347",
       shopping_order_id: "F.01",
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Materiales HPMMM",
       ISV: false,
-      total: 1000.50,
-      estado: true
-    }
+      cantidad_comprada: 2,
+      precio_unitario: 500.25,
+      cantidad_solicitada: 2,
+      total: 1000.5,
+      estado: true,
+      nombre_producto: "Termómetro Digital",
+    },
   ]);
 }

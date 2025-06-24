@@ -425,6 +425,10 @@ export function Sidebar() {
       ],
       report: [
         { label: "Lista de Reportes", path: "/Report", icon: ChartPieIcon },
+        { label: "Dashboard Gráficos", path: "/dashboard", icon: ChartPieIcon },
+      ],
+      dashboard: [
+        { label: "Dashboard Gráficos", path: "/dashboard", icon: ChartPieIcon },
       ],
     }),
     []

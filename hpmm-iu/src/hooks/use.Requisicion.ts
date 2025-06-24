@@ -9,7 +9,8 @@ export const useRequisicion = () => {
     GetRequisicionByIdContext,
     PostCreateRequisicionContext,
     PutUpdateRequisicionContext,
-    DeleteRequisicionContext
+    DeleteRequisicionContext,
+    GetRequisiDetailsContext
   } = useContext(RequisicionContext);
 
   if (
@@ -19,7 +20,8 @@ export const useRequisicion = () => {
     !GetRequisicionByIdContext ||
     !PostCreateRequisicionContext ||
     !PutUpdateRequisicionContext ||
-    !DeleteRequisicionContext
+    !DeleteRequisicionContext ||
+    !GetRequisiDetailsContext
   ) {
     throw new Error('useRequisicion debe ser utilizado dentro de un RequisicionProvider');
   }
@@ -31,6 +33,7 @@ export const useRequisicion = () => {
     GetRequisicionByIdContext,
     PostCreateRequisicionContext,
     PutUpdateRequisicionContext,
-    DeleteRequisicionContext
+    DeleteRequisicionContext,
+    GetRequisiDetailsContext
   };
 };

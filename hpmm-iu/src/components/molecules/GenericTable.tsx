@@ -9,6 +9,11 @@ type SortDirection = "asc" | "desc" | null;
 export interface Column<T> {
   header: string;
   accessor: keyof T | ((row: T) => React.ReactNode);
+  editable?: boolean;
+  editType?: "text" | "number" | "select" | "checkbox" | "date";
+  editOptions?: { label: string; value: any }[];
+  editProps?: React.InputHTMLAttributes<HTMLInputElement | HTMLSelectElement>;
+  hide?: boolean; // <-- NUEVO
 }
 
 export interface Action<T> {
@@ -24,7 +29,10 @@ interface GenericTableProps<T> {
   rowKey: (row: T) => string;
   actions?: Action<T>[];
   rowsPerPage?: number;
-  rowClassName?: (row: T) => string; // <-- Agregado aquí
+  rowClassName?: (row: T) => string;
+  editable?: boolean;
+  onEditRow?: (rowKey: string, newValues: Partial<T>) => void;
+  fullScreen?: boolean; // <-- NUEVO
 }
 
 const GenericTable = <T extends Record<string, any>>({
@@ -34,6 +42,9 @@ const GenericTable = <T extends Record<string, any>>({
   actions = [],
   rowsPerPage = 10,
   rowClassName,
+  editable = false,
+  onEditRow,
+  fullScreen = false, // <-- NUEVO
 }: GenericTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -160,13 +171,36 @@ const GenericTable = <T extends Record<string, any>>({
     setCurrentPage(1);
   };
 
+  // NUEVO: Estado para edición
+  const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Partial<T>>({});
+
+  // NUEVO: Guardar cambios
+  const handleSaveEdit = (row: T) => {
+    if (onEditRow && editingRowKey) {
+      onEditRow(editingRowKey, editValues);
+    }
+    setEditingRowKey(null);
+    setEditValues({});
+  };
+
+  // NUEVO: Cancelar edición
+  const handleCancelEdit = () => {
+    setEditingRowKey(null);
+    setEditValues({});
+  };
+
   const totalPages = useMemo(() => {
     return Math.ceil(data.length / rowsPerPage) || 1;
   }, [data.length, rowsPerPage]);
 
   return (
-    <div className="overflow-x-auto bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4">
-      <div className="relative overflow-x-auto max-w-full">
+    <div
+      className={`overflow-x-auto bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 ${
+        fullScreen ? "w-full max-w-[95vw]" : ""
+      }`}
+    >
+      <div className={`relative overflow-x-auto ${fullScreen ? "max-w-full" : ""}`}>
         <table className="min-w-max w-full" aria-label="Lista de requisiciones">
           <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
             <tr className="divide-x divide-gray-100 dark:divide-gray-700">
@@ -180,6 +214,7 @@ const GenericTable = <T extends Record<string, any>>({
                 return (
                   <th
                     key={`column-${idx}`}
+                    style={{ display: col.hide ? "none" : undefined }} // <-- NUEVO
                     className={`px-4 py-3 text-left text-xs font-bold text-gray-900 dark:text-white uppercase bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 relative`}
                     // className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase ${thClass}`}
                   >
@@ -285,16 +320,142 @@ const GenericTable = <T extends Record<string, any>>({
             {paginatedData.map((row, rowIndex) => {
               const uniqueRowKey = rowKey(row) || `row-${rowIndex}`;
               const customRowClass = rowClassName ? rowClassName(row) : "";
+              const isEditing = editable && editingRowKey === uniqueRowKey;
+
               return (
                 <tr
                   key={uniqueRowKey}
                   className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150 even:bg-gray-100 dark:even:bg-gray-850 ${customRowClass}`}
                 >
                   {columns.map((col, idx) => {
+                    const accessorKey =
+                      typeof col.accessor === "string" ? col.accessor : col.header;
                     const cell =
                       typeof col.accessor === "function"
                         ? col.accessor(row)
-                        : (row[col.accessor] as React.ReactNode);
+                        : (row[col.accessor as keyof T] as React.ReactNode);
+
+                    // NUEVO: Si está en modo edición y la columna es editable
+                    if (
+                      isEditing &&
+                      typeof col.accessor === "string" &&
+                      col.editable
+                    ) {
+                      // Soporte para diferentes tipos de input
+                      if (col.editType === "select" && col.editOptions) {
+                        return (
+                          <td key={`${uniqueRowKey}-col-${idx}`} className="px-4 py-3 text-left">
+                            <select
+                              className="border rounded px-2 py-1 w-full text-sm"
+                              value={
+                                editValues[col.accessor as keyof T] !== undefined
+                                  ? String(editValues[col.accessor as keyof T])
+                                  : String(row[col.accessor as keyof T] ?? "")
+                              }
+                              onChange={(e) =>
+                                setEditValues((prev) => ({
+                                  ...prev,
+                                  [col.accessor as keyof T]: e.target.value,
+                                }))
+                              }
+                              {...col.editProps}
+                            >
+                              <option value="">Seleccione...</option>
+                              {col.editOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        );
+                      }
+                      if (col.editType === "checkbox") {
+                        return (
+                          <td key={`${uniqueRowKey}-col-${idx}`} className="px-4 py-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={
+                                editValues[col.accessor as keyof T] !== undefined
+                                  ? Boolean(editValues[col.accessor as keyof T])
+                                  : Boolean(row[col.accessor as keyof T])
+                              }
+                              onChange={(e) =>
+                                setEditValues((prev) => ({
+                                  ...prev,
+                                  [col.accessor as keyof T]: e.target.checked,
+                                }))
+                              }
+                              {...col.editProps}
+                            />
+                          </td>
+                        );
+                      }
+                      if (col.editType === "number") {
+                        return (
+                          <td key={`${uniqueRowKey}-col-${idx}`} className="px-4 py-3 text-left">
+                            <input
+                              type="number"
+                              className="border rounded px-2 py-1 w-full text-sm"
+                              value={
+                                editValues[col.accessor as keyof T] !== undefined
+                                  ? String(editValues[col.accessor as keyof T])
+                                  : String(row[col.accessor as keyof T] ?? "")
+                              }
+                              onChange={(e) =>
+                                setEditValues((prev) => ({
+                                  ...prev,
+                                  [col.accessor as keyof T]: e.target.value,
+                                }))
+                              }
+                              {...col.editProps}
+                            />
+                          </td>
+                        );
+                      }
+                      if (col.editType === "date") {
+                        return (
+                          <td key={`${uniqueRowKey}-col-${idx}`} className="px-4 py-3 text-left">
+                            <input
+                              type="date"
+                              className="border rounded px-2 py-1 w-full text-sm"
+                              value={
+                                editValues[col.accessor as keyof T] !== undefined
+                                  ? String(editValues[col.accessor as keyof T])
+                                  : String(row[col.accessor as keyof T] ?? "")
+                              }
+                              onChange={(e) =>
+                                setEditValues((prev) => ({
+                                  ...prev,
+                                  [col.accessor as keyof T]: e.target.value,
+                                }))
+                              }
+                              {...col.editProps}
+                            />
+                          </td>
+                        );
+                      }
+                      // Por defecto: input tipo texto
+                      return (
+                        <td key={`${uniqueRowKey}-col-${idx}`} className="px-4 py-3 text-left">
+                          <input
+                            className="border rounded px-2 py-1 w-full text-sm"
+                            value={
+                              editValues[col.accessor as keyof T] !== undefined
+                                ? String(editValues[col.accessor as keyof T])
+                                : String(row[col.accessor as keyof T] ?? "")
+                            }
+                            onChange={(e) =>
+                              setEditValues((prev) => ({
+                                ...prev,
+                                [col.accessor as keyof T]: e.target.value,
+                              }))
+                            }
+                            {...col.editProps}
+                          />
+                        </td>
+                      );
+                    }
 
                     const isEstadoCol =
                       (typeof col.accessor === "string" &&
@@ -364,11 +525,8 @@ const GenericTable = <T extends Record<string, any>>({
                     return (
                       <td
                         key={`${uniqueRowKey}-col-${idx}`}
-                        className={`px-4 py-3 whitespace-nowrap text-sm ${
-                          isNumeric
-                            ? "text-right text-gray-700 dark:text-gray-300"
-                            : "text-left text-gray-700 dark:text-gray-300"
-                        }`}
+                        style={{ display: col.hide ? "none" : undefined }} // <-- NUEVO
+                        className={`px-4 py-3 whitespace-nowrap text-sm text-left text-gray-700 dark:text-gray-300`}
                       >
                         {cell}
                       </td>
@@ -376,25 +534,56 @@ const GenericTable = <T extends Record<string, any>>({
                   })}
 
                   <td className="px-4 py-3">
-                    <div
-                      className="flex space-x-2"
-                      role="group"
-                      aria-label="Acciones sobre la fila"
-                    >
-                      {actions.map((act, idx) => (
+                    <div className="flex space-x-2" role="group" aria-label="Acciones sobre la fila">
+                      {editable && !isEditing && (
                         <Button
-                          key={`${uniqueRowKey}-action-${idx}`}
-                          className={`size-small ${
-                            act.label === "Eliminar"
-                              ? "bg-hpmm-rojo-claro text-white hover:bg-hpmm-rojo-oscuro"
-                              : "bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro"
-                          }`}
-                          onClick={() => act.onClick(row)}
-                          disabled={act.disabled ? act.disabled(row) : false} // <-- Agregado aquí
+                          className="bg-hpmm-amarillo-claro text-white hover:bg-hpmm-amarillo-oscuro size-small"
+                          onClick={() => {
+                            setEditingRowKey(uniqueRowKey);
+                            setEditValues(row);
+                          }}
                         >
-                          {act.label}
+                          Editar
                         </Button>
-                      ))}
+                      )}
+                      {editable && isEditing && (
+                        <>
+                          <Button
+                            className="bg-hpmm-verde-claro text-white hover:bg-hpmm-verde-oscuro size-small"
+                            onClick={() => handleSaveEdit(row)}
+                          >
+                            Guardar
+                          </Button>
+                          <Button
+                            className="bg-hpmm-rojo-claro text-white hover:bg-hpmm-rojo-oscuro size-small"
+                            onClick={handleCancelEdit}
+                          >
+                            Cancelar
+                          </Button>
+                        </>
+                      )}
+                      {!editable &&
+                        actions.map((act, idx) => {
+                          if (act.disabled && act.disabled(row)) return null;
+                          return (
+                            <Button
+                              key={`${uniqueRowKey}-action-${idx}`}
+                              className={`size-small ${
+                                act.label === "Eliminar" || act.label === "Cancelado" || act.label === "Cancelar"
+                                  ? "bg-hpmm-rojo-claro text-white hover:bg-hpmm-rojo-oscuro"
+                                  : act.label === "Editar"
+                                  ? "bg-hpmm-amarillo-claro text-white hover:bg-hpmm-amarillo-oscuro"
+                                  : act.label === "Ver"
+                                  ? "bg-hpmm-verde-claro text-white hover:bg-hpmm-verde-oscuro"
+                                  : "bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro"
+                              }`}
+                              onClick={() => act.onClick(row)}
+                              disabled={act.label !== "Re-Activar" && act.disabled ? act.disabled(row) : false}
+                            >
+                              {act.label}
+                            </Button>
+                          );
+                        })}
                     </div>
                   </td>
                 </tr>

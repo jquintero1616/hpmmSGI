@@ -5,6 +5,7 @@ interface DashboardCardProps {
   subtitle: string;
   value: number | string;
   icon?: React.ReactNode;
+  onClick?: () => void; // Nuevo prop
 }
 
 const DashboardCard: React.FC<DashboardCardProps> = ({
@@ -12,9 +13,15 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   subtitle,
   value,
   icon,
+  onClick,
 }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 group">
+    <div
+      className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 group cursor-pointer`}
+      onClick={onClick}
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? "button" : undefined}
+    >
       {/* Header con icono */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">

@@ -61,17 +61,21 @@ const  GetRequiProductByIdContext = async (id_requisi_x_product: string): Promis
             return undefined;
         }
     }
-const PostCreateProductRequisitionContext = async (requiProduct: Requi_x_ProductInterface): Promise<Requi_x_ProductInterface> => {
-       console.log('PostCreateProductRequisitionContext', requiProduct);
-        try {
-            const newRequiProduct = await PostRequiProductService(requiProduct, axiosPrivate);
-            setProductRequisition(prev => [...prev, newRequiProduct]);
-            return newRequiProduct;
-        } catch (error) {
-            console.error('Error al crear el producto de requisición', error);
-            throw error;
-        }
-    }
+const PostCreateProductRequisitionContext = async (
+  requiProduct: Requi_x_ProductInterface
+): Promise<Requi_x_ProductInterface> => {
+  try {
+    const newRequiProduct = await PostRequiProductService(
+      requiProduct,
+      axiosPrivate
+    );
+    setProductRequisition((prev) => [...prev, newRequiProduct]);
+    return newRequiProduct;
+  } catch (error) {
+    console.error("Error al crear el producto de requisición", error);
+    throw error;
+  }
+};
 
     const PutUpdateProductRequisitionContext = async (id_requisi_x_product: string, requiProduct: Requi_x_ProductInterface): Promise<void> => {
         try {

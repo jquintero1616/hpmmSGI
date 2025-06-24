@@ -56,6 +56,10 @@ export const UpdateShoppingController = asyncWrapper(
       nombre_unidad,
       ISV,
       estado,
+      nombre_producto,
+      cantidad_comprada,
+      precio_unitario,
+      cantidad_solicitada,
     } = req.body;
 
     const shopping = await ShoppingService.updateShoppingService(
@@ -71,7 +75,11 @@ export const UpdateShoppingController = asyncWrapper(
       shopping_order_id,  
       ISV, 
       total,              
-      estado               
+      estado,
+      nombre_producto,
+      cantidad_comprada,
+      precio_unitario,
+      cantidad_solicitada
     );
 
     if (!shopping) {

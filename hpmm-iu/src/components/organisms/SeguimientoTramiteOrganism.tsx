@@ -5,11 +5,13 @@ import { SeguimientoTramite } from "../molecules/SeguimientoTramite";
 
 const SeguimientoTramiteOrganism: React.FC = () => {
   const { requisitions } = useRequisicion();
-  const { idEmployes } = useAuth();
+  const { idEmployes, roleName } = useAuth();
   const [selectedId, setSelectedId] = useState<string>("");
 
+  const isAdmin = roleName === "Administrador" || roleName === "Super Admin";  
+
   // Filtrar solo las requisiciones del usuario autenticado
-  const userRequisitions = requisitions.filter(
+  const userRequisitions = isAdmin ? requisitions : requisitions.filter(
     (req) => req.id_employes === idEmployes
   );
 
@@ -39,7 +41,7 @@ const SeguimientoTramiteOrganism: React.FC = () => {
         <option value="">-- Selecciona un ID de requisición --</option>
         {userRequisitions.map((req) => (
           <option key={req.id_requisi} value={req.id_requisi}>
-            {req.id_requisi} - {req.descripcion || req.product_name}
+            {`R-${req.id_requisi.split("-")[0].toLocaleUpperCase()}`} : {`"${req.descripcion || req.product_name}"`}
           </option>
         ))}
       </select>

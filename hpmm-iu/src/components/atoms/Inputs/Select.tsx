@@ -30,7 +30,6 @@ const Select: React.FC<SelectProps> = ({
   defaultValue, // <-- Agregado aquí
 
 }) => {
-  console.log (defaultValue);
   return (
   <div className="mb-5">
     <select
