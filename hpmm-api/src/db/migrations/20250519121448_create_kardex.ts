@@ -24,6 +24,14 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
     table.uuid("id_empleado_solicitud_f");
+    table.decimal("cantidad_solicitada");
+    table.decimal("cantidad_recepcionada");
+    table.uuid("id_scompra");
+    table.string("nombre_producto");
+    table.decimal("isv");
+    table.decimal("total");
+    table.uuid("id_vendedor");
+    table.string("rfid");
 
      table
        .foreign("id_empleado_solicitud_f")

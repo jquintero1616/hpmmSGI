@@ -477,8 +477,9 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           total: producto.total || 0,
           nombre_producto:
             producto.product_name || "No se encontró el nombre del producto",
+          id_product: producto.id_product || "",
           ...producto,
-          estado: true
+          estado: true,
         }));
 
         // Reemplaza la lista, no la mezcles

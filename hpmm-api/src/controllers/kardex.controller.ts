@@ -99,7 +99,14 @@ export const updateKardexController = asyncWrapper(
       descripcion,
       fecha_vencimiento,
       numero_lote,
-
+      cantidad_comprada,
+      cantidad_solicitada,
+      id_scompra,
+      nombre_producto,
+      isv,
+      total,
+      id_vendedor,
+      rfid,
       estado,
     } = req.body;
 
@@ -125,7 +132,15 @@ export const updateKardexController = asyncWrapper(
       fecha_vencimiento,
       numero_lote,
       estado,
-      id_empleado_solicitud_f
+      id_empleado_solicitud_f,
+      cantidad_comprada,
+      cantidad_solicitada,
+      id_scompra,
+      nombre_producto,
+      isv,
+      total,
+      id_vendedor,
+      rfid
     );
 
     if (!updatedKardex) {

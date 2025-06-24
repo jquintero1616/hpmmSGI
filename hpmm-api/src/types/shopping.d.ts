@@ -16,5 +16,6 @@ export interface Shopping {
   estado: boolean;
   created_at?: Date;
   updated_at?: Date;
+  id_product: string;
 }
 export interface NewShopping extends Omit<Shopping, "id_shopping"> {}

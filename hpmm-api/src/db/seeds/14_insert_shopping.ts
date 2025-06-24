@@ -23,6 +23,7 @@ export async function seed(knex: Knex): Promise<void> {
       estado: true,
       cantidad_solicitada: 10,
       nombre_producto: "Paracetamol",
+      id_product: "11111111-6666-1111-1111-111111112222"
     },
     {
       id_shopping: "11111111-1111-1111-1111-111111114444",
@@ -41,6 +42,7 @@ export async function seed(knex: Knex): Promise<void> {
       cantidad_solicitada: 5,
       estado: true,
       nombre_producto: "Guantes de Latex",
+      id_product: "22222222-7777-2222-2222-222222223333"
     },
     {
       id_shopping: "11111111-1111-1111-1111-111111115555",
@@ -59,6 +61,7 @@ export async function seed(knex: Knex): Promise<void> {
       total: 1000.5,
       estado: true,
       nombre_producto: "Termómetro Digital",
+      id_product: "33333333-3333-3333-3333-333333334444",
     },
   ]);
 }

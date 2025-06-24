@@ -20,6 +20,7 @@ export async function up(knex: Knex): Promise<void> {
     table.decimal("cantidad_solicitada", 10, 2).notNullable();
     table.string("nombre_producto", 100).notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
+    table.uuid("id_product").notNullable();
     table.timestamps(true, true);
 
 

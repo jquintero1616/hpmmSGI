@@ -60,26 +60,28 @@ export const UpdateShoppingController = asyncWrapper(
       cantidad_comprada,
       precio_unitario,
       cantidad_solicitada,
+      id_product
     } = req.body;
 
     const shopping = await ShoppingService.updateShoppingService(
       // 🛠️ Aquí va la alineación correcta:
-      id_shopping,        
-      id_scompra,          
-      id_vendedor,         
-      fecha_compra,        
-      lugar_entrega,       
-      numero_cotizacion,   
-      numero_pedido,      
-      nombre_unidad,       
-      shopping_order_id,  
-      ISV, 
-      total,              
+      id_shopping,
+      id_scompra,
+      id_vendedor,
+      fecha_compra,
+      lugar_entrega,
+      numero_cotizacion,
+      numero_pedido,
+      nombre_unidad,
+      shopping_order_id,
+      ISV,
+      total,
       estado,
       nombre_producto,
       cantidad_comprada,
       precio_unitario,
-      cantidad_solicitada
+      cantidad_solicitada,
+      id_product
     );
 
     if (!shopping) {

@@ -15,6 +15,14 @@ export interface kardex {
   requisicion_numero: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
   observacion: string;
+  cantidad_comprada: number,
+  cantidad_solicitada: number,
+  id_scompra: string,
+  nombre_producto: string,
+  isv: number,
+  total: number,
+  id_vendedor: string,
+  rfid: string
   // nuevos
   descripcion: string;
   fecha_vencimiento: Date;

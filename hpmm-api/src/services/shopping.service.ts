@@ -48,7 +48,8 @@ export const updateShoppingService = async (
   nombre_producto: string,
   cantidad_comprada: number,
   precio_unitario: number,
-  cantidad_solicitada: number
+  cantidad_solicitada: number,
+  id_product: string
 ): Promise<NewShopping> => {
   try {
     const updatedShopping = await ShoppingModel.updateShoppingModel(
@@ -67,7 +68,8 @@ export const updateShoppingService = async (
       nombre_producto,
       cantidad_comprada,
       precio_unitario,
-      cantidad_solicitada
+      cantidad_solicitada,
+      id_product
     );
     if (!updatedShopping) {
       throw new Error(`shopping with id_shopping ${id_shopping} not found`);

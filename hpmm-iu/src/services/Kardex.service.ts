@@ -42,6 +42,7 @@ export const PostCreateKardexService = async (
     kardexs: kardexInterface, 
     axiosPrivate: AxiosInstance
 ): Promise<kardexInterface> => {
+    console.log("kardexs", kardexs);
     try {
         const response = await axiosPrivate.post<kardexInterface>(
           `kardex`,
@@ -59,6 +60,14 @@ export const PostCreateKardexService = async (
             requisicion_numero: kardexs.requisicion_numero,
             tipo: kardexs.tipo,
             observacion: kardexs.observacion,
+            cantidad_solicitada: kardexs.cantidad_solicitada,
+            id_scompra: kardexs.id_scompra,
+            nombre_producto: kardexs.nombre_producto,
+            isv: kardexs.isv ? 0.15 : 0, // Asumiendo que isv es un booleano
+            total: kardexs.total,
+            id_vendedor: kardexs.id_vendedor,
+            rfid: kardexs.rfid,
+            cantidad_recepcionada: kardexs.cantidad_recepcionada,
             //- nuevos
             descripcion: kardexs.descripcion,
             fecha_vencimiento: kardexs.fecha_vencimiento,

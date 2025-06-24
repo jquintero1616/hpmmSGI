@@ -16,6 +16,7 @@ export const getAllshoppingModel = async (): Promise<NewShopping[]> => {
       "s.numero_pedido",
       "s.nombre_unidad",
       "s.lugar_entrega",
+      "s.id_product",
       "s.ISV",
       "s.cantidad_comprada",
       "s.precio_unitario",
@@ -63,7 +64,8 @@ export async function updateShoppingModel(
   nombre_producto: string,
   cantidad_comprada: number,
   precio_unitario: number,
-  cantidad_solicitada: number
+  cantidad_solicitada: number,
+  id_product: string
 ): Promise<NewShopping> {
   const [updatedShopping] = await knexTableName()
     .where({
@@ -85,6 +87,7 @@ export async function updateShoppingModel(
       cantidad_comprada,
       precio_unitario,
       cantidad_solicitada,
+      id_product
     })
     .returning("*");
   return updatedShopping;

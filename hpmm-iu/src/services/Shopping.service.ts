@@ -51,6 +51,7 @@ export const PostShoppingService = async (
             cantidad_comprada: shopping.cantidad_comprada,
             cantidad_solicitada: shopping.cantidad_solicitada,
             nombre_producto: shopping.nombre_producto,
+            id_product: shopping.id_product
         }
     );
     
@@ -81,6 +82,7 @@ export const PutShoppingService = async (
             cantidad_comprada: shopping.cantidad_comprada,
             cantidad_solicitada: shopping.cantidad_solicitada,
             nombre_producto: shopping.nombre_producto,
+            id_product: shopping.id_product
         }
     );
 }

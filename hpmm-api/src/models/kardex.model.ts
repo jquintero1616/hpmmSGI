@@ -116,7 +116,15 @@ export async function updateKardexModel(
   precio_unitario: number,
   tipo_solicitud: "Requisicion" | "Pacto",
   requisicion_numero: string,
-  tipo: "Aprobado" | "Rechazado" | "Pendiente"  | "Cancelado",
+  tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado",
+  cantidad_comprada: number,
+  cantidad_solicitada: number,
+  id_scompra: string,
+  nombre_producto: string,
+  isv: number,
+  total: number,
+  id_vendedor: string,
+  rfid: string,
   observacion: string,
   //--
   descripcion: string,
@@ -124,7 +132,7 @@ export async function updateKardexModel(
   numero_lote: string,
   //-----
   estado: boolean,
-  id_empleado_solicitud_f: string,
+  id_empleado_solicitud_f: string
 ): Promise<NewKardex | null> {
   const updated_at = new Date();
   const [updatedKardex] = await knexTableName()
@@ -142,15 +150,21 @@ export async function updateKardexModel(
       tipo_solicitud,
       requisicion_numero,
       tipo,
-      // Nuevos campos
       descripcion,
       fecha_vencimiento,
       numero_lote,
-
+      cantidad_comprada,
+      cantidad_solicitada,
+      id_scompra,
+      nombre_producto,
+      isv,
+      total,
+      id_vendedor,
+      rfid,
       observacion,
       estado,
       updated_at,
-      id_empleado_solicitud_f
+      id_empleado_solicitud_f,
     })
     .returning("*");
   return updatedKardex || null;
