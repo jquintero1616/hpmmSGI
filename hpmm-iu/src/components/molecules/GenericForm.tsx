@@ -40,6 +40,7 @@ interface GenericFormProps<T> {
   submitLabel?: React.ReactNode;
   cancelLabel?: string;
   title?: string;
+  subTitle?: string;
   submitDisabled?: boolean;
   validate?: (values: T) => Record<string, string>;
   extraFields?: Record<string, React.ReactNode>;
@@ -72,6 +73,7 @@ const GenericForm = <T extends Record<string, any>>({
   title = "Formulario Genérico",
   fullScreen = false,
   readOnly = false, // <-- NUEVO
+  subTitle = "", // <-- NUEVO
 }: GenericFormProps<T>) => {
   // Solo inicializa una vez
   const [values, setValues] = useState<T>(initialValues);
@@ -342,7 +344,10 @@ const GenericForm = <T extends Record<string, any>>({
     >
       {/* Formulario */}
       {title && (
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">{title}</h2>
+      )}
+      {subTitle && (
+        <h2 className="text-xs font-semibold text-gray-600 mb-8">{subTitle}</h2>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         {fields

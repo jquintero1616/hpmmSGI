@@ -67,6 +67,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
   const [rfidScanRow, setRfidScanRow] = useState<string | null>(null); // <-- NUEVO estado
+  const [isSalida, setIsSalida] = useState(false); // <-- NUEVO estado
 
   useEffect(() => {
     handleTableContent(kardex);
@@ -99,6 +100,20 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
     setFilteredData(ordenados);
   };
+
+  
+const cargarProductosParaSalida = (id_shopping : string) => {
+  // Solo productos aprobados y con stock > 0
+  const productosAprobados = kardex
+    .filter((item) => item.tipo === "Aprobado" && item.id_shopping == id_shopping)
+
+  // Formatea para la tabla
+  return productosAprobados.map((item) => ({
+    ...item,
+    tipo_movimiento: "Salida",
+    cantidad: 0, // El usuario debe ingresar la cantidad a sacar
+  }));
+};
 
   // 3. CONFIGURACIONES
   const kardexColumns: Column<KardexRow>[] = [
@@ -316,8 +331,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       label: "Solicitud",
       type: "select",
       options: [
-        { label: "Requisicion", value: "Requisicion" },
-        { label: "Pacto", value: "Pacto" },
+        { label: "Requisicion", value: "Requisicion" }
       ],
       required: true,
     },
@@ -472,6 +486,8 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     try {
       const compra = shopping.filter((s) => s.id_scompra === id_scompra);
 
+      const cargadoEnKardex = kardex.filter((k) => k.id_scompra === id_scompra);
+
       if (!compra) {
         toast.error("Compra no encontrada.");
         return [];
@@ -481,6 +497,16 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       if (!compra || compra.length === 0) {
         toast.error("No se encontraron productos en la compra seleccionada.");
         return [];
+      }
+
+      if (isSalida && cargadoEnKardex.length > 0) {
+        // Si es una salida y ya hay productos cargados en el kardex, cargar solo los productos aprobados
+        const productosSalida = cargarProductosParaSalida(compra[0].id_shopping);
+        if (productosSalida.length === 0) {
+          toast.error("No hay productos aprobados para esta salida.");
+          return [];
+        }
+        return productosSalida;
       }
 
       // Formatea los productos para el Kardex
@@ -497,7 +523,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         precio_unitario: producto.precio_unitario || 0,
         isv: producto.ISV || 0,
         total: producto.total || 0,
-        tipo_movimiento: "Entrada",
+        tipo_movimiento: isSalida ? "Salida" : "Entrada",
         fecha_movimiento: formattedDate(),
         tipo: "Pendiente",
         id_vendedor: producto.id_vendedor || "",
@@ -526,17 +552,18 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   };
 
   const handleFormChange = async (values: any, prevValues?: any) => {
-    if (values.id_scompra && values.id_scompra !== prevValues?.id_scompra) {
-      const productos = await cargarProductosDeCompra(values.id_scompra);
-      setDataListForm(productos);
-    }
-  };
+      if (values.id_scompra && values.id_scompra !== prevValues?.id_scompra) {
+        const productos = await cargarProductosDeCompra(values.id_scompra);
+        setDataListForm(productos);
+      }
+    } 
+
 
   const handleSaveAllList = async () => {
     setSaving(true);
     try {
       // CORRIGE ESTA CONDICIÓN:
-      if (!isEditListChanged()) {
+      if (!isEditListChanged() && !isSalida) {
         toast.warning(
           "No se realizaron cambios. Por favor, edite algún valor antes de guardar."
         );
@@ -557,10 +584,11 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         const itemConCantidad = {
           ...item,
           cantidad: Number(item.cantidad) || 0,
+          tipo: "Pendiente",
           isv: item.isv ? 0.15 : 0, // Asegúrate de que isv sea un número
         };
 
-        if (existeEnKardex && existeEnShopping) {
+        if (existeEnKardex && existeEnShopping && !isSalida) {
           await PutUpdateKardexContext(item.id_kardex, itemConCantidad);
         } else {
           await PostCreateKardexContext(itemConCantidad);
@@ -797,9 +825,23 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             setItemToEditList(null);
             setOriginalItemToEditList(null);
             setDataListForm([]);
+            setIsSalida(false); // <-- NUEVO ESTADO
           }}
         >
           + Nueva Ingreso
+        </Button>
+        <Button
+          className="bg-hpmm-verde-claro hover:bg-hpmm-verde-oscuro text-white font-bold py-2 px-4 rounded ml-2"
+          onClick={() => {
+            setOpenModal(true);
+            setItemToEdit(null);
+            setItemToEditList(null);
+            setOriginalItemToEditList(null);
+            setDataListForm([]);
+            setIsSalida(true);
+          }}
+        >
+          + Nueva Salida
         </Button>
       </div>
 
@@ -865,13 +907,14 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             fields={kardexFields.map((f) =>
               f.name === "estado" ? { ...f, disabled: true } : f
             )}
+            subTitle="Ingreso de productos al Kardex"
             onSubmit={handleAddItem}
             onCancel={() => setItemToEditList(null)}
             validate={validateCreate}
             title={
               itemToEdit
                 ? "Editar compra de la lista"
-                : "Agregar compra a la lista"
+                : "Crear Solicitud de Fusión"
             }
             submitDisabled={saving}
             onChange={handleFormChange}
@@ -913,8 +956,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               onClick={handleSaveAllList}
               className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
               disabled={
-                saving ||
-                dataListForm.length === 0 //||
+                saving || dataListForm.length === 0 //||
                 //(itemToEditList && validateEdition)
               }
             >
@@ -979,3 +1021,4 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 };
 
 export default Kardex;
+
