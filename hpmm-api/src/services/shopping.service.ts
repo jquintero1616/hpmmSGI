@@ -46,7 +46,7 @@ export const updateShoppingService = async (
   total: number,
   estado: boolean,
   nombre_producto: string,
-  cantidad_comprada: number,
+  cantidad: number,
   precio_unitario: number,
   cantidad_solicitada: number,
   id_product: string
@@ -66,7 +66,7 @@ export const updateShoppingService = async (
       total,
       estado,
       nombre_producto,
-      cantidad_comprada,
+      cantidad,
       precio_unitario,
       cantidad_solicitada,
       id_product

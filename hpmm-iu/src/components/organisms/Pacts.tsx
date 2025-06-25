@@ -7,6 +7,8 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { useAuth } from "../../hooks/use.Auth"; // <-- Agrega este import
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const pactColumns: Column<PactInterface>[] = [
   { header: "Nombre", accessor: "name" },
@@ -25,12 +27,17 @@ const pactColumns: Column<PactInterface>[] = [
 ];
 
 const pactFields: FieldConfig[] = [
-  { name: "name", label: "Nombre", type: "text" },
+  { name: "name", label: "Nombre Pacto", type: "text" },
   {
     name: "tipo",
-    label: "Tipo",
+    label: "Tipo Frecuencia",
     type: "select",
-    options: ["Diario", "Quincenal", "Mensual", "Trimestral"],
+    options: [
+      { label: "Diario", value: "Diario" },
+      { label: "Quincenal", value: "Quincenal" },
+      { label: "Mensual", value: "Mensual" },
+      { label: "Trimestral", value: "Trimestral" },
+    ],
   },
   {
     name: "estado",
@@ -61,6 +68,7 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<PactInterface | null>(null);
   const [itemToDelete, setItemToDelete] = useState<PactInterface | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -91,30 +99,71 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setDeleteOpen(true);
   };
 
+  // Validación para evitar nombres duplicados y campos vacíos
+  const validatePact = (values: any) => {
+    const errors: any = {};
+    if (!values.name || values.name.trim() === "") {
+      errors.name = "El nombre es obligatorio";
+    }
+    // Evita duplicados (ignorando mayúsculas/minúsculas)
+    if (
+      pacts.some(
+        (p) =>
+          p.name.trim().toLowerCase() === values.name.trim().toLowerCase() &&
+          (!itemToEdit || p.id_pacts !== itemToEdit.id_pacts)
+      )
+    ) {
+      errors.name = "Ya existe un pacto con ese nombre";
+    }
+    return errors;
+  };
+
   const handleCreate = async (values: any) => {
-    await PostCreatePactContext({
-      ...values,
-      estado: values.estado === "true",
-    });
-    await GetPactsContext();
-    closeAll();
+    setSaving(true);
+    try {
+      await PostCreatePactContext({
+        ...values,
+        estado: values.estado === "true" || values.estado === true,
+      });
+      await GetPactsContext();
+      toast.success(`Pacto "${values.name}" creado correctamente`);
+      closeAll();
+    } catch (e) {
+      toast.error("Error al crear el pacto");
+    }
+    setSaving(false);
   };
 
   const handleSave = async (values: any) => {
     if (!itemToEdit) return;
-    await PutUpdatePactContext(itemToEdit.id_pacts, {
-      ...values,
-      estado: values.estado === "true",
-    });
-    await GetPactsContext();
-    closeAll();
+    setSaving(true);
+    try {
+      await PutUpdatePactContext(itemToEdit.id_pacts, {
+        ...values,
+        estado: values.estado === "true" || values.estado === true,
+      });
+      await GetPactsContext();
+      toast.success(`Pacto "${values.name}" actualizado correctamente`);
+      closeAll();
+    } catch (e) {
+      toast.error("Error al actualizar el pacto");
+    }
+    setSaving(false);
   };
 
   const handleConfirmDelete = async (id: string) => {
-    await DeletePactContext(id);
-    await GetPactsContext();
-    closeAll();
+    setSaving(true);
+    try {
+      await DeletePactContext(id);
+      await GetPactsContext();
+      toast.success("Pacto eliminado correctamente");
+      closeAll();
+    } catch (e) {
+      toast.error("Error al eliminar el pacto");
+    }
+    setSaving(false);
   };
+
   const handleTableContent = (pacts: PactInterface[]) => {
     if (status === "Todo") {
       setFilteredData(pacts);
@@ -123,14 +172,26 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     }
   };
 
-  if (loading) return <div>Cargando pactos…</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-32">
+        <span className="animate-spin mr-2">⏳</span> Cargando pactos…
+      </div>
+    );
 
   return (
     <div>
-      <h2>Gestión de Pactos</h2>
-      {/* Solo mostrar el botón si es Jefe Almacén */}
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Pactos</h1>
       {(roleName === "Jefe Almacén" || roleName === "Super Admin") && (
-        <Button onClick={() => setCreateOpen(true)}>+ Nuevo pacto</Button>
+        <div className="flex justify-end mb-4">
+          <Button
+            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+            onClick={() => setCreateOpen(true)}
+          >
+            + Nuevo pacto
+          </Button>
+        </div>
       )}
 
       <GenericTable
@@ -149,6 +210,9 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             onClick: (row) => openDelete(row.id_pacts),
           },
         ]}
+        rowClassName={(row) =>
+          row.estado === false ? "opacity-40 line-through" : ""
+        }
       />
 
       {/* Modal Crear */}
@@ -159,11 +223,25 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             tipo: "Diario",
             estado: true,
           }}
-          fields={pactFields}
+          fields={pactFields.map((f) =>
+            f.name === "estado" ? { ...f, disabled: true } : f
+          )}
           onSubmit={handleCreate}
           onCancel={closeAll}
-          submitLabel="Crear"
+          validate={validatePact}
+          submitLabel={
+            saving ? (
+              <span>
+                <span className="animate-spin inline-block mr-2">⏳</span>
+                Creando...
+              </span>
+            ) : (
+              "Crear"
+            )
+          }
           cancelLabel="Cancelar"
+          submitDisabled={saving}
+          title="Crear Pacto"
         />
       </Modal>
 
@@ -179,8 +257,20 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             fields={pactFields}
             onSubmit={handleSave}
             onCancel={closeAll}
-            submitLabel="Guardar"
+            validate={validatePact}
+            submitLabel={
+              saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Guardando...
+                </span>
+              ) : (
+                "Guardar"
+              )
+            }
             cancelLabel="Cancelar"
+            submitDisabled={saving}
+            title="Editar Pacto"
           />
         )}
       </Modal>
@@ -198,15 +288,27 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               data={[itemToDelete]}
               rowKey={(row) => row.id_pacts}
             />
-            <div className="mt-4 text-right">
-              <Button onClick={closeAll} className="mr-2">
-                Cancelar
+            <div className="mt-4 text-right gap-2 flex justify-center">
+              <Button
+                onClick={() => handleConfirmDelete(itemToDelete.id_pacts)}
+                className="bg-hpmm-rojo-claro hover:bg-hpmm-rojo-oscuro text-white font-bold py-2 px-4 rounded"
+                disabled={saving}
+              >
+                {saving ? (
+                  <span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    Eliminando...
+                  </span>
+                ) : (
+                  "Eliminar"
+                )}
               </Button>
               <Button
-                isPrimary
-                onClick={() => handleConfirmDelete(itemToDelete.id_pacts)}
+                onClick={closeAll}
+                className="mr-2 bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
+                disabled={saving}
               >
-                Eliminar
+                Cancelar
               </Button>
             </div>
           </>

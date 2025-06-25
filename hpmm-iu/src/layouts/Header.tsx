@@ -4,17 +4,12 @@ import { useAuth } from "../hooks/use.Auth";
 import { toast } from "react-toastify";
 import LogoUrl from "../assets/logoBlancoHPMM.png";
 import UsuarioIcon from "../assets/usuario.svg";
-import Notificacion from "../components/organisms/Notificacion"; // Importa el organismo
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { logout, username, roleName } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
-  
-  const [pendientes, setPendientes] = useState(0);
-
   const userMenuRef = useRef<HTMLDivElement>(null);
   const avatarUrl = UsuarioIcon as string; // Si tu configuración no soporta SVG como componente, usa como string
 
@@ -56,16 +51,6 @@ const Header: React.FC = () => {
       document.body.style.overflow = "unset";
     };
   }, [profileModalOpen]);
-
-  // Mostrar toast si hay notificaciones pendientes al iniciar sesión
-  useEffect(() => {
-    if (pendientes > 0) {
-      toast.info(`Tienes ${pendientes} notificaciones pendientes`, {
-        position: "top-right",
-        autoClose: 4000,
-      });
-    }
-  }, [pendientes]);
 
   function getRoleAbbrev(role: string) {
     switch (role) {
@@ -123,15 +108,13 @@ const Header: React.FC = () => {
 
           {/* Menú derecho responsive */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Botón de notificaciones */}
+            {/* Notificaciones - oculto en móvil muy pequeño */}
             <button
-              className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
+              className="hidden xs:block relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
               title="Notificaciones"
-              onClick={() => setNotiOpen(true)}
             >
-              {/* Ícono de campana */}
               <svg
-                className="w-6 h-6"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
@@ -143,10 +126,8 @@ const Header: React.FC = () => {
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
-              {/* Indicador de notificaciones pendientes */}
-              {pendientes > 0 && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-              )}
+              {/* Indicador de notificación */}
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-400 rounded-full border-2 border-white/50"></span>
             </button>
 
             {/* Perfil de usuario responsive */}
@@ -261,13 +242,6 @@ const Header: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Panel de Notificaciones */}
-      <Notificacion
-        open={notiOpen}
-        onClose={() => setNotiOpen(false)}
-        onUpdatePendientes={(pendientesArr) => setPendientes(pendientesArr.length)}
-      />
 
       {/* Modal de Perfil */}
       {profileModalOpen && (

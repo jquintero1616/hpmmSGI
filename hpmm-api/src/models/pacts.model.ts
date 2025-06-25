@@ -32,7 +32,10 @@ export const updatePactModel = async (
 ): Promise<Pact | null> => {
   const [updatedPact] = await db("pacts")
     .where({ id_pacts })
-    .update(payload)
+    .update({
+      ...payload,
+      updated_at: new Date(), // <-- Esto actualiza la fecha correctamente
+    })
     .returning("*");
   return updatedPact || null;
 };

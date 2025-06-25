@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import DashboardCard from "../molecules/DashboardCard";
 import {
   CubeIcon,
@@ -57,7 +57,10 @@ const HomePage: React.FC = () => {
   const { scompras } = useSolicitudCompras();
 
   // Función para saber si el usuario puede ver la card (igual que en Sidebar)
-  const canViewCard = (menuKey: keyof typeof subMenuVisibility, path: string) => {
+  const canViewCard = (
+    menuKey: keyof typeof subMenuVisibility,
+    path: string
+  ) => {
     if (!roleName) return false;
     const menu = subMenuVisibility[menuKey];
     if (!menu) return false;
@@ -66,21 +69,27 @@ const HomePage: React.FC = () => {
   };
 
   // Filtrar datos según el rol
-  const requisicionesUsuario = (roleName === "Administrador" || roleName === "Super Admin")
-    ? requisitions
-    : requisitions?.filter((r: any) => r.id_employes === idEmployes);
+  const requisicionesUsuario =
+    roleName === "Administrador" || roleName === "Super Admin"
+      ? requisitions
+      : requisitions?.filter((r: any) => r.id_employes === idEmployes);
 
-  const solicitudesUsuario = (roleName === "Administrador" || roleName === "Super Admin")
-    ? scompras
-    : scompras?.filter((s: any) => s.id_employes === idEmployes);
+  const solicitudesUsuario =
+    roleName === "Administrador" || roleName === "Super Admin"
+      ? scompras
+      : scompras?.filter((s: any) => s.id_employes === idEmployes);
 
   // Filtrar kardex pendientes y aprobados (insensible a mayúsculas/espacios)
   const kardexPendientes = kardex
-    ? kardex.filter((item: any) => item.tipo?.toLowerCase().trim() === "pendiente")
+    ? kardex.filter(
+        (item: any) => item.tipo?.toLowerCase().trim() === "pendiente"
+      )
     : [];
 
   const kardexAprobados = kardex
-    ? kardex.filter((item: any) => item.tipo?.toLowerCase().trim() === "aprobado")
+    ? kardex.filter(
+        (item: any) => item.tipo?.toLowerCase().trim() === "aprobado"
+      )
     : [];
 
   // Función para obtener el saludo según la hora
@@ -94,7 +103,9 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     if (showWelcome) {
       toast.success(
-        `¡Bienvenido al Sistema de Gestión de Inventario, ${username || "Usuario"}!`,
+        `¡Bienvenido al Sistema de Gestión de Inventario, ${
+          username || "Usuario"
+        }!`,
         {
           position: "top-center",
           autoClose: 3000,
@@ -137,28 +148,28 @@ const HomePage: React.FC = () => {
   }));
 
   // Próximos a vencer: al menos una fecha de vencimiento entre hoy y 30 días, y stock > 0
-  const proximosAVencer = productosConStock.filter((p) =>
-    p.stock_actual > 0 &&
-    p.fechas_vencimiento.some((fv: string) => {
-      const fecha = dayjs(fv);
-      return fecha.isAfter(hoy) && fecha.isBefore(en30dias);
-    })
+  const proximosAVencer = productosConStock.filter(
+    (p) =>
+      p.stock_actual > 0 &&
+      p.fechas_vencimiento.some((fv: string) => {
+        const fecha = dayjs(fv);
+        return fecha.isAfter(hoy) && fecha.isBefore(en30dias);
+      })
   ).length;
 
   // Vencidos: al menos una fecha de vencimiento menor a hoy, y stock > 0
-  const vencidos = productosConStock.filter((p) =>
-    p.stock_actual > 0 &&
-    p.fechas_vencimiento.some((fv: string) => {
-      const fecha = dayjs(fv);
-      return fecha.isBefore(hoy, "day");
-    })
+  const vencidos = productosConStock.filter(
+    (p) =>
+      p.stock_actual > 0 &&
+      p.fechas_vencimiento.some((fv: string) => {
+        const fecha = dayjs(fv);
+        return fecha.isBefore(hoy, "day");
+      })
   ).length;
 
   // Bajas existencias: stock actual menor al 30% del stock máximo
   const bajasExistencias = productosConStock.filter(
-    (p) =>
-      p.stock_maximo > 0 &&
-      p.stock_actual / p.stock_maximo < 0.3
+    (p) => p.stock_maximo > 0 && p.stock_actual / p.stock_maximo < 0.1 // cambiar 0.1 a 0.3 si se quiere el 30%
   ).length;
 
   return (
@@ -191,7 +202,9 @@ const HomePage: React.FC = () => {
               title="Productos"
               subtitle="Próximos a Vencer"
               value={proximosAVencer}
-              icon={<ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />}
+              icon={
+                <ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />
+              }
               onClick={() => navigate("/products")}
             />
           )}
@@ -219,13 +232,13 @@ const HomePage: React.FC = () => {
           )}
 
           {/* Kardex Solicitudes a Fusiones */}
-          {canViewCard("kardex", "/kardex") && (
+          {canViewCard("kardex", "/KardexPendiente") && (
             <DashboardCard
               title="Kardex"
               subtitle="Solicitudes a Fusiones"
               value={kardexPendientes.length}
               icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
-              onClick={() => navigate("/kardex")}
+              onClick={() => navigate("/KardexPendiente")}
             />
           )}
 
@@ -263,6 +276,12 @@ const HomePage: React.FC = () => {
               onClick={() => navigate("/requisicionSeguimiento")}
             />
           )}
+        </div>
+        {/* Enlace al historial de notificaciones */}
+        <div className="mt-8 text-center">
+          <Link to="/notificaciones" className="text-blue-600 underline">
+            Ver historial de notificaciones
+          </Link>
         </div>
       </div>
     </div>

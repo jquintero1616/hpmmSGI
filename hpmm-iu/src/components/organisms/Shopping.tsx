@@ -348,13 +348,24 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       }
 
       for (const item of dataListForm) {
+        // Calcula el total antes de guardar
+        const cantidad = Number(item.cantidad_comprada) || 0;
+        const precio = Number(item.precio_unitario) || 0;
+        const isvIncluido = item.ISV === true;
+        const total = cantidad * precio * (isvIncluido ? 1.15 : 1);
+
+        const itemConTotal = {
+          ...item,
+          total: (Math.ceil(total * 100) / 100).toFixed(2), // Redondea a 2 decimales
+        };
+
         if (
           item.id_shopping &&
           shopping.some((s) => s.id_shopping === item.id_shopping)
         ) {
-          await PutShoppingContext(item.id_shopping, item);
+          await PutShoppingContext(item.id_shopping, itemConTotal);
         } else {
-          await PostShoppingContext(item);
+          await PostShoppingContext(itemConTotal);
         }
       }
 
@@ -677,7 +688,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
                 Creando...
               </span>
             ) : (
-              "Crear todas"
+              "Ingresar Compras"
             )}
           </Button>
           <Button

@@ -295,6 +295,14 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     handleTableContent(validEmployees);
   }, [status, employes]);
 
+  // Justo antes del return principal, agrega esta función para obtener el valor inicial correcto:
+  const getInitialUserId = () => {
+    if (usersSinEmpleado.length === 1) {
+      return usersSinEmpleado[0].id_user;
+    }
+    return "";
+  };
+
   // 9. RENDER CONDICIONAL
   if (loading) return <div>Cargando empleados…</div>;
 
@@ -375,7 +383,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<EmployesInterface>>
           initialValues={{
-            id_user: "",
+            id_user: getInitialUserId(), // <-- aquí el cambio
             id_units: "",
             id_subdireccion: "",
             id_direction: "ca112a2a-982c-467b-80c4-65163b6ddb6f",

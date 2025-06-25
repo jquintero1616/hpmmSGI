@@ -11,7 +11,7 @@ export interface InputProps {
   error?: string;
   "aria-invalid"?: boolean;
   disabled?: boolean;
-  defaultValue?: string; // <-- Agregado aquí
+  defaultValue?: string; 
 }
 
 const Input: React.FC<InputProps> = ({
@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
   error,
   "aria-invalid": ariaInvalid = false,
   disabled = false,
-  defaultValue, // <-- Agregado aquí
+  defaultValue, 
   ...rest
 }) => {
   return (
@@ -47,7 +47,7 @@ const Input: React.FC<InputProps> = ({
           inputMode={type === "tel" ? "tel" : undefined}
           pattern={type === "tel" ? "^[0-9+\\-()\\s]{7,}$" : undefined}
           disabled={disabled}
-          defaultValue={defaultValue?.toString()} // <-- Agregado aquí
+          defaultValue={defaultValue?.toString()} 
           {...rest}
         />
         {error && (

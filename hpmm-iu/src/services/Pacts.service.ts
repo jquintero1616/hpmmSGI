@@ -1,5 +1,6 @@
 import { AxiosInstance } from "axios";
 import { PactInterface } from "../interfaces/pacts.interface";
+import { create } from "domain";
 
 export const GetPactsService = async (axiosPrivate: AxiosInstance): Promise<PactInterface[] | null> => {
   try {
@@ -54,6 +55,7 @@ export const PutUpdatePactService = async (
       name: pact.name,
       tipo: pact.tipo,
       estado: pact.estado,
+      
     },
     { headers: { "Content-Type": "application/json" } }
   );

@@ -28,7 +28,7 @@ export const getallEmployesModel = async (): Promise<NewEmploye[]> => {
     .join("units as un", "un.id_units", "e.id_units")
     .join("subdireccion as sd", "sd.id_subdireccion", "e.id_subdireccion")
     .join("direction as d", "d.id_direction", "e.id_direction")
-    
+    .orderBy("u.created_at", "asc");
 };
 // Get by id_employes model
 export async function getEmployeByIdModel(

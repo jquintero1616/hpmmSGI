@@ -7,7 +7,6 @@ import {
   ArchiveBoxIcon,
   CubeIcon,
   TagIcon,
-  ExclamationTriangleIcon,
   ArrowsRightLeftIcon,
   ClipboardDocumentListIcon,
   ShoppingCartIcon,
@@ -182,8 +181,8 @@ const SubMenu: React.FC<SubMenuProps> = ({
     if (
       path.includes("/products") ||
       path.includes("/category") ||
-      path.includes("/subcategory") ||
-      path.includes("/stock-critico")
+      path.includes("/subcategory") 
+      
     ) {
       return {
         icon: "text-green-500",
@@ -390,11 +389,7 @@ export function Sidebar() {
         { label: "Productos", path: "/products", icon: CubeIcon },
         { label: "Categorías", path: "/category", icon: TagIcon },
         { label: "Subcategorías", path: "/subcategory", icon: TagIcon },
-        {
-          label: "Stock Crítico",
-          path: "/stock-critico",
-          icon: ExclamationTriangleIcon,
-        },
+        
       ],
       providers: [
         {
@@ -494,7 +489,7 @@ export function Sidebar() {
     [location.pathname]
   );
 
-  const isTecnicoAlmacen = roleName === "Tecnico Almacen";
+  ;
 
   return (
     <div

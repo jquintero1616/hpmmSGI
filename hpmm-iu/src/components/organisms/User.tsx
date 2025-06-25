@@ -172,9 +172,15 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     );
   };
 
+  // Valida que el correo sea institucional
+  const isHpmmEmail = (email: string) => /^[\w.-]+@hpmm\.com$/i.test(email.trim());
+
   // Validación para el formulario de crear usuario
   const validateCreate = (values: any) => {
     const errors: any = {};
+    if (!isHpmmEmail(values.email)) {
+      errors.email = "El correo debe ser institucional (@hpmm.com)";
+    }
     if (isEmailTaken(values.email)) {
       errors.email = "El correo ya está registrado en otro usuario.";
     }
@@ -184,6 +190,9 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Validación para el formulario de editar usuario
   const validateEdit = (values: any) => {
     const errors: any = {};
+    if (!isHpmmEmail(values.email)) {
+      errors.email = "El correo debe ser institucional (@hpmm.com)";
+    }
     if (
       itemToEdit &&
       values.email.trim().toLowerCase() !==
@@ -318,6 +327,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               estado: true,
             }}
             fields={userFields}
+            
             onSubmit={handleSave}
             onCancel={closeAll}
             validate={validateEdit}
@@ -354,6 +364,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           onSubmit={handleCreate}
           onCancel={closeAll}
           validate={validateCreate}
+          
           submitLabel={
             saving ? (
               <span>

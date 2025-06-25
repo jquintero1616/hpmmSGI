@@ -48,6 +48,7 @@ interface GenericFormProps<T> {
   onAddItem?: (item: T) => void;
   onChange?: (values: T, prevValues?: T) => void; // <-- Cambia aquí
   fullScreen?: boolean; // <-- NUEVO
+  readOnly?: boolean; // <-- NUEVO
 }
 
 function normalizeOptions(o?: string[] | SelectOption[]): SelectOption[] {
@@ -70,6 +71,7 @@ const GenericForm = <T extends Record<string, any>>({
   onChange,
   title = "Formulario Genérico",
   fullScreen = false,
+  readOnly = false, // <-- NUEVO
 }: GenericFormProps<T>) => {
   // Solo inicializa una vez
   const [values, setValues] = useState<T>(initialValues);
@@ -123,7 +125,6 @@ const GenericForm = <T extends Record<string, any>>({
   const validateAll = () => {
     let newErrors: Record<string, string> = {};
 
-    // 1. Validar campos requeridos y formato SIEMPRE
     fields.forEach((field) => {
       const value = values[field.name];
       const fieldValue = value?.toString().trim();
@@ -157,10 +158,16 @@ const GenericForm = <T extends Record<string, any>>({
               }
             }
             break;
+          case "tel":
+            // Validación para teléfonos de Honduras: exactamente 8 dígitos
+            if (!/^\d{8}$/.test(fieldValue)) {
+              newErrors[field.name] = "El número debe tener exactamente 8 dígitos";
+            }
+            break;
           case "password":
-            if (fieldValue.length < 6) {
+            if (fieldValue.length < 4) {
               newErrors[field.name] =
-                "La contraseña debe tener al menos 6 caracteres";
+                "La contraseña debe tener al menos 4 caracteres";
             }
             break;
         }
@@ -213,7 +220,7 @@ const GenericForm = <T extends Record<string, any>>({
       case "email":
         return "ejemplo@correo.com";
       case "tel":
-        return "Número de teléfono"; // Placeholder más genérico
+        return "Número de teléfono"; 
       case "number":
         return "Ingrese un número";
       case "password":
@@ -251,9 +258,10 @@ const GenericForm = <T extends Record<string, any>>({
             onChange={handleChange}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
             disabled={
-              typeof field.disabled === "function"
+              readOnly ||
+              (typeof field.disabled === "function"
                 ? field.disabled(values)
-                : field.disabled ?? false
+                : field.disabled ?? false)
             }
             aria-invalid={hasError}
           />
@@ -274,9 +282,10 @@ const GenericForm = <T extends Record<string, any>>({
           placeholder={getPlaceholder(field)}
           className={commonClasses}
           disabled={
-            typeof field.disabled === "function"
+            readOnly ||
+            (typeof field.disabled === "function"
               ? field.disabled(values)
-              : field.disabled ?? false
+              : field.disabled ?? false)
           }
           defaultValue={field.defaultValue?.toString()}
         />
@@ -293,6 +302,7 @@ const GenericForm = <T extends Record<string, any>>({
           rows={field.rows || 3}
           className={`${commonClasses} resize-vertical`}
           aria-invalid={hasError}
+          disabled={readOnly}
         />
       );
     }
@@ -311,9 +321,10 @@ const GenericForm = <T extends Record<string, any>>({
         {...(field.type === "number" &&
           field.max !== undefined && { max: field.max })}
         disabled={
-          typeof field.disabled === "function"
+          readOnly ||
+          (typeof field.disabled === "function"
             ? field.disabled(values)
-            : field.disabled ?? false
+            : field.disabled ?? false)
         }
       />
     );
@@ -369,26 +380,28 @@ const GenericForm = <T extends Record<string, any>>({
               )}
             </div>
           ))}
-        <div className="flex justify-end space-x-3 mt-6">
-          {cancelLabel && (
-            <Button
-              type="button"
-              onClick={onCancel}
-              className="px-5 py-2 bg-hpmm-rojo-claro text-gray-700 hover:bg-hpmm-rojo-oscuro transition-colors"
-            >
-              {cancelLabel}
-            </Button>
-          )}
-          {submitLabel && (
-            <Button
-              type="submit"
-              className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={submitDisabled}
-            >
-              {submitLabel}
-            </Button>
-          )}
-        </div>
+        {!readOnly && ( // <-- OCULTA BOTONES EN SOLO LECTURA
+          <div className="flex justify-end space-x-3 mt-6">
+            {cancelLabel && (
+              <Button
+                type="button"
+                onClick={onCancel}
+                className="px-5 py-2 bg-hpmm-rojo-claro text-gray-700 hover:bg-hpmm-rojo-oscuro transition-colors"
+              >
+                {cancelLabel}
+              </Button>
+            )}
+            {submitLabel && (
+              <Button
+                type="submit"
+                className="px-6 py-2 bg-hpmm-azul-claro text-white hover:bg-hpmm-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={submitDisabled}
+              >
+                {submitLabel}
+              </Button>
+            )}
+          </div>
+        )}
       </form>
     </div>
   );

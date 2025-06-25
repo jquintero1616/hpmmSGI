@@ -7,8 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_noti").primary().defaultTo(knex.raw("uuid_generate_v4()"));
     table.uuid("id_user").notNullable();
     table.string("mensaje").notNullable();
-    table.enu("tipo", ["Pendiente", "Enviado", "Leido"]).notNullable()
-  .defaultTo("Sin notificaciones");
+    table.enu("tipo", ["Pendiente", "Enviado", "Leido"]).notNullable()  .defaultTo("Sin notificaciones");
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
 

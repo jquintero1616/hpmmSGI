@@ -120,10 +120,12 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
     kardex: kardexInterface
   ): Promise<void> => {
     try {
-      await PutUpdateKardexService(id_kardex, kardex, axiosPrivate);
+      // Excluimos id_kardex del payload
+      const { id_kardex: _, ...kardexSinId } = kardex;
+      await PutUpdateKardexService(id_kardex, kardexSinId, axiosPrivate);
       setKardex((prev) =>
         prev.map((item) =>
-          item.id_kardex === id_kardex ? { ...item, ...kardex } : item
+          item.id_kardex === id_kardex ? { ...item, ...kardexSinId } : item
         )
       );
     } catch (error) {

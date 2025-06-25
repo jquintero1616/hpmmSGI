@@ -40,7 +40,9 @@ const baseKardexQuery = () =>
       'v.nombre_contacto as nombre_contacto_vendedor',
       's.shopping_order_id as nombre_de_factura',
       'sup.nombre as nombre_proveedor',
-      'k.created_at'
+      'k.created_at',
+      "k.id_shopping",
+      "k.rfid",
     )
     .leftJoin('units_x_pacts as pa', 'pa.id_units_x_pacts', 'k.id_units_x_pacts')
     .leftJoin('shopping as s', 's.id_shopping', 'k.id_shopping')
@@ -103,69 +105,18 @@ export const createKardexModel = async (
   return createdKardex;
 };
 
-export async function updateKardexModel(
-  id_kardex: string,
-  id_product: string,
-  id_units_x_pacts: string,
-  id_shopping: string,
-  anio_creacion: string,
-  tipo_movimiento: "Entrada" | "Salida",
-  fecha_movimiento: Date,
-  numero_factura: string,
-  cantidad: number,
-  precio_unitario: number,
-  tipo_solicitud: "Requisicion" | "Pacto",
-  requisicion_numero: string,
-  tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado",
-  cantidad_comprada: number,
-  cantidad_solicitada: number,
-  id_scompra: string,
-  nombre_producto: string,
-  isv: number,
-  total: number,
-  id_vendedor: string,
-  rfid: string,
-  observacion: string,
-  //--
-  descripcion: string,
-  fecha_vencimiento: Date,
-  numero_lote: string,
-  //-----
-  estado: boolean,
-  id_empleado_solicitud_f: string
-): Promise<NewKardex | null> {
+export async function updateKardexModel({
+  kardexEdit,
+  id_kardex,
+}: {
+  kardexEdit: NewKardex;
+  id_kardex: string;
+}): Promise<NewKardex | null> {
   const updated_at = new Date();
+
   const [updatedKardex] = await knexTableName()
     .where({ id_kardex })
-    .update({
-      id_product,
-      id_shopping,
-      id_units_x_pacts,
-      anio_creacion,
-      tipo_movimiento,
-      fecha_movimiento,
-      numero_factura,
-      cantidad,
-      precio_unitario,
-      tipo_solicitud,
-      requisicion_numero,
-      tipo,
-      descripcion,
-      fecha_vencimiento,
-      numero_lote,
-      cantidad_comprada,
-      cantidad_solicitada,
-      id_scompra,
-      nombre_producto,
-      isv,
-      total,
-      id_vendedor,
-      rfid,
-      observacion,
-      estado,
-      updated_at,
-      id_empleado_solicitud_f,
-    })
+    .update({ ...kardexEdit, updated_at })
     .returning("*");
   return updatedKardex || null;
 }

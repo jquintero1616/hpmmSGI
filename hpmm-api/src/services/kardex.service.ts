@@ -34,65 +34,9 @@ export const createKardexService = async (
   }
 };
 
-export const updateKardexService = async (
-  id: string,
-  id_product: string,
-  id_shopping: string,
-  id_pacts: string,
-  anio_creacion: string,
-  tipo_movimiento: "Entrada" | "Salida",
-  fecha_movimiento: Date,
-  numero_factura: string,
-  cantidad: number,
-  precio_unitario: number,
-  tipo_solicitud: "Requisicion" | "Pacto",
-  requisicion_numero: string,
-  tipo: "Aprobado" | "Rechazado" | "Pendiente"  | "Cancelado",
-  observacion: string,
-  descripcion: string,
-  fecha_vencimiento: Date,
-  numero_lote: string,
-  estado: boolean,
-  id_empleado_solicitud_f: string,
-  cantidad_comprada: number,
-  cantidad_solicitada: number,
-  id_scompra: string,
-  nombre_producto: string,
-  isv: number,
-  total: number,
-  id_vendedor: string,
-  rfid: string
-): Promise<NewKardex | null> => {
+export const updateKardexService = async ({kardexEdit, id_kardex}: {kardexEdit: NewKardex, id_kardex: string}): Promise<NewKardex | null> => {
   try {
-    return await KardexModel.updateKardexModel(
-      id,
-      id_product,
-      id_pacts,
-      id_shopping,
-      anio_creacion,
-      tipo_movimiento,
-      fecha_movimiento,
-      numero_factura,
-      cantidad,
-      precio_unitario,
-      tipo_solicitud,
-      requisicion_numero,
-      tipo,
-      cantidad_comprada,
-      cantidad_solicitada,
-      id_scompra,
-      nombre_producto,
-      isv,
-      total,
-      id_vendedor,
-      rfid,
-      observacion,
-      descripcion,
-      fecha_vencimiento,
-      numero_lote,
-      estado,
-      id_empleado_solicitud_f
-    );
+    return await KardexModel.updateKardexModel({ kardexEdit, id_kardex });
   } catch (error) {
     logger.error("Error updating kardex", error);
     throw error;

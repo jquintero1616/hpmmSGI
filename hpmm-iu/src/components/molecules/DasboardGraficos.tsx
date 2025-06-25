@@ -15,6 +15,10 @@ const DashboardGraficos = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    console.log("products:", products);
+  }, [products]);
+
   // 1. Entradas por Unidad (basado en kardex + kardexDetail)
   const entradasAprobadas = kardex.filter(
     (k) => k.tipo_movimiento === "Entrada" && k.estado === true && k.tipo === "Aprobado"
@@ -88,6 +92,20 @@ const DashboardGraficos = () => {
     cantidad: productosPorVencer[producto],
   }));
 
+  // 5. Productos de Baja Existencia (basado en productos)
+  const productosBajaExistencia = products.filter(
+    (p) =>
+      p.stock_actual !== undefined &&
+      p.stock_minimo !== undefined &&
+      Number(p.stock_actual) <= Number(p.stock_minimo)
+  );
+
+  const chartBajaExistencia = productosBajaExistencia.map((p) => ({
+    producto: p.nombre,
+    existencia: Number(p.stock_actual),
+    stock_minimo: Number(p.stock_minimo),
+  }));
+
   return (
     <div className="pt-8 pb-8 px-8">
       <h1 className="text-2xl font-bold mb-8">Dashboard de Gráficos</h1>
@@ -97,39 +115,31 @@ const DashboardGraficos = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-          <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-between">
-            <CustomBarChart
-              data={chartEntradasUnidad}
-              xKey="unidad"
-              barKey="cantidad"
-              title="Entradas por Unidad"
-            />
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-between">
-            <CustomBarChart
-              data={chartEntradasProducto}
-              xKey="producto"
-              barKey="cantidad"
-              title="Entradas por Producto"
-            />
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-between">
-            <CustomBarChart
-              data={chartEntradasSolicitante}
-              xKey="solicitante"
-              barKey="cantidad"
-              title="Entradas por Solicitante"
-            />
-          </div>
-          <div className="bg-white rounded-xl shadow-md p-8 flex flex-col justify-between">
-            <CustomBarChart
-              data={chartVencimiento}
-              xKey="producto"
-              barKey="cantidad"
-              title="Productos por vencer en 30 días"
-              layout="horizontal"
-            />
-          </div>
+          <CustomBarChart
+            data={chartEntradasUnidad}
+            xKey="unidad"
+            barKey="cantidad"
+            title="Entradas por Unidad"
+          />
+          <CustomBarChart
+            data={chartEntradasProducto}
+            xKey="producto"
+            barKey="cantidad"
+            title="Entradas por Producto"
+          />
+          <CustomBarChart
+            data={chartVencimiento}
+            xKey="producto"
+            barKey="cantidad"
+            title="Productos por vencer en 30 días"
+            layout="horizontal"
+          />
+          <CustomBarChart
+            data={chartBajaExistencia}
+            xKey="producto"
+            barKey="existencia"
+            title="Productos con Baja Existencia"
+          />
         </div>
       )}
     </div>

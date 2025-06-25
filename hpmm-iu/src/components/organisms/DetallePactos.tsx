@@ -167,7 +167,7 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
     {
       name: "id_pacts",
-      label: "Pacto",
+      label: "Frecuencia",
       type: "select",
       options: pacts.map((p) => ({ label: p.name ?? "", value: p.id_pacts })),
       required: true,

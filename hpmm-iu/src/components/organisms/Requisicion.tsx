@@ -18,6 +18,7 @@ import { useEmploye } from "../../hooks/use.Employe";
 import { useProducts } from "../../hooks/use.Product";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { useAuth } from "../../hooks/use.Auth"; // Asegúrate de tener este hook
+import { formattedDate } from "../../helpers/formatData";
 
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
@@ -132,18 +133,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       type: "date",
       required: true,
     },
-    {
-      name: "estado",
-      label: "Estado",
-      type: "select",
-      options: [
-        { label: "Pendiente", value: "Pendiente" },
-        { label: "Aprobado", value: "Aprobado" },
-        { label: "Rechazado", value: "Rechazado" },
-        { label: "Cancelado", value: "Cancelado" },
-      ],
-      required: true,
-    },
+    
     {
       name: "cantidad",
       label: "Cantidad",
@@ -155,6 +145,18 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       label: "Descripción",
       type: "textarea",
       required: false,
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      options: [
+        { label: "Pendiente", value: "Pendiente" },
+        { label: "Aprobado", value: "Aprobado" },
+        { label: "Rechazado", value: "Rechazado" },
+        { label: "Cancelado", value: "Cancelado" },
+      ],
+      required: true,
     },
   ];
 
@@ -524,7 +526,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               : {
                   id_product: "",
                   id_employes: "",
-                  fecha: new Date().toISOString().slice(0, 10),
+                  fecha: formattedDate(),
                   estado: "Pendiente",
                   descripcion: "",
                   cantidad: 0,
@@ -577,7 +579,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                 Creando...
               </span>
             ) : (
-              "Crear todas"
+              "Ingresar Requisiciónes"
             )}
           </Button>
           <Button

@@ -21,6 +21,7 @@ export interface Action<T> {
   label: React.ReactNode;
   onClick: (row: T) => void;
   disabled?: (row: T) => boolean; // <-- Agregado aquí
+  show?: (row: T) => boolean;
 }
 
 interface GenericTableProps<T> {
@@ -161,6 +162,18 @@ const GenericTable = <T extends Record<string, any>>({
       setSortDirection("asc");
     }
   };
+  function validarSoloCorreoHpmm(values: any) {
+  const errors: Record<string, string> = {};
+  if (
+    values.email &&
+    !/^[\w.-]+@hpmm\.com$/i.test(values.email.trim())
+  ) {
+    errors.email = "El correo debe ser institucional (@hpmm.com)";
+  }
+  return errors;
+}
+
+
 
   // Manejar cambio en input de filtro
   const handleFilterChange = (colKey: string, value: string) => {
@@ -565,6 +578,7 @@ const GenericTable = <T extends Record<string, any>>({
                       {!editable &&
                         actions.map((act, idx) => {
                           if (act.disabled && act.disabled(row)) return null;
+                          if (act.show && !act.show(row)) return null; // <-- Oculta si show es false
                           return (
                             <Button
                               key={`${uniqueRowKey}-action-${idx}`}
@@ -620,3 +634,6 @@ const GenericTable = <T extends Record<string, any>>({
 };
 
 export default GenericTable;
+
+
+

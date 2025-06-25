@@ -118,7 +118,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           <span className="ml-2 text-sm text-gray-600">Recuérdame</span>
         </label>
 
-        {onForgotPassword && (
+        {/* {onForgotPassword && (
           <button
             type="button"
             onClick={onForgotPassword}
@@ -127,7 +127,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           >
             ¿Olvidaste tu contraseña?
           </button>
-        )}
+        )} */}
       </div>
 
       {error && <ErrorMessage message={error} />}

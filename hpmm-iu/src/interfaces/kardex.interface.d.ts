@@ -1,5 +1,5 @@
 export interface kardexInterface {
-  id_kardex: string;
+  id_kardex?: string;
   id_scompra?: string; // ID de la orden de compra
   id_vendedor?: string; // ID del vendedor
   fecha_compra?: Date; // Fecha de la orden de compra
@@ -44,10 +44,14 @@ export interface KardexEdit {
   shopping_order_id: string;
   numero_cotizacion: string;
   numero_pedido: string;
+  rfid: string;
+  tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
 }
 
 export interface KardexDetail extends ShoppingInterface {
   isv?: number; // ISV del producto
+  id_empleado_solicitud_f?: string,
+  id_empleado_sf: string; // ID del empleado que hizo la solicitud en el sistema de facturación
   id_kardex: string;
   id_product?: string;
   shopping_order_id?: string; // ID de la orden de compra
@@ -59,7 +63,7 @@ export interface KardexDetail extends ShoppingInterface {
   estado: boolean; // Estado del movimiento
   id_supplier?: string; // ID del proveedor
   nombre: string; // ID del producto
-  id_units_x_pacts: string; // ID de las unidades por pacto
+  id_units_x_pacts?: string; // ID de las unidades por pacto
   nombre_unidad: string; // nombre de la unidad
   nombre_de_factura: string; // ID de la orden de compra
   name: string; // nombre del empleado

@@ -14,7 +14,8 @@ export const getAllUsersModel = async (): Promise<NewUser[]> => {
       "u.updated_at",
       "r.name as role_name",
       "r.id_rol as id_rol"
-    );
+    )
+    .orderBy("u.created_at", "asc"); // Ordena del primero que ingresó al último
 };
 // User Id model
 export async function getUserByIdModel(

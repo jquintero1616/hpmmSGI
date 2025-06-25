@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as KardexService from "../services/kardex.service";
 import { asyncWrapper } from "../utils/errorHandler";
-import { NewKardex } from "../types/kardex";
+import { KardexDetail, NewKardex } from "../types/kardex";
 
 // Obtener detalles de Kardex con filtros y paginación
 export const getKardexDetailsController = asyncWrapper(
@@ -82,66 +82,19 @@ export const createKardexController = asyncWrapper(
 export const updateKardexController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const id_kardex = (req.params.id || "").trim();
-    const {
-      id_product,
-      id_shopping,
-      id_units_x_pacts,
-      anio_creacion,
-      tipo_movimiento,
-      fecha_movimiento,
-      numero_factura,
-      cantidad,
-      precio_unitario,
-      tipo_solicitud,
-      requisicion_numero,
-      tipo,
-      observacion,
-      descripcion,
-      fecha_vencimiento,
-      numero_lote,
-      cantidad_comprada,
-      cantidad_solicitada,
-      id_scompra,
-      nombre_producto,
-      isv,
-      total,
-      id_vendedor,
-      rfid,
-      estado,
-    } = req.body;
 
     // Auditoría
     const id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
 
-    const updatedKardex = await KardexService.updateKardexService(
-      id_kardex,
-      id_product,
-      id_units_x_pacts,
-      id_shopping,
-      anio_creacion,
-      tipo_movimiento,
-      fecha_movimiento,
-      numero_factura,
-      cantidad,
-      precio_unitario,
-      tipo_solicitud,
-      requisicion_numero,
-      tipo,
-      observacion,
-      descripcion,
-      fecha_vencimiento,
-      numero_lote,
-      estado,
+    const kardexEdit = {
+      ...req.body,
       id_empleado_solicitud_f,
-      cantidad_comprada,
-      cantidad_solicitada,
-      id_scompra,
-      nombre_producto,
-      isv,
-      total,
-      id_vendedor,
-      rfid
-    );
+    };
+
+    const updatedKardex = await KardexService.updateKardexService({
+      kardexEdit,
+      id_kardex,
+    });
 
     if (!updatedKardex) {
       res

@@ -1,5 +1,5 @@
 // src/components/pages/Kardex.tsx
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useKardex } from "../../hooks/use.Kardex";
 import { ShoppingInterface } from "../../interfaces/shopping.interface";
 import { KardexDetail, KardexEdit } from "../../interfaces/kardex.interface";
@@ -12,10 +12,13 @@ import GenericTable, { Column } from "../../components/molecules/GenericTable";
 import { useProducts } from "../../hooks/use.Product";
 import { useShopping } from "../../hooks/use.Shopping";
 import { useDetallePactos } from "../../hooks/use.DetallePactos";
-import { ToastContainer, toast } from "react-toastify"; // Si no lo tienes ya
+import { ToastContainer, toast } from "react-toastify";
 import { formattedDate } from "../../helpers/formatData";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { useVendedor } from "../../hooks/use.vendedor";
+import RFIDScannerModal from "../molecules/RFIDScannerModal";
+import { AuthContext } from "../../contexts/Auth.context";
+import { useLocation } from "react-router-dom";
 
 type KardexRow = KardexDetail & Partial<ShoppingInterface>;
 
@@ -33,13 +36,19 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const { detallePactos, GetDetallePactosContext } = useDetallePactos();
   const { scompras } = useSolicitudCompras();
   const { vendedor } = useVendedor();
+  const location = useLocation();
+
+  // 1. Obtén el contexto de autenticación
+  const auth = useContext(AuthContext);
+  const roleName = auth?.roleName;
+  const idEmployes = auth?.idEmployes;
 
   // 2. ESTADOS (agrupados por función)
   const [loading, setLoading] = useState(true);
-  const [displayData, setDisplayData] = useState<KardexRow[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [filteredData, setFilteredData] = useState<KardexDetail[]>([]);
   const [estadoFiltro] = useState<string>("Todo");
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   // Estados de modales
   const [isOpenModal, setOpenModal] = useState(false);
@@ -57,6 +66,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // NUEVOS ESTADOS para la lista temporal en el modal de creación
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
+  const [rfidScanRow, setRfidScanRow] = useState<string | null>(null); // <-- NUEVO estado
 
   useEffect(() => {
     handleTableContent(kardex);
@@ -116,7 +126,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     },
     {
       header: "Cantidad Recepcionada",
-      accessor: 'cantidad_recepcionada',
+      accessor: "cantidad_recepcionada",
     },
     {
       header: "Precio Unitario",
@@ -166,9 +176,17 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       header: "cantidad",
       accessor: "cantidad",
     },
+    {
+      header: "Estado",
+      accessor: (row) => row.tipo,
+    },
   ];
 
   const kardexListColumns: Column<KardexRow>[] = [
+    {
+      header: "Estado",
+      accessor: (row) => row.tipo,
+    },
     {
       header: "Fecha de Compra",
       accessor: (row) =>
@@ -187,9 +205,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     {
       header: "Cantidad Comprada",
       accessor: (row) => (
-        <span className="font-medium">
-          {Number(row.cantidad_comprada).toFixed(2)}
-        </span>
+        <span className="font-medium">{Number(row.cantidad).toFixed(2)}</span>
       ),
     },
     {
@@ -265,8 +281,32 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     },
     {
       header: "RFID",
-      accessor: "rfid",
-      editable: true,
+      accessor: (row) => (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="text"
+            value={row.rfid || ""}
+            readOnly
+            style={{ width: 120 }}
+          />
+          <button
+            type="button"
+            title="Escanear RFID"
+            onClick={() => setRfidScanRow(row.id_shopping)}
+            style={{
+              background: "#1976d2",
+              color: "#fff",
+              border: "none",
+              borderRadius: 4,
+              padding: "2px 8px",
+              cursor: "pointer",
+            }}
+          >
+            📡
+          </button>
+        </div>
+      ),
+      editable: false, // El input no es editable manualmente
     },
   ];
 
@@ -347,11 +387,21 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     });
   };
 
+  // Utilidad para comparar dos objetos shallow (puedes usar una comparación profunda si lo necesitas)
+  const isObjectEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
+
   const isEditListChanged = () => {
-    if (!itemToEditList || !originalItemToEditList) return false;
-    return (
-      JSON.stringify(itemToEditList) !== JSON.stringify(originalItemToEditList)
-    );
+    if (!originalItemToEditList || !dataListForm) return false;
+    if (originalItemToEditList.length !== dataListForm.length) return true;
+
+    for (let i = 0; i < originalItemToEditList.length; i++) {
+      const original = originalItemToEditList[i];
+      const current = dataListForm[i];
+      if (!isObjectEqual(original, current)) {
+        return true; // Hay al menos un cambio
+      }
+    }
+    return false; // Todos los objetos son iguales
   };
 
   // 4. EFFECTS
@@ -367,7 +417,22 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   useEffect(() => {
     let data = [...kardexDetail];
-    if (status !== "Todo") data = data.filter((item) => item.tipo === status);
+
+    // Filtrado según la URL
+    if (location.pathname === "/kardex") {
+      data = data.filter((item) => item.tipo === "Aprobado");
+    } else if (location.pathname === "/KardexRechazadas") {
+      data = data.filter((item) => item.tipo === "Rechazado");
+    } else if (location.pathname === "/KardexPendiente") {
+      data = data.filter((item) => item.tipo === "Pendiente");
+    } else if (location.pathname === "/KardexCancelada") {
+      data = data.filter((item) => item.tipo === "Cancelado");
+    } else if (location.pathname === "/KardexHistorico") {
+      // No filtrar, mostrar todo
+    } else if (status !== "Todo") {
+      data = data.filter((item) => item.tipo === status);
+    }
+
     data.sort(
       (a, b) =>
         new Date(a.fecha_movimiento).getTime() -
@@ -392,8 +457,14 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       };
     });
 
-    setDisplayData(processed);
-  }, [kardexDetail, status, shopping]);
+    setFilteredData(processed);
+  }, [kardexDetail, status, shopping, location.pathname]);
+
+  // Filtrado para mostrar solo los registros propios, excepto para roles especiales
+  const filteredDataByRole =
+    roleName === "Super Admin" || roleName === "Jefe Almacen"
+      ? filteredData
+      : filteredData.filter((row) => row.id_empleado_sf === idEmployes);
 
   if (loading) return <div>Cargando kardex…</div>;
 
@@ -420,9 +491,9 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         numero_factura: producto.shopping_order_id,
         id_product: producto.id_product,
         nombre_producto: producto.nombre_producto,
-        cantidad_comprada: producto.cantidad_comprada || 0,
+        cantidad: producto.cantidad_comprada || 0,
         cantidad_solicitada: producto.cantidad_solicitada || 0,
-        cantidad: producto.cantidad_comprada ?? producto.cantidad ?? 0,
+        cantidad_recepcionada: producto.cantidad_recepcionada || 0,
         precio_unitario: producto.precio_unitario || 0,
         isv: producto.ISV || 0,
         total: producto.total || 0,
@@ -430,10 +501,10 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         fecha_movimiento: formattedDate(),
         tipo: "Pendiente",
         id_vendedor: producto.id_vendedor || "",
-        rfid: producto.rfid || "",
+        rfid: producto.rfid || producto.rfid || "",
         anio_creacion: new Date().getFullYear(),
         tipo_solicitud: producto.id_scompra ? "Requisicion" : "Pacto",
-        requisicion_numero: producto.requisicion_numero || ""
+        requisicion_numero: producto.requisicion_numero || "",
       }));
 
       return productosFormateados;
@@ -465,7 +536,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     setSaving(true);
     try {
       // CORRIGE ESTA CONDICIÓN:
-      if (itemToEditList && !isEditListChanged()) {
+      if (!isEditListChanged()) {
         toast.warning(
           "No se realizaron cambios. Por favor, edite algún valor antes de guardar."
         );
@@ -474,18 +545,23 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       }
 
       for (const item of dataListForm) {
-        const existeEnKardex = item.id_shopping
+        const existeEnShopping = item.id_shopping
           ? kardex.some((s) => s.id_shopping === item.id_shopping)
+          : false;
+
+        const existeEnKardex = item.id_kardex
+          ? kardex.some((s) => s.id_kardex === item.id_kardex)
           : false;
 
         // Asegúrate de que cantidad esté presente y sea un número
         const itemConCantidad = {
           ...item,
           cantidad: Number(item.cantidad) || 0,
+          isv: item.isv ? 0.15 : 0, // Asegúrate de que isv sea un número
         };
 
-        if (existeEnKardex) {
-          await PutUpdateKardexContext(item.id_shopping, itemConCantidad);
+        if (existeEnKardex && existeEnShopping) {
+          await PutUpdateKardexContext(item.id_kardex, itemConCantidad);
         } else {
           await PostCreateKardexContext(itemConCantidad);
         }
@@ -521,10 +597,34 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         shopping_order_id: item.shopping_order_id,
         numero_cotizacion: item.numero_cotizacion,
         numero_pedido: item.numero_pedido,
+        rfid: item.rfid,
+        tipo: item.tipo,
       });
       setOpenModal(true);
+      setIsReadOnly(false); // Editable
+      setItemToEditList(item);
+      setOriginalItemToEditList(item);
+      setDataListForm([item]);
+    } else {
+      toast.error("No se encontró la compra seleccionada.");
+    }
+  };
 
-      // NUEVO: Prepara el registro para edición en la lista
+  const openView = (id_kardex: string) => {
+    const item = kardex.find((k) => k.id_kardex === id_kardex);
+    if (item) {
+      setItemToEdit({
+        id_scompra: item.id_scompra,
+        id_vendedor: item.id_vendedor,
+        fecha_compra: item.fecha_compra,
+        shopping_order_id: item.shopping_order_id,
+        numero_cotizacion: item.numero_cotizacion,
+        numero_pedido: item.numero_pedido,
+        rfid: item.rfid,
+        tipo: item.tipo,
+      });
+      setOpenModal(true);
+      setIsReadOnly(true); // Solo lectura
       setItemToEditList(item);
       setOriginalItemToEditList(item);
       setDataListForm([item]);
@@ -577,16 +677,81 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // Handlers específicos
   // Función helper para cambiar estado del kardex
-  const changeKardexStatus = (row: KardexDetail, newStatus: string) => {
+  const changeKardexStatus = async (
+    row: KardexDetail,
+    newStatus: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado"
+  ) => {
     const item = kardex.find((k) => k.id_kardex === row.id_kardex);
     if (item) {
-      setItemToEdit({ ...item, tipo: newStatus });
-      setEditOpen(true);
+      setSaving(true);
+      try {
+        await PutUpdateKardexContext(item.id_kardex, {
+          ...item,
+          tipo: newStatus,
+        });
+        toast.success(`Estado cambiado a ${newStatus}`);
+        await GetKardexContext();
+      } catch (error) {
+        toast.error("Error al cambiar el estado");
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
   const getActionsForStatus = (status: string) => {
     switch (status) {
+      case "Pendiente":
+        return [
+          // Solo Jefe Almacen puede aprobar o rechazar
+          ...(roleName === "Jefe Almacen" || roleName === "Super Admin"
+            ? [
+                {
+                  header: "Acciones",
+                  label: "Aprobar",
+                  onClick: (row: KardexDetail) =>
+                    changeKardexStatus(row, "Aprobado"),
+                },
+                {
+                  header: "Acciones",
+                  label: "Rechazar",
+                  onClick: (row: KardexDetail) => openDelete(row.id_kardex),
+                },
+              ]
+            : []),
+          // Solo el solicitante puede cancelar o editar
+          {
+            header: "Acciones",
+            label: "Cancelar",
+            onClick: (row: KardexDetail) =>
+              row.id_empleado_sf === idEmployes
+                ? changeKardexStatus(row, "Cancelado")
+                : undefined,
+            show: (row: KardexDetail) =>
+              row.id_empleado_sf === idEmployes,
+          },
+          {
+            header: "Acciones",
+            label: "Editar",
+            onClick: (row: KardexDetail) =>
+              row.id_empleado_sf === idEmployes
+                ? openEdit(row.id_kardex)
+                : undefined,
+            show: (row: KardexDetail) =>
+              row.id_empleado_sf === idEmployes,
+          },
+        ].filter(
+          (action) =>
+            !action.show || (typeof action.show === "function" && action.show)
+        );
+      case "Aprobado":
+        return [
+          {
+            header: "Acciones",
+            label: "Ver",
+            onClick: (row: KardexDetail) => openView(row.id_kardex),
+          },
+        ];
       case "Rechazado":
         return [
           {
@@ -594,30 +759,8 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             label: "Recuperar",
             onClick: (row: KardexDetail) =>
               changeKardexStatus(row, "Pendiente"),
-          },
+          }
         ];
-
-      case "Pendiente":
-        return [
-          {
-            header: "Acciones",
-            label: "Editar",
-            onClick: (row: KardexDetail) => openEdit(row.id_kardex),
-          },
-          {
-            header: "Acciones",
-            label: "Cancelar",
-            onClick: (row: KardexDetail) =>
-              changeKardexStatus(row, "Cancelado"),
-          },
-          {
-            header: "Acciones",
-            label: "Eliminar",
-            onClick: (row: KardexDetail) => openDelete(row.id_kardex),
-          },
-        ];
-
-      case "Aprobado":
       case "Cancelado":
         return [
           {
@@ -625,21 +768,15 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             label: "Ver",
             onClick: (row: KardexDetail) => openEdit(row.id_kardex),
           },
+          {
+            header: "Acciones",
+            label: "Recuperar",
+            onClick: (row: KardexDetail) =>
+              changeKardexStatus(row, "Pendiente"),
+          },
         ];
-
       default:
-        return [
-          {
-            header: "Acciones",
-            label: "Editar",
-            onClick: (row: KardexDetail) => openEdit(row.id_kardex),
-          },
-          {
-            header: "Acciones",
-            label: "Eliminar",
-            onClick: (row: KardexDetail) => openDelete(row.id_kardex),
-          },
-        ];
+        return [];
     }
   };
 
@@ -668,21 +805,9 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
       <GenericTable
         columns={kardexColumns}
-        data={filteredData}
+        data={filteredDataByRole} // <-- usa el filtrado aquí
         rowKey={(row) => row.id_shopping}
-        actions={[
-          {
-            header: "Editar",
-            label: "Editar",
-            onClick: (row) => openEdit(row?.id_kardex),
-          },
-          {
-            header: "Eliminar",
-            label: "Eliminar",
-            onClick: (row) => openDelete(row.id_kardex),
-          },
-        ]}
-        // Filas inactivas with opacidad y tachado
+        actions={getActionsForStatus(status)}
         rowClassName={(row) =>
           row.estado === false ? "opacity-40 line-through" : ""
         }
@@ -714,17 +839,17 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                 )
               );
               setItemToEditList(null);
-              setOriginalItemToEditList(null); // Limpia el original
+              setOriginalItemToEditList(null);
             }}
             onCancel={() => {
               setItemToEditList(null);
-              setOriginalItemToEditList(null); // Limpia el original
+              setOriginalItemToEditList(null);
             }}
             validate={validateCreate}
-            submitLabel="Guardar cambios"
             title="Editar compra de la lista"
             submitDisabled={saving}
             onChange={(values) => setItemToEditList(values)}
+            readOnly={isReadOnly} // <-- Solo lectura
           />
         ) : (
           <GenericForm
@@ -750,11 +875,12 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             }
             submitDisabled={saving}
             onChange={handleFormChange}
+            readOnly={isReadOnly} // <-- Solo lectura
           />
         )}
         <GenericTable
           fullScreen={true}
-          editable={true}
+          editable={!isReadOnly} // <-- Solo editable si no es solo lectura
           columns={kardexListColumns}
           data={dataListForm}
           rowKey={(row) => row.id_shopping}
@@ -763,25 +889,46 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             row.estado === false ? "opacity-40 line-through" : ""
           }
         />
+        {!isReadOnly ? (
+          <RFIDScannerModal
+            isOpen={!!rfidScanRow}
+            onClose={() => setRfidScanRow(null)}
+            onScan={(code) => {
+              setDataListForm((prev) =>
+                prev.map((item) =>
+                  item.id_shopping === rfidScanRow
+                    ? { ...item, rfid: code }
+                    : item
+                )
+              );
+              setRfidScanRow(null);
+            }}
+          />
+        ) : null}
+        {/* MODAL DE ESCANEO RFID */}
+
         <div className="mt-4 flex justify-end gap-2">
-          <Button
-            onClick={handleSaveAllList}
-            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
-            disabled={
-              saving ||
-              dataListForm.length === 0 ||
-              (itemToEditList && validateEdition) // <--- aquí usas el flag
-            }
-          >
-            {saving ? (
-              <span>
-                <span className="animate-spin inline-block mr-2">⏳</span>
-                Creando...
-              </span>
-            ) : (
-              "Crear todas"
-            )}
-          </Button>
+          {!isReadOnly ? (
+            <Button
+              onClick={handleSaveAllList}
+              className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+              disabled={
+                saving ||
+                dataListForm.length === 0 //||
+                //(itemToEditList && validateEdition)
+              }
+            >
+              {saving ? (
+                <span>
+                  <span className="animate-spin inline-block mr-2">⏳</span>
+                  Creando...
+                </span>
+              ) : (
+                "Crear todas"
+              )}
+            </Button>
+          ) : null}
+
           <Button
             onClick={() => {
               setItemToEditList(null);
