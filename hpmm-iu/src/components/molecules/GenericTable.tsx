@@ -34,6 +34,7 @@ interface GenericTableProps<T> {
   editable?: boolean;
   onEditRow?: (rowKey: string, newValues: Partial<T>) => void;
   fullScreen?: boolean; // <-- NUEVO
+  inputProps_?: React.InputHTMLAttributes<HTMLInputElement>; // <-- NUEVO
 }
 
 const GenericTable = <T extends Record<string, any>>({

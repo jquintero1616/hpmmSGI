@@ -49,6 +49,7 @@ export interface KardexEdit {
 }
 
 export interface KardexDetail extends ShoppingInterface {
+  inputProps?: KardexEdit; // Propiedades para editar el kardex
   isv?: number; // ISV del producto
   id_empleado_solicitud_f?: string,
   id_empleado_sf: string; // ID del empleado que hizo la solicitud en el sistema de facturación

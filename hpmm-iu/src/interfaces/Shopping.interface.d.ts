@@ -2,6 +2,7 @@ import { RequisiDetail } from "./Requisition.interface";
 
 export interface ShoppingInterface extends Partial<RequisiDetail> {
   id_shopping: string;
+  cantidad_recepcionada?: number; // Optional, as it may not be present in all contexts
   id_scompra: string;
   id_vendedor: string;
   vendedor_nombre?: string; // Optional, as it may not be present in all contexts

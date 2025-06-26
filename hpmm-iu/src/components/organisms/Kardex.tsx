@@ -19,6 +19,7 @@ import { useVendedor } from "../../hooks/use.vendedor";
 import RFIDScannerModal from "../molecules/RFIDScannerModal";
 import { AuthContext } from "../../contexts/Auth.context";
 import { useLocation } from "react-router-dom";
+import { useRequisicion } from "../../hooks/use.Requisicion"; // <--- Agrega este import
 
 type KardexRow = KardexDetail & Partial<ShoppingInterface>;
 
@@ -31,12 +32,13 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     PutUpdateKardexContext,
     DeleteKardexContext,
   } = useKardex();
-  const { shopping, GetShoppingContext } = useShopping();
+  const { shopping, GetShoppingContext, PutShoppingContext } = useShopping();
   const { GetProductsContext } = useProducts();
   const { detallePactos, GetDetallePactosContext } = useDetallePactos();
   const { scompras } = useSolicitudCompras();
   const { vendedor } = useVendedor();
   const location = useLocation();
+  const { PutUpdateRequisicionContext } = useRequisicion(); // <--- Usa el hook aquí
 
   // 1. Obtén el contexto de autenticación
   const auth = useContext(AuthContext);
@@ -111,7 +113,6 @@ const cargarProductosParaSalida = (id_shopping : string) => {
   return productosAprobados.map((item) => ({
     ...item,
     tipo_movimiento: "Salida",
-    cantidad: 0, // El usuario debe ingresar la cantidad a sacar
   }));
 };
 
@@ -261,6 +262,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       header: "Cantidad Recepcionada",
       accessor: "cantidad_recepcionada",
       editable: true,
+      editType: "number",
     },
     {
       header: "Observación",
@@ -330,9 +332,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       name: "tipo_solicitud",
       label: "Solicitud",
       type: "select",
-      options: [
-        { label: "Requisicion", value: "Requisicion" }
-      ],
+      options: [{ label: "Requisicion", value: "Requisicion" }],
       required: true,
     },
     {
@@ -340,10 +340,18 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       label: "Factura",
       type: "select",
       options: shopping
-        .filter(
-          (s, idx, arr) =>
-            arr.findIndex((other) => other.id_scompra === s.id_scompra) === idx
-        )
+        .filter((s, idx, arr) => {
+          if (!isSalida) {
+            // ENTRADA: solo mostrar si está activa
+            return s.estado === true && arr.findIndex(other => other.id_scompra === s.id_scompra) === idx;
+          } else {
+            // SALIDA: mostrar si hay al menos un kardex aprobado con ese id_scompra
+            const existeAprobado = kardex.some(
+              (k) => k.id_scompra === s.id_scompra && k.tipo === "Aprobado"
+            );
+            return existeAprobado && arr.findIndex(other => other.id_scompra === s.id_scompra) === idx;
+          }
+        })
         .map((s) => ({
           label: s.shopping_order_id,
           value: s.id_scompra,
@@ -545,25 +553,36 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     newValues: Partial<ShoppingInterface>
   ) => {
     setDataListForm((prev) =>
-      prev.map((item) =>
-        item.id_shopping === rowKey ? { ...item, ...newValues } : item
-      )
+      prev.map((item) => {
+        if (item.id_shopping === rowKey) {
+          // Validación: cantidad_recepcionada no puede ser mayor a cantidad
+          if (
+            newValues.cantidad_recepcionada !== undefined &&
+            Number(newValues.cantidad_recepcionada) > Number(item.cantidad)
+          ) {
+            toast.error("La cantidad recepcionada no puede ser mayor a la cantidad comprada.");
+            return item; // No actualiza si es inválido
+          }
+          return { ...item, ...newValues };
+        }
+        return item;
+      })
     );
   };
 
   const handleFormChange = async (values: any, prevValues?: any) => {
-      if (values.id_scompra && values.id_scompra !== prevValues?.id_scompra) {
-        const productos = await cargarProductosDeCompra(values.id_scompra);
-        setDataListForm(productos);
-      }
-    } 
+    if (values.id_scompra && values.id_scompra !== prevValues?.id_scompra) {
+      const productos = await cargarProductosDeCompra(values.id_scompra);
+      setDataListForm(productos);
+    }
+  }; 
 
 
   const handleSaveAllList = async () => {
     setSaving(true);
     try {
-      // CORRIGE ESTA CONDICIÓN:
-      if (!isEditListChanged() && !isSalida) {
+      // Solo mostrar el warning si está editando (itemToEditList existe), no es salida y no hay cambios
+      if (itemToEditList && !isEditListChanged() && !isSalida) {
         toast.warning(
           "No se realizaron cambios. Por favor, edite algún valor antes de guardar."
         );
@@ -580,18 +599,20 @@ const cargarProductosParaSalida = (id_shopping : string) => {
           ? kardex.some((s) => s.id_kardex === item.id_kardex)
           : false;
 
-        // Asegúrate de que cantidad esté presente y sea un número
         const itemConCantidad = {
           ...item,
           cantidad: Number(item.cantidad) || 0,
           tipo: "Pendiente",
-          isv: item.isv ? 0.15 : 0, // Asegúrate de que isv sea un número
+          isv: item.isv ? 0.15 : 0,
         };
 
         if (existeEnKardex && existeEnShopping && !isSalida) {
           await PutUpdateKardexContext(item.id_kardex, itemConCantidad);
         } else {
           await PostCreateKardexContext(itemConCantidad);
+          await PutShoppingContext(item.id_shopping, {
+            estado: false,
+          });
         }
       }
 
