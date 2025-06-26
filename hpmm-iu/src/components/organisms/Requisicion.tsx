@@ -529,7 +529,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                   fecha: formattedDate(),
                   estado: "Pendiente",
                   descripcion: "",
-                  cantidad: 0,
+                  cantidad: "",
                   
                 }
           }

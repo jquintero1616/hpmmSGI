@@ -396,17 +396,10 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       vendedor_nombre: vendedorSeleccionado
         ? vendedorSeleccionado.nombre_contacto
         : "",
+      rfid: item.rfid || "",
     };
 
-    setDataListForm((prev: any[]) => {
-      if (Array.isArray(prev)) {
-        return prev.map((element) => ({
-          ...element,
-          ...itemConVendedor,
-        }));
-      }
-      return [];
-    });
+    setDataListForm([itemConVendedor]);
   };
 
   // Utilidad para comparar dos objetos shallow (puedes usar una comparación profunda si lo necesitas)
@@ -487,6 +480,14 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     roleName === "Super Admin" || roleName === "Jefe Almacen"
       ? filteredData
       : filteredData.filter((row) => row.id_empleado_sf === idEmployes);
+
+  // Filtrar Kardex aprobados para entradas y salidas
+  const kardexAprobadosEntrada = filteredDataByRole.filter(
+    (row) => row.tipo === "Aprobado" && row.tipo_movimiento === "Entrada"
+  );
+  const kardexAprobadosSalida = filteredDataByRole.filter(
+    (row) => row.tipo === "Aprobado" && row.tipo_movimiento === "Salida"
+  );
 
   if (loading) return <div>Cargando kardex…</div>;
 
@@ -616,8 +617,8 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         }
       }
 
-      toast.success("Lista de compras guardada correctamente");
-      await GetShoppingContext();
+      toast.success("Solicitud de función agregada correctamente ");
+      await GetShoppingContext()
       setDataListForm([]);
       setOpenModal(false);
       setItemToEditList(null);
@@ -837,44 +838,103 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     <div>
       <ToastContainer />
 
-      <div className="flex justify-end mb-4">
-        <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
-          onClick={() => {
-            setOpenModal(true);
-            setItemToEdit(null);
-            setItemToEditList(null);
-            setOriginalItemToEditList(null);
-            setDataListForm([]);
-            setIsSalida(false); // <-- NUEVO ESTADO
-          }}
-        >
-          + Nueva Ingreso
-        </Button>
-        <Button
-          className="bg-hpmm-verde-claro hover:bg-hpmm-verde-oscuro text-white font-bold py-2 px-4 rounded ml-2"
-          onClick={() => {
-            setOpenModal(true);
-            setItemToEdit(null);
-            setItemToEditList(null);
-            setOriginalItemToEditList(null);
-            setDataListForm([]);
-            setIsSalida(true);
-          }}
-        >
-          + Nueva Salida
-        </Button>
-      </div>
+      {location.pathname === "/kardex" ? (
+        // Vista doble SOLO en /kardex
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* ENTRADAS */}
+          <div className="flex-1 min-w-[350px] max-w-full overflow-x-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-semibold">Entradas</h3>
+              <Button
+                className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+                onClick={() => {
+                  setOpenModal(true);
+                  setItemToEdit(null);
+                  setItemToEditList(null);
+                  setOriginalItemToEditList(null);
+                  setDataListForm([]);
+                  setIsSalida(false); // Es entrada
+                }}
+              >
+                + Nueva Entrada
+              </Button>
+            </div>
+            <GenericTable
+              columns={kardexColumns}
+              data={kardexAprobadosEntrada}
+              rowKey={(row) => row.id_shopping}
+              actions={getActionsForStatus("Aprobado")}
+              rowClassName={(row) => row.estado === false ? "opacity-40 " : ""}
+            />
+          </div>
 
-      <GenericTable
-        columns={kardexColumns}
-        data={filteredDataByRole} // <-- usa el filtrado aquí
-        rowKey={(row) => row.id_shopping}
-        actions={getActionsForStatus(status)}
-        rowClassName={(row) =>
-          row.estado === false ? "opacity-40 line-through" : ""
-        }
-      />
+          {/* SALIDAS */}
+          <div className="flex-1 min-w-[350px] max-w-full overflow-x-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xl font-semibold">Salidas</h3>
+              <Button
+                className="bg-hpmm-verde-claro hover:bg-hpmm-verde-oscuro text-white font-bold py-2 px-4 rounded"
+                onClick={() => {
+                  setOpenModal(true);
+                  setItemToEdit(null);
+                  setItemToEditList(null);
+                  setOriginalItemToEditList(null);
+                  setDataListForm([]);
+                  setIsSalida(true); // Es salida
+                }}
+              >
+                + Nueva Salida
+              </Button>
+            </div>
+            <GenericTable
+              columns={kardexColumns}
+              data={kardexAprobadosSalida}
+              rowKey={(row) => row.id_shopping}
+              actions={getActionsForStatus("Aprobado")}
+              rowClassName={(row) => row.estado === false ? "opacity-40 " : ""}
+            />
+          </div>
+        </div>
+      ) : (
+        // Vista normal para otras rutas, pero con los botones arriba
+        <>
+          <div className="flex gap-2 justify-end mb-2">
+            <Button
+              className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+              onClick={() => {
+                setOpenModal(true);
+                setItemToEdit(null);
+                setItemToEditList(null);
+                setOriginalItemToEditList(null);
+                setDataListForm([]);
+                setIsSalida(false); // Es entrada
+              }}
+            >
+              + Nueva Entrada
+            </Button>
+            <Button
+              className="bg-hpmm-verde-claro hover:bg-hpmm-verde-oscuro text-white font-bold py-2 px-4 rounded"
+              onClick={() => {
+                setOpenModal(true);
+                setItemToEdit(null);
+                setItemToEditList(null);
+                setOriginalItemToEditList(null);
+                setDataListForm([]);
+                setIsSalida(true); // Es salida
+              }}
+            >
+              + Nueva Salida
+            </Button>
+          </div>
+          <GenericTable
+            columns={kardexColumns}
+            data={filteredDataByRole}
+            rowKey={(row) => row.id_shopping}
+            actions={getActionsForStatus(status)}
+            rowClassName={(row) => row.estado === false ? "opacity-40 " : ""}
+          />
+        </>
+      )}
 
       {/* Modal Crear con lista temporal */}
       <Modal isOpen={isOpenModal} onClose={closeAll} fullScreen={true}>
@@ -944,13 +1004,13 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         )}
         <GenericTable
           fullScreen={true}
-          editable={!isReadOnly} // <-- Solo editable si no es solo lectura
+          editable={!isReadOnly}
           columns={kardexListColumns}
           data={dataListForm}
           rowKey={(row) => row.id_shopping}
           onEditRow={handleEditRow}
           rowClassName={(row) =>
-            row.estado === false ? "opacity-40 line-through" : ""
+            row.estado === false ? "opacity-40 " : ""
           }
         />
         {!isReadOnly ? (

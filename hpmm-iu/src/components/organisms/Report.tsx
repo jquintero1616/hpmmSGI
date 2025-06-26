@@ -65,7 +65,8 @@ const ImpresionReporte: React.FC = () => {
     { header: "Cantidad", accessor: (row) => row.cantidad },
     { header: "Precio Unitario", accessor: (row) => row.precio_unitario },
     { header: "Fecha Movimiento", accessor: (row) => row.fecha_movimiento },
-    { header: "RFID", accessor: (row) => row.rfid },
+    
+    { header: "Fecha de vencimiento", accessor: (row) => row.fecha_vencimiento || "N/A" },
   ];
 
   const columnsVencimiento: ReportColumn<any>[] = [
@@ -140,7 +141,7 @@ const ImpresionReporte: React.FC = () => {
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-2 text-center text-hpmm-claro">Reporte Kardex</h1>
-      <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">Entradas + Vencimiento</h2>
+      <h2 className="text-xl font-semibold mb-6 text-center text-gray-700">Productos</h2>
       {/* Select para elegir tipo de reporte */}
       <div className="flex justify-center mb-4">
         <select

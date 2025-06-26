@@ -285,6 +285,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       ...values,
     });
     await GetProductsContext();
+    toast.success(`Producto "${values.nombre}" actualizado correctamente`);
     closeAll();
   };
 

@@ -3,6 +3,7 @@ export interface RequisiInterface {
   id_requisi: string;
   id_employes?: string;
   id_product: string;
+  stock_actual: string;
   fecha: Date;
   descripcion: string;
   estado?: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado";

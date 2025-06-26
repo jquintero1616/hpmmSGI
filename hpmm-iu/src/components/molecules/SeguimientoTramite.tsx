@@ -85,6 +85,7 @@ export const SeguimientoTramite: React.FC<Props> = ({
       position: "relative"
     }}>
       {estados.map((item, idx) => {
+        const estadoColor = getEstadoColor(item.estado);
         const isActive = item.estado !== "espera" && item.estado !== "pendiente";
         const isCompleted = ["aprobado", "aceptado", "comprado", "kardex"].includes(item.estado.toLowerCase());
         const isRejected = ["rechazado", "cancelado"].includes(item.estado.toLowerCase());
@@ -108,9 +109,9 @@ export const SeguimientoTramite: React.FC<Props> = ({
                   width: sphereSize,
                   height: sphereSize,
                   borderRadius: "50%",
-                  backgroundColor: circleColor,
-                  border: `4px solid ${circleColor}`,
-                  boxShadow: `0 6px 20px ${circleColor}40`,
+                  backgroundColor: estadoColor,
+                  border: `4px solid ${estadoColor}`,
+                  boxShadow: `0 6px 20px ${estadoColor}40`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -155,9 +156,9 @@ export const SeguimientoTramite: React.FC<Props> = ({
                 fontSize: size === "xl" ? 12 : 10,
                 fontWeight: 500,
                 textTransform: "capitalize",
-                backgroundColor: `${circleColor}20`,
-                color: circleColor,
-                border: `1px solid ${circleColor}40`
+                backgroundColor: `${estadoColor}20`,
+                color: estadoColor,
+                border: `1px solid ${estadoColor}40`
               }}>
                 {item.estado}
               </div>

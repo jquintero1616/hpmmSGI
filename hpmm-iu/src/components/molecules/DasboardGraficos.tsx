@@ -15,15 +15,11 @@ const DashboardGraficos = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    console.log("products:", products);
-  }, [products]);
-
-  // 1. Entradas por Unidad (basado en kardex + kardexDetail)
+  // 1. Consumo por Unidad (Entradas aprobadas agrupadas por unidad)
   const entradasAprobadas = kardex.filter(
-    (k) => k.tipo_movimiento === "Entrada" && k.estado === true && k.tipo === "Aprobado"
+    (k) => (k.tipo_movimiento === "Entrada" || k.tipoMovimiento === "Entrada") && (k.estado === true || k.estado === 1)
   );
-  const dataEntradasUnidad = entradasAprobadas.map((k) => {
+  const consumoPorUnidad = entradasAprobadas.map((k) => {
     const detalle = kardexDetail.find((d) => d.id_kardex === k.id_kardex);
     return {
       unidad: detalle?.nombre_unidad || "N/A",
@@ -33,77 +29,40 @@ const DashboardGraficos = () => {
     acc[curr.unidad] = (acc[curr.unidad] || 0) + curr.cantidad;
     return acc;
   }, {});
-  const chartEntradasUnidad = Object.keys(dataEntradasUnidad).map((unidad) => ({
+  const chartConsumoUnidad = Object.keys(consumoPorUnidad).map((unidad) => ({
     unidad,
-    cantidad: dataEntradasUnidad[unidad],
+    cantidad: consumoPorUnidad[unidad],
   }));
 
-  // 2. Entradas por Producto (basado en kardex)
-  const dataEntradasProducto = entradasAprobadas.map((k) => ({
-    producto: products.find((p) => p.id_product === k.id_product)?.nombre || "Sin nombre",
-    cantidad: Number(k.cantidad) || 0,
-  })).reduce((acc: any, curr: any) => {
-    acc[curr.producto] = (acc[curr.producto] || 0) + curr.cantidad;
-    return acc;
-  }, {});
-  const chartEntradasProducto = Object.keys(dataEntradasProducto).map((producto) => ({
-    producto,
-    cantidad: dataEntradasProducto[producto],
-  }));
-
-  // 3. Entradas por Solicitante (basado en kardex + kardexDetail)
-  const dataEntradasSolicitante = entradasAprobadas.map((k) => {
-    const detalle = kardexDetail.find((d) => d.id_kardex === k.id_kardex);
-    return {
-      solicitante: detalle?.nombre_empleado_sf || "N/A",
-      cantidad: Number(k.cantidad) || 0,
-    };
-  }).reduce((acc: any, curr: any) => {
-    acc[curr.solicitante] = (acc[curr.solicitante] || 0) + curr.cantidad;
-    return acc;
-  }, {});
-  const chartEntradasSolicitante = Object.keys(dataEntradasSolicitante).map((solicitante) => ({
-    solicitante,
-    cantidad: dataEntradasSolicitante[solicitante],
-  }));
-
-  // 4. Productos con vencimiento próximo (próximos 30 días, basado en kardex + kardexDetail)
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0); // Normaliza la hora
-  const en30dias = new Date(hoy);
-  en30dias.setDate(hoy.getDate() + 30);
-
-  const productosPorVencer: Record<string, number> = {};
-
-  entradasAprobadas.forEach((k) => {
-    const detalle = kardexDetail.find((d) => d.id_kardex === k.id_kardex);
-    if (!detalle || !detalle.fecha_vencimiento) return;
-    const fechaVencimiento = new Date(detalle.fecha_vencimiento);
-    fechaVencimiento.setHours(0, 0, 0, 0);
-
-    if (fechaVencimiento >= hoy && fechaVencimiento <= en30dias) {
-      const nombreProducto = products.find((p) => p.id_product === k.id_product)?.nombre || "Sin nombre";
-      productosPorVencer[nombreProducto] = (productosPorVencer[nombreProducto] || 0) + Number(k.cantidad);
-    }
-  });
-
-  const chartVencimiento = Object.keys(productosPorVencer).map((producto) => ({
-    producto,
-    cantidad: productosPorVencer[producto],
-  }));
-
-  // 5. Productos de Baja Existencia (basado en productos)
+  // 2. Productos con Baja Existencia
   const productosBajaExistencia = products.filter(
     (p) =>
       p.stock_actual !== undefined &&
       p.stock_minimo !== undefined &&
       Number(p.stock_actual) <= Number(p.stock_minimo)
   );
-
   const chartBajaExistencia = productosBajaExistencia.map((p) => ({
     producto: p.nombre,
     existencia: Number(p.stock_actual),
     stock_minimo: Number(p.stock_minimo),
+  }));
+
+  // 3. Productos más movidos (mayor cantidad de movimientos de entrada y salida)
+  const movimientosPorProducto: Record<string, number> = {};
+  kardex.forEach((k) => {
+    const nombre = products.find((p) => p.id_product === k.id_product)?.nombre || "Sin nombre";
+    movimientosPorProducto[nombre] = (movimientosPorProducto[nombre] || 0) + Number(k.cantidad || 0);
+  });
+  // Ordenar y tomar los 10 más movidos
+  const chartProductosMovidos = Object.entries(movimientosPorProducto)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([producto, cantidad]) => ({ producto, cantidad }));
+
+  // 4. (Opcional) Pie chart de distribución de consumo por unidad
+  const pieConsumoUnidad = chartConsumoUnidad.map((item) => ({
+    name: item.unidad,
+    value: item.cantidad,
   }));
 
   return (
@@ -116,29 +75,28 @@ const DashboardGraficos = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
           <CustomBarChart
-            data={chartEntradasUnidad}
+            data={chartConsumoUnidad}
             xKey="unidad"
             barKey="cantidad"
-            title="Entradas por Unidad"
-          />
-          <CustomBarChart
-            data={chartEntradasProducto}
-            xKey="producto"
-            barKey="cantidad"
-            title="Entradas por Producto"
-          />
-          <CustomBarChart
-            data={chartVencimiento}
-            xKey="producto"
-            barKey="cantidad"
-            title="Productos por vencer en 30 días"
-            layout="horizontal"
+            title="Consumo por Unidad"
           />
           <CustomBarChart
             data={chartBajaExistencia}
             xKey="producto"
             barKey="existencia"
             title="Productos con Baja Existencia"
+          />
+          <CustomBarChart
+            data={chartProductosMovidos}
+            xKey="producto"
+            barKey="cantidad"
+            title="Productos Más Movidos"
+          />
+          <CustomPieChart
+            data={pieConsumoUnidad}
+            dataKey="value"
+            nameKey="name"
+            title="Distribución de Consumo por Unidad"
           />
         </div>
       )}

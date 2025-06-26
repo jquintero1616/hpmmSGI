@@ -82,7 +82,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : "",
     },
     { header: "N.º Orden", accessor: "shopping_order_id" },
-    { header: "Nombre Unidad", accessor: "nombre_unidad" },
+    { header: "Nombre Unidad Ejecutora", accessor: "nombre_unidad" },
     { header: "Lugar Entrega", accessor: "lugar_entrega" },
     { header: "N.º Cotización", accessor: "numero_cotizacion" },
     { header: "N.º Pedido", accessor: "numero_pedido" },

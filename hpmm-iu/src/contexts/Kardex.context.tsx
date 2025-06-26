@@ -29,50 +29,25 @@ export const KardexContext = createContext<KardexContextType>({
 export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
   const [kardex, setKardex] = useState<kardexInterface[]>([]);
   const [kardexDetail, setKardexDetail] = useState<KardexDetail[]>([]);
-  
   const axiosPrivate = useAxiosPrivate();
- 
-
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
-      GetKardexContext()
-        .then((data) => {
-          if (data !== null) {
-            setKardex(data);
-          } else {
-            console.error("Error al recuperar el kardex");
-          }
-        })
-        .catch((error) => {
-          console.error("Error al recuperar el kardex", error);
-        });
+      GetKardexContext();
     }
   }, [isAuthenticated]);
-// --------------------------------------------------------------------
+
   useEffect(() => {
     if (isAuthenticated) {
-      GetKardexDetailsContext()
-        .then((data) => {
-          if (data !== null) {
-            setKardexDetail(data);
-          } else {
-            console.error("Error al recuperar el kardex");
-          }
-        })
-        .catch((error) => {
-          console.error("Error al recuperar el kardex", error);
-        });
+      GetKardexDetailsContext();
     }
   }, [isAuthenticated]);
 
   const GetKardexContext = async (): Promise<kardexInterface[] | null> => {
     try {
       const kardexData = await GetKardexService(axiosPrivate);
-      if (kardexData !== null) {
-        setKardex(kardexData);
-      }
+      if (kardexData) setKardex(kardexData);
       return kardexData;
     } catch (error) {
       console.error("Error al recuperar el kardex", error);
@@ -83,9 +58,10 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
   const GetKardexDetailsContext = async (): Promise<KardexDetail[] | null> => {
     try {
       const kardexData = await GetKardexDetailsService(axiosPrivate);
+      if (kardexData) setKardexDetail(kardexData);
       return kardexData;
     } catch (error) {
-      console.error("Error al recuperar el kardex", error);
+      console.error("Error al recuperar el detalle de kardex", error);
       return null;
     }
   };
@@ -104,11 +80,11 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
 
   const PostCreateKardexContext = async (
     kardexItem: kardexInterface
-  ): Promise<kardexInterface> => {
+  ): Promise<void> => {
     try {
-      const newKardex = await PostCreateKardexService(kardexItem, axiosPrivate);
-      setKardex((prev) => [...prev, newKardex]);
-      return newKardex;
+      const created = await PostCreateKardexService(kardexItem, axiosPrivate);
+      setKardex((prev) => [created, ...prev]);
+      await GetKardexDetailsContext();
     } catch (error) {
       console.error("Error al crear el kardex", error);
       throw error;
@@ -117,17 +93,16 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
 
   const PutUpdateKardexContext = async (
     id_kardex: string,
-    kardex: kardexInterface
+    kardexItem: kardexInterface
   ): Promise<void> => {
     try {
-      // Excluimos id_kardex del payload
-      const { id_kardex: _, ...kardexSinId } = kardex;
-      await PutUpdateKardexService(id_kardex, kardexSinId, axiosPrivate);
+      await PutUpdateKardexService(id_kardex, kardexItem, axiosPrivate);
       setKardex((prev) =>
-        prev.map((item) =>
-          item.id_kardex === id_kardex ? { ...item, ...kardexSinId } : item
+        prev.map((k) =>
+          k.id_kardex === id_kardex ? { ...k, ...kardexItem } : k
         )
       );
+      await GetKardexDetailsContext();
     } catch (error) {
       console.error("Error al actualizar el kardex", error);
       throw error;
@@ -137,7 +112,8 @@ export const KardexProvider: React.FC<ProviderProps> = ({ children }) => {
   const DeleteKardexContext = async (id_kardex: string): Promise<void> => {
     try {
       await DeleteKardexService(id_kardex, axiosPrivate);
-      setKardex((prev) => prev.filter((item) => item.id_kardex !== id_kardex));
+      setKardex((prev) => prev.filter((k) => k.id_kardex !== id_kardex));
+      await GetKardexDetailsContext();
     } catch (error) {
       console.error("Error al eliminar el kardex", error);
       throw error;

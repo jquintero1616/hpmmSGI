@@ -27,7 +27,7 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // 1) Columnas de la tabla
   const categoryColumns: Column<CategoryInterface>[] = [
     { header: "Nombre", accessor: "name" },
-    { header: "Descripción", accessor: "descripcion" },
+    { header: "Objeto de Gasto", accessor: "descripcion" },
     { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
     {
       header: "Fecha Creación",
@@ -45,7 +45,7 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const categoryFields: FieldConfig[] = React.useMemo(
     () => [
       { name: "name", label: "Nombre", type: "text" },
-      { name: "descripcion", label: "Descripción", type: "text" },
+      { name: "descripcion", label: "Objeto de Gasto", type: "text" },
       {
         name: "estado",
         label: "Estado",
