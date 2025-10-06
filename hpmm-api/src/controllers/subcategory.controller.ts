@@ -56,11 +56,13 @@ export const createSubcategoryController = asyncWrapper(
 export const editSubcategoryController = asyncWrapper(
     async (req: Request, res: Response): Promise<void> => {
         const id_subcategory = (req.params.id || "").trim();
-        const { nombre,estado } = req.body;
+        const { nombre, estado, id_category } = req.body;
         const updatedSubcategory = await SubcategoryService.updateSubcategoryService(
             id_subcategory,
+            
             nombre,
-            estado
+            estado,
+            id_category 
             
         );
         if (!updatedSubcategory) {
@@ -75,12 +77,13 @@ export const editSubcategoryController = asyncWrapper(
 export const updateSubcategoryController = asyncWrapper(
     async (req: Request, res: Response): Promise<void> => {
         const id_subcategory = (req.params.id || "").trim();
-        const { nombre,estado } = req.body;
+        const { nombre,estado, id_category } = req.body;
         const updatedSubcategory = await SubcategoryService.updateSubcategoryService(
             id_subcategory,
+            
             nombre,
-            estado
-           
+            estado,
+            id_category
         );
         if (!updatedSubcategory) {
             res.status(404).json({ msg: "Subcategoria no encontrada" });

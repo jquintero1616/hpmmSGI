@@ -15,6 +15,7 @@ export interface kardexInterface {
   cantidad: number;
   precio_unitario: number;
   cantidad_recepcionada?: number; // cantidad que se ha recibido en la orden de compra
+  
   tipo_solicitud: "Requisicion" | "Pacto";
   requisicion_numero: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";

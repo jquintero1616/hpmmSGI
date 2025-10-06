@@ -26,7 +26,8 @@ export const getAllshoppingModel = async (): Promise<NewShopping[]> => {
       "s.estado",
       "s.created_at",
       "s.updated_at"
-    );
+    )
+    .orderBy("s.created_at", "desc"); // Ordena primero los más recientes
 };
 
 export async function getShoppingByIdModel(

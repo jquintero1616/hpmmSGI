@@ -153,7 +153,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     {
       header: "Categoria",
       accessor: (row) =>
-        category.find((c) => c.id_category === row.id_category)?.name || "N/A",
+        category.find((c) => c.id_category === row.id_category)?.name|| "N/A",
     },
     {
       header: "Subcategoria",
@@ -202,7 +202,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       label: "Categoría",
       type: "select",
       options: category.map((c) => ({
-        label: c.name,
+        label: c.name, // <-- Cambia aquí
         value: c.id_category,
       })),
       // NO required
@@ -317,11 +317,18 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       return;
     }
 
+    // Asegura que los valores seleccionados estén en el objeto
+    const itemWithCategory = {
+      ...item,
+      id_category: selectedCategory || item.id_category,
+      id_subcategory: selectedSubcategory || item.id_subcategory,
+    };
+
     if (itemToEditList) {
       setDataListForm((prev) =>
         prev.map((p) =>
           p.id_product === itemToEditList.id_product
-            ? { ...item, id_product: itemToEditList.id_product }
+            ? { ...itemWithCategory, id_product: itemToEditList.id_product }
             : p
         )
       );
@@ -329,7 +336,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     } else {
       setDataListForm((prev) => [
         ...prev,
-        { ...item, id_product: crypto.randomUUID() },
+        { ...itemWithCategory, id_product: crypto.randomUUID() },
       ]);
     }
     setSelectedCategory("");

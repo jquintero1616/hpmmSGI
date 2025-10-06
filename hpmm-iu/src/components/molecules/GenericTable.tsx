@@ -13,14 +13,14 @@ export interface Column<T> {
   editType?: "text" | "number" | "select" | "checkbox" | "date";
   editOptions?: { label: string; value: any }[];
   editProps?: React.InputHTMLAttributes<HTMLInputElement | HTMLSelectElement>;
-  hide?: boolean; // <-- NUEVO
+  hide?: boolean; 
 }
 
 export interface Action<T> {
   header: string;
   label: React.ReactNode;
   onClick: (row: T) => void;
-  disabled?: (row: T) => boolean; // <-- Agregado aquí
+  disabled?: (row: T) => boolean; 
   show?: (row: T) => boolean;
 }
 
@@ -33,8 +33,9 @@ interface GenericTableProps<T> {
   rowClassName?: (row: T) => string;
   editable?: boolean;
   onEditRow?: (rowKey: string, newValues: Partial<T>) => void;
-  fullScreen?: boolean; // <-- NUEVO
-  inputProps_?: React.InputHTMLAttributes<HTMLInputElement>; // <-- NUEVO
+  fullScreen?: boolean; 
+  inputProps_?: React.InputHTMLAttributes<HTMLInputElement>; 
+  showIndex?: boolean; // <-- nuevo
 }
 
 const GenericTable = <T extends Record<string, any>>({
@@ -46,7 +47,8 @@ const GenericTable = <T extends Record<string, any>>({
   rowClassName,
   editable = false,
   onEditRow,
-  fullScreen = false, // <-- NUEVO
+  fullScreen = false,
+  showIndex = false, // <-- por defecto false
 }: GenericTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -218,6 +220,11 @@ const GenericTable = <T extends Record<string, any>>({
         <table className="min-w-max w-full" aria-label="Lista de requisiciones">
           <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
             <tr className="divide-x divide-gray-100 dark:divide-gray-700">
+              {showIndex && (
+                <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 dark:text-white uppercase bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600">
+                  #
+                </th>
+              )}
               {columns.map((col, idx) => {
                 const key =
                   typeof col.accessor === "string" ? col.accessor : col.header;
@@ -228,7 +235,7 @@ const GenericTable = <T extends Record<string, any>>({
                 return (
                   <th
                     key={`column-${idx}`}
-                    style={{ display: col.hide ? "none" : undefined }} // <-- NUEVO
+                    style={{ display: col.hide ? "none" : undefined }} 
                     className={`px-4 py-3 text-left text-xs font-bold text-gray-900 dark:text-white uppercase bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 relative`}
                     // className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase ${thClass}`}
                   >
@@ -335,12 +342,18 @@ const GenericTable = <T extends Record<string, any>>({
               const uniqueRowKey = rowKey(row) || `row-${rowIndex}`;
               const customRowClass = rowClassName ? rowClassName(row) : "";
               const isEditing = editable && editingRowKey === uniqueRowKey;
+              const rowNumber = (currentPage - 1) * rowsPerPage + rowIndex + 1; // <-- índice global
 
               return (
                 <tr
                   key={uniqueRowKey}
                   className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150 even:bg-gray-100 dark:even:bg-gray-850 ${customRowClass}`}
                 >
+                  {showIndex && (
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-left text-gray-700 dark:text-gray-300">
+                      {rowNumber}
+                    </td>
+                  )}
                   {columns.map((col, idx) => {
                     const accessorKey =
                       typeof col.accessor === "string" ? col.accessor : col.header;
@@ -500,7 +513,7 @@ const GenericTable = <T extends Record<string, any>>({
                         cellValue === "pendiente" ||
                         cellValue === "pending"
                       ) {
-                        bg = "bg-purple-300 text-white";
+                        bg = "bg-yellow-700 text-white";
                       } else if (
                         cellValue === "aprobado" ||
                         cellValue === "approved"
@@ -533,13 +546,13 @@ const GenericTable = <T extends Record<string, any>>({
                     }
 
                     // ...resto de columnas normales
-                    const isNumeric =
+
                       typeof cell === "number" ||
                       (typeof cell === "string" && !isNaN(Number(cell)));
                     return (
                       <td
                         key={`${uniqueRowKey}-col-${idx}`}
-                        style={{ display: col.hide ? "none" : undefined }} // <-- NUEVO
+                        style={{ display: col.hide ? "none" : undefined }} 
                         className={`px-4 py-3 whitespace-nowrap text-sm text-left text-gray-700 dark:text-gray-300`}
                       >
                         {cell}
@@ -608,12 +621,7 @@ const GenericTable = <T extends Record<string, any>>({
             {paginatedData.length === 0 && (
               <tr>
                 <td
-                  colSpan={
-                    columns.length +
-                    (roleName === "Jefe Almacen" || roleName === "Super Admin"
-                      ? 1
-                      : 0)
-                  }
+                  colSpan={columns.length + (showIndex ? 2 : 1)} // columnas + (index?) + acciones
                   className="text-center py-6 text-gray-500 dark:text-gray-400"
                 >
                   Sin datos para mostrar.

@@ -16,31 +16,76 @@ const Notificacion: React.FC<NotificacionProps> = ({
   onUpdatePendientes,
   anchorRef,
 }) => {
-  const { userId, roleName } = useAuth();
-  const { notificaciones, PutNotificacionContext, DeleteNotificacionContext } =
-    useNotificacion();
+  const { userId } = useAuth();
+  const { 
+    notificaciones, 
+    PutNotificacionContext, 
+    DeleteNotificacionContext,
+    GetNotificacionesContext 
+  } = useNotificacion();
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // 1) Filtra solo las notis de este user
-  const userNotis = notificaciones.filter((n) => n.id_user === userId);
-
-  // 2) Informa al Header cuántas pendientes hay
+  // Cargar notificaciones al montar el componente
   useEffect(() => {
-    const pendientes = userNotis.filter((n) => n.tipo === "Pendiente").length;
-    onUpdatePendientes(pendientes);
-  }, [userNotis, onUpdatePendientes]);
+    GetNotificacionesContext();
+  }, [GetNotificacionesContext]);
 
-  // 3) Marcar como leída
+  // Actualizar notificaciones cada 30 segundos para mostrar las de "RecordarMasTarde"
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Solo actualizar si hay notificaciones con "RecordarMasTarde"
+      const tieneRecordatorios = notificaciones.some(n => n.tipo === "RecordarMasTarde");
+      if (tieneRecordatorios) {
+        GetNotificacionesContext();
+      }
+    }, 30000); // cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [GetNotificacionesContext, notificaciones]);
+
+  // Filtrar notificaciones según el rol del usuario
+  const userNotis = notificaciones.filter((n) => {
+    // Mostrar todas las notificaciones dirigidas al usuario actual
+    return n.id_user === userId;
+  });
+
+  // Contar solo las notificaciones pendientes
+  useEffect(() => {
+    const pendientes = userNotis.filter((n) => {
+      if (n.tipo === "Pendiente") return true;
+      
+      // Mostrar las notificaciones "RecordarMasTarde" después de 1 hora
+      if (n.tipo === "RecordarMasTarde" && n.updated_at) {
+        const horaRecordar = new Date(n.updated_at).getTime() + (60 * 60 * 1000); // 1 hora
+        return Date.now() >= horaRecordar;
+      }
+      
+      return false;
+    }).length;
+    
+    onUpdatePendientes(pendientes);
+  }, [userNotis, onUpdatePendientes, notificaciones.length, userId]);
+
+  // Marcar como leída
   const marcarComoLeida = async (id: string, n: any) => {
     await PutNotificacionContext(id, { ...n, tipo: "Leido" });
   };
 
-  // 4) Eliminar
+  // Recordar más tarde
+  const recordarMasTarde = async (id: string, n: any) => {
+    try {
+      await PutNotificacionContext(id, { ...n, tipo: "RecordarMasTarde" });
+    } catch (error) {
+      console.error("Error al marcar como 'RecordarMasTarde':", error);
+    }
+  };
+
+  // Eliminar
   const eliminar = async (id: string) => {
     await DeleteNotificacionContext(id);
   };
 
-  // 5) Marcar todas
+  // Marcar todas como leídas
   const marcarTodasComoLeidas = async () => {
     const pendientes = userNotis.filter((n) => n.tipo === "Pendiente");
     await Promise.all(
@@ -50,7 +95,7 @@ const Notificacion: React.FC<NotificacionProps> = ({
     );
   };
 
-  // 6) cerrar al clic fuera
+  // Cerrar al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(ev: MouseEvent) {
       if (
@@ -68,10 +113,19 @@ const Notificacion: React.FC<NotificacionProps> = ({
 
   if (!open) return null;
 
-  // 7) solo admin ve la lista
-  const pendientesList = userNotis.filter(
-    (n) => n.tipo === "Pendiente" && roleName === "Administrador"
-  );
+  // Filtrar solo las pendientes para mostrar (incluyendo las que hay que recordar)
+  const pendientesList = userNotis.filter((n) => {
+    if (n.tipo === "Pendiente") return true;
+    
+    // Mostrar las notificaciones "RecordarMasTarde" después de 1 hora
+    if (n.tipo === "RecordarMasTarde" && n.updated_at) {
+      const horaRecordar = new Date(n.updated_at).getTime() + (60 * 60 * 1000); // 1 hora
+      const shouldShow = Date.now() >= horaRecordar;
+      return shouldShow;
+    }
+    
+    return false;
+  });
 
   return (
     <div
@@ -82,13 +136,14 @@ const Notificacion: React.FC<NotificacionProps> = ({
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="font-bold text-lg">Notificaciones</h2>
         <div className="flex gap-2">
-          <button
-            onClick={marcarTodasComoLeidas}
-            className="text-xs text-blue-600 hover:underline"
-            disabled={pendientesList.length === 0}
-          >
-            Marcar todas como leídas
-          </button>
+          {pendientesList.length > 0 && (
+            <button
+              onClick={marcarTodasComoLeidas}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Marcar todas como leídas
+            </button>
+          )}
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
             &times;
           </button>
@@ -112,6 +167,7 @@ const Notificacion: React.FC<NotificacionProps> = ({
                 noti={n}
                 onMarcarLeida={() => marcarComoLeida(n.id_noti, n)}
                 onEliminar={() => eliminar(n.id_noti)}
+                onRecordarMasTarde={() => recordarMasTarde(n.id_noti, n)}
               />
             ))
         )}

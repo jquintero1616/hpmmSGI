@@ -303,6 +303,11 @@ export function Sidebar() {
     () => ({
       kardex: [
         {
+          label: "Solicitud de Fusiones",
+          path: "/KardexPendiente",
+          icon: ArrowsRightLeftIcon,
+        },
+        {
           label: "Fusiones Aprobadas",
           path: "/kardex",
           icon: ArrowsRightLeftIcon,
@@ -312,11 +317,7 @@ export function Sidebar() {
           path: "/KardexRechazadas",
           icon: ArrowsRightLeftIcon,
         },
-        {
-          label: "Solicitudes de Fusiones",
-          path: "/KardexPendiente",
-          icon: ArrowsRightLeftIcon,
-        },
+
         {
           label: "Fusiones Canceladas",
           path: "/KardexCancelada",
@@ -330,7 +331,7 @@ export function Sidebar() {
       ],
       requisiciones: [
         {
-          label: "Pendientes",
+          label: "Solicitud de Compra",
           path: "/requisicionPendiente",
           icon: ClipboardDocumentListIcon,
         },
@@ -389,7 +390,6 @@ export function Sidebar() {
         { label: "Productos", path: "/products", icon: CubeIcon },
         { label: "Categorías", path: "/category", icon: TagIcon },
         { label: "Subcategorías", path: "/subcategory", icon: TagIcon },
-        
       ],
       providers: [
         {

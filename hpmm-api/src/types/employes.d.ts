@@ -11,5 +11,11 @@ export interface Employe {
   estado: boolean;
   created_at?: Date;
   updated_at?: Date;
+  // Campos adicionales del JOIN
+  usuario?: string;
+  unidad?: string;
+  subdireccion?: string;
+  direccion?: string;
+  role_name?: string;
 }
 export interface NewEmploye extends Omit<Employe, "id_employes"> {}

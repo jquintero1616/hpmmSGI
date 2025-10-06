@@ -151,7 +151,7 @@ const ImpresionReporte: React.FC = () => {
         >
           <option value="entradas">Entradas</option>
           <option value="vencimiento">Por Vencer</option>
-          <option value="baja_existencia">Baja Existencia</option>
+          
         </select>
       </div>
       {loading ? (

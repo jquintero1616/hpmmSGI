@@ -92,6 +92,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     {
       header: "Cantidad Comprada",
       accessor: "cantidad_comprada",
+      
     },
     {
       header: "Precio Unitario",
@@ -182,6 +183,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Cantidad Comprada",
       editable: true,
       accessor: "cantidad_comprada",
+      
     },
     { header: "Precio Unitario", editable: true, accessor: "precio_unitario" },
     {
@@ -217,6 +219,13 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               arr.findIndex((other) => other.id_scompra === sc.id_scompra) ===
               idx
           )
+          // Filtrar solicitudes que ya tienen compras registradas
+          .filter((sc) => {
+            const yaExisteCompra = shopping.some(
+              (shop) => shop.id_scompra === sc.id_scompra
+            );
+            return !yaExisteCompra;
+          })
           .map((sc) => ({
             label: `SC-${sc.id_scompra.split("-")[0].toLocaleUpperCase()} : ${
               sc.descripcion
@@ -235,7 +244,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           value: v.id_vendedor,
         })),
         required: true,
-        disabled: (values) => !values.id_scompra, // <-- Así debe estar
+        disabled: (values) => !values.id_scompra,
       },
       {
         name: "fecha_compra",
@@ -267,13 +276,56 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         disabled: (values) => !values.id_scompra,
       },
     ],
-    [vendedor, scompras]
+    [vendedor, scompras, shopping] // Agregar shopping como dependencia
   );
 
   const handleEditRow = (
     rowKey: string,
     newValues: Partial<ShoppingInterface>
   ) => {
+    // Expresión regular para detectar letras
+    const hasLetters = /[a-zA-Z]/;
+    // Solo números positivos (decimales permitidos)
+    const onlyPositiveNumbers = /^([1-9]\d*(\.\d{1,2})?)$/;
+    // Solo enteros positivos
+
+    // cantidad_comprada
+    if (
+      newValues.cantidad_comprada !== undefined &&
+      hasLetters.test(String(newValues.cantidad_comprada))
+    ) {
+      toast.error("No se permiten letras en Cantidad Comprada.");
+      return;
+    }
+    if (
+      newValues.cantidad_comprada !== undefined &&
+      (!onlyPositiveNumbers.test(String(newValues.cantidad_comprada)) ||
+        isNaN(Number(newValues.cantidad_comprada)))
+    ) {
+      toast.error("Ingrese solo números mayores a 0 en Cantidad Comprada.");
+      return;
+    }
+
+    // precio_unitario
+    if (
+      newValues.precio_unitario !== undefined &&
+      hasLetters.test(String(newValues.precio_unitario))
+    ) {
+      toast.error("No se permiten letras en Precio Unitario.");
+      return;
+    }
+    if (
+      newValues.precio_unitario !== undefined &&
+      (!onlyPositiveNumbers.test(String(newValues.precio_unitario)) ||
+        isNaN(Number(newValues.precio_unitario)))
+    ) {
+      toast.error("Ingrese solo números mayores a 0 en Precio Unitario.");
+      return;
+    }
+
+
+    // ISV: no validar
+
     setDataListForm((prev) =>
       prev.map((item) =>
         item.id_shopping === rowKey

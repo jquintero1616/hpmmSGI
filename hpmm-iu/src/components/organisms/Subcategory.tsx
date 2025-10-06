@@ -271,12 +271,14 @@ const Subcategory: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modal Editar */}
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
+          
           <GenericForm<Partial<SubcategoryInterface>>
             initialValues={{
-              nombre: itemToEdit.nombre ?? "",
+              nombre: itemToEdit.subcategory_name ?? "",
               id_category: itemToEdit.id_category ?? "",
               estado: itemToEdit.estado ?? true,
             }}
+            
             fields={subcategoryFields}
             onSubmit={handleSave}
             onCancel={closeAll}

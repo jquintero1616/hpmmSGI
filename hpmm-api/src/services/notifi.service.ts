@@ -36,7 +36,7 @@ export const updateNotiService = async (
   id_noti: string,
   data: {
     mensaje: string;
-    tipo?: "Pendiente" | "Enviado" | "Leido";
+    tipo?: "Pendiente" | "Enviado" | "Leido" | "RecordarMasTarde";
     estado: boolean;
   }
 ): Promise<NewNoti> => {

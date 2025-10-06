@@ -4,7 +4,7 @@ export const subMenuVisibility = {
     "Jefe Almacen": ["/kardex", "/KardexPendiente","/KardexCancelada","/KardexHistorico"],
     "Tecnico Almacen": ["/kardex", "/KardexPendiente","/KardexCancelada"],
     "Super Admin": ["/kardex", "/KardexRechazadas", "/KardexPendiente", "/KardexCancelada", "/KardexHistorico"],
-    "Jefe de Logistica": ["/kardex", "/KardexRechazadas", "/KardexPendiente","/KardexHistorico"],
+    "Jefe de Logistica": ["/KardexHistorico"],
   },
   requisiciones: {
     Administrador: ["/requisicionPendiente", "/requisicionAprobado", "/requisicionRechazado", "/requisicionCancelado", "/requisicionHistorico", "/requisicionSeguimiento"],

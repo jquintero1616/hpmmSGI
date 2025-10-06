@@ -38,12 +38,14 @@ export const createSubcategoryService = async (
 export const updateSubcategoryService = async (
   id_subcategory: string,
   nombre: string,
-  estado: boolean
+  estado: boolean,
+  id_category: string
 ) => {
   const updatedSubcategory = await SubcategoryModel.updateSubcategoryModel(
     id_subcategory,
     nombre,
-    estado
+    estado,
+    id_category
   );
   return updatedSubcategory;
 };

@@ -80,11 +80,13 @@ export const NotificacionProvider: React.FC<ProviderProps> = ({ children }) => {
     ): Promise<void> => {
         try {
             await PutNotificacionService(id_noti, noti, axiosPrivate);
-            setNotificaciones((prev) =>
-                prev.map((n) => (n.id_noti === id_noti ? { ...n, ...noti } : n))
-            );
+            
+            setNotificaciones((prev) => {
+                const updated = prev.map((n) => (n.id_noti === id_noti ? { ...n, ...noti } : n));
+                return updated;
+            });
         } catch (error) {
-            console.error("Error al actualizar la notificación", error);
+            console.error("Error al actualizar la notificación:", error);
         }
     };
 

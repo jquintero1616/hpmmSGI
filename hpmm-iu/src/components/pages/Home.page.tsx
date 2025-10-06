@@ -92,7 +92,7 @@ const HomePage: React.FC = () => {
       )
     : [];
 
-  // Función para obtener el saludo según la hora
+  // Función para obtener el saludo según el horario
   const getSaludo = () => {
     const hora = new Date().getHours();
     if (hora < 12) return "Buenos días";
@@ -103,7 +103,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     if (showWelcome) {
       toast.success(
-        `¡Bienvenido al Sistema de Gestión de Inventario, ${
+        `¡Bienvenido , ${
           username || "Usuario"
         }!`,
         {
@@ -203,7 +203,7 @@ const HomePage: React.FC = () => {
               subtitle="Próximos a Vencer"
               value={proximosAVencer}
               icon={
-                <ExclamationTriangleIcon className="w-5 h-5 text-amber-600" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />
               }
               onClick={() => navigate("/products")}
             />
@@ -215,7 +215,7 @@ const HomePage: React.FC = () => {
               title="Productos"
               subtitle="Bajas Existencias"
               value={bajasExistencias}
-              icon={<CubeIcon className="w-5 h-5 text-red-600" />}
+              icon={<CubeIcon className="w-5 h-5 text-yellow-800" />}
               onClick={() => navigate("/products")}
             />
           )}
@@ -226,7 +226,7 @@ const HomePage: React.FC = () => {
               title="Productos"
               subtitle="Vencidos"
               value={vencidos}
-              icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
+              icon={<CheckCircleIcon className="w-5 h-5 text-red-600" />}
               onClick={() => navigate("/products")}
             />
           )}

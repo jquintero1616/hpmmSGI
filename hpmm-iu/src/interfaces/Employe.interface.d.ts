@@ -10,6 +10,7 @@ export interface EmployesInterface {
   unidad: string;
   subdireccion: string;
   direccion: string;
+  role_name?: string; // Agregamos el campo role_name
   
   name: string;
   email: string;

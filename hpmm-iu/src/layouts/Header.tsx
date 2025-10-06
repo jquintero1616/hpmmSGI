@@ -4,14 +4,18 @@ import { useAuth } from "../hooks/use.Auth";
 import { toast } from "react-toastify";
 import LogoUrl from "../assets/logoBlancoHPMM.png";
 import UsuarioIcon from "../assets/usuario.svg";
+import Notificacion from "../components/organisms/Notificacion";
+import NotificacionesToasty from "../components/molecules/NotificacionesToasty";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { logout, username, roleName } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [pendientesCount, setPendientesCount] = useState(0);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const avatarUrl = UsuarioIcon as string; // Si tu configuración no soporta SVG como componente, usa como string
+  const notificationRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -79,6 +83,9 @@ const Header: React.FC = () => {
 
   return (
     <>
+      {/* Componente para mostrar notificaciones como toasts */}
+      <NotificacionesToasty />
+      
       <header className="bg-gradient-to-r from-purple-600 via-purple-700 to-blue-800 shadow-lg sticky top-0 z-30">
         <div className="flex items-center justify-between py-3 px-4 sm:py-4 sm:px-6 lg:px-8">
           {/* Logo responsive minimalista */}
@@ -108,27 +115,42 @@ const Header: React.FC = () => {
 
           {/* Menú derecho responsive */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Notificaciones - oculto en móvil muy pequeño */}
-            <button
-              className="hidden xs:block relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
-              title="Notificaciones"
-            >
-              <svg
-                className="w-4 h-4 sm:w-5 sm:h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
+            {/* Notificaciones - siempre visible */}
+            <div className="relative">
+              <button
+                ref={notificationRef}
+                className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
+                title="Notificaciones"
+                onClick={() => setNotificationOpen(!notificationOpen)}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {/* Indicador de notificación */}
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-400 rounded-full border-2 border-white/50"></span>
-            </button>
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {/* Indicador de notificación - solo cuando hay notificaciones */}
+                {pendientesCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                    {pendientesCount > 99 ? '99+' : pendientesCount}
+                  </span>
+                )}
+              </button>
+              
+              <Notificacion
+                open={notificationOpen}
+                onClose={() => setNotificationOpen(false)}
+                onUpdatePendientes={setPendientesCount}
+                anchorRef={notificationRef}
+              />
+            </div>
 
             {/* Perfil de usuario responsive */}
             <div className="relative" ref={userMenuRef}>

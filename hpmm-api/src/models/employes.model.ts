@@ -16,6 +16,7 @@ export const getallEmployesModel = async (): Promise<NewEmploye[]> => {
       "un.name        as unidad",
       "sd.nombre      as subdireccion",
       "d.nombre       as direccion",
+      "r.name         as role_name",
       "e.name",
       "e.email",
       "e.telefono",
@@ -25,6 +26,7 @@ export const getallEmployesModel = async (): Promise<NewEmploye[]> => {
       "e.updated_at"
     )
     .join("users as u", "u.id_user", "e.id_user")
+    .join("roles as r", "r.id_rol", "u.id_rol")
     .join("units as un", "un.id_units", "e.id_units")
     .join("subdireccion as sd", "sd.id_subdireccion", "e.id_subdireccion")
     .join("direction as d", "d.id_direction", "e.id_direction")

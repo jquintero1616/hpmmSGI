@@ -46,6 +46,9 @@ export const SubcategoryProvider: React.FC<ProviderProps> = ({ children }) => {
     const GetSubcategoriesContext = async (): Promise<SubcategoryInterface[] | null> => {
         try {
             const subcategories = await GetSubcategoriesService(axiosPrivate);
+            if (Array.isArray(subcategories)) {
+                
+            }   
             return subcategories;
         } catch (error) {
             console.error('Error al recuperar las subcategorias', error);

@@ -57,7 +57,7 @@ export const PutUpdateSubcategoryService = async (
     await axiosPrivate.put
     (`/subcategory/${id_subcategory}`,
         {
-            id_subcategory: subcategory.id_subcategory,
+            
             id_category: subcategory.id_category,
             nombre: subcategory.nombre,
             estado: subcategory.estado,

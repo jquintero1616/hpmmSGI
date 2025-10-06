@@ -8,6 +8,7 @@ import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
+import DataSheet from "../molecules/DataSheet";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,7 +19,13 @@ import { useEmploye } from "../../hooks/use.Employe";
 import { useProducts } from "../../hooks/use.Product";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { useAuth } from "../../hooks/use.Auth"; // Asegúrate de tener este hook
+import { useNotificacion } from "../../hooks/use.Notificacion"; // Agregamos el hook de notificaciones
 import { formattedDate } from "../../helpers/formatData";
+import {
+  createNotificationData,
+  getNotificationMessage,
+  CreateNotificationParams,
+} from "../../helpers/notificacionHelper";
 
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
@@ -36,6 +43,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   const { PostCreateProductRequisitionContext } = useProductRequisi();
   const { PostCreateSolicitudCompraContext } = useSolicitudCompras();
+  const { PostNotificacionContext } = useNotificacion(); // Agregamos el hook de notificaciones
 
   // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
@@ -54,7 +62,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
   // Obtén userId y roleName del contexto de autenticación
-  const { userId, roleName, idEmployes } = useAuth();
+  const { roleName, idEmployes } = useAuth();
 
   // 3. FUNCIONES DE VALIDACIÓN
   const validateCreate = (values: any) => {
@@ -84,11 +92,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     { header: "Descripción", accessor: "descripcion" },
 
     { header: "Estado", accessor: "estado" },
-    
   ];
 
-
-    const requisicionListColumns: Column<any>[] = [
+  const requisicionListColumns: Column<any>[] = [
     { header: "Empleado", accessor: "employee_name" },
     { header: "Producto", accessor: "product_name" },
     { header: "Cantidad", accessor: "cantidad" },
@@ -98,9 +104,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         row.fecha ? new Date(row.fecha).toLocaleDateString() : "",
     },
     { header: "Descripción", accessor: "descripcion" },
-
-  
-    
   ];
   const requisicionFields: FieldConfig[] = [
     {
@@ -126,6 +129,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           value: e.id_employes,
         })),
       required: true,
+      // defaultValue NO sirve si initialValues lo pisa, por eso corregimos initialValues abajo
+      defaultValue: idEmployes || "",
+      disabled: roleName !== "Administrador" && roleName !== "Super Admin",
     },
     {
       name: "fecha",
@@ -133,7 +139,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       type: "date",
       required: true,
     },
-    
     {
       name: "cantidad",
       label: "Cantidad",
@@ -275,13 +280,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   };
 
   const handleAddItem = (item: any) => {
-    let fechaISO = "";
-    if (
-      typeof item.fecha === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(item.fecha)
-    ) {
-      const [year, month, day] = item.fecha.split("-");
+    // Forzar id_employes si viene vacío (caso usuario no admin con campo deshabilitado)
+    const effectiveIdEmployes = item.id_employes || idEmployes;
 
+    let fechaISO = "";
+    if (typeof item.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.fecha)) {
+      const [year, month, day] = item.fecha.split("-");
       const localDate = new Date(Number(year), Number(month) - 1, Number(day));
       fechaISO = localDate.toISOString();
     } else if (item.fecha instanceof Date) {
@@ -290,7 +294,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       fechaISO = new Date().toISOString();
     }
 
-    const newItem = { ...item, fecha: fechaISO };
+    const newItem = { ...item, fecha: fechaISO, id_employes: effectiveIdEmployes };
 
     if (itemToEditList) {
       setDataListForm((prev) =>
@@ -309,7 +313,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     }
   };
 
-  
   const handleCreate = async (_values: any) => {
     setSaving(true);
     try {
@@ -317,16 +320,35 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         toast.error("Debes agregar al menos una requisición a la lista.");
         return;
       }
+
+      // Normalizar cada item antes de enviar
+      const normalizados = dataListForm.map((it) => ({
+        ...it,
+        id_employes: it.id_employes || idEmployes,
+      }));
+
       await Promise.all(
-        dataListForm.map(async (item) => {
+        normalizados.map(async (item) => {
           await PostCreateRequisicionContext(item);
           await PostCreateProductRequisitionContext({
             id_product: item.id_product,
             id_requisi: item.id_requisi,
             cantidad: item.cantidad,
           });
+
+          const producto = products.find((p) => p.id_product === item.id_product);
+          const empleado = employes.find((e) => e.id_employes === item.id_employes);
+
+            const datosNotificacion = {
+              producto: producto?.nombre || producto?.product_name || 'Producto desconocido',
+              cantidad: item.cantidad,
+              solicitante: empleado?.name || empleado?.employee_name || 'Usuario desconocido',
+            };
+
+          await notificarAdministradores('requisicion_pendiente', datosNotificacion);
         })
       );
+
       await GetRequisicionesContext();
       toast.success("Requisiciones creadas correctamente");
       setDataListForm([]);
@@ -335,6 +357,49 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       toast.error("Error al crear las requisiciones");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Funciones para crear notificaciones
+  const crearNotificacion = async (
+    tipoEvento: CreateNotificationParams['tipo_evento'],
+    destinatarioId: string,
+    datosRequisicion: any
+  ) => {
+    try {
+      const mensaje = getNotificationMessage(tipoEvento, datosRequisicion);
+
+      const notificationData = createNotificationData({
+        id_user: destinatarioId,
+        mensaje,
+        tipo_evento: tipoEvento,
+      });
+
+      await PostNotificacionContext(notificationData);
+    } catch (error) {
+      console.error("Error al crear notificación:", error);
+    }
+  };
+
+  // Función para notificar a todos los administradores
+  const notificarAdministradores = async (
+    tipoEvento: CreateNotificationParams['tipo_evento'],
+    datosRequisicion: any
+  ) => {
+    try {
+      // Filtrar empleados que sean administradores
+      const administradores = employes.filter(
+        (emp) => emp.role_name === "Administrador" || emp.role_name === "Super Admin"
+      );
+
+      // Crear notificación para cada administrador
+      for (const admin of administradores) {
+        if (admin.id_user) { // Usar id_user en lugar de id_employes
+          await crearNotificacion(tipoEvento, admin.id_user, datosRequisicion);
+        }
+      }
+    } catch (error) {
+      console.error( "Error al notificar administradores:", error);
     }
   };
 
@@ -349,17 +414,56 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           estado: newStatus,
         });
 
+        // Obtener datos adicionales para la notificación
+        const producto = products.find((p) => p.id_product === row.id_product);
+        const datosNotificacion = {
+          producto: producto?.nombre || producto?.product_name || 'Producto desconocido',
+          cantidad: row.cantidad,
+          solicitante: row.employee_name,
+        };
+
         if (newStatus === "Aprobado") {
           await PostCreateSolicitudCompraContext({
             id_requisi: item.id_requisi,
             estado: "Pendiente",
           });
+
+          // Notificar al solicitante que su requisición fue aprobada
+          if (row.id_employes) {
+            // Buscar el empleado para obtener su id_user
+            const empleadoSolicitante = employes.find(emp => emp.id_employes === row.id_employes);
+            if (empleadoSolicitante?.id_user) {
+              await crearNotificacion('requisicion_aprobada', empleadoSolicitante.id_user, datosNotificacion);
+            }
+          }
+
           toast.success(
-            "La requisición ha sido APROBADA,se ha creado una solicitud de compra."
+            "La requisición ha sido APROBADA"
           );
+        } else if (newStatus === "Rechazado") {
+          // Notificar al solicitante que su requisición fue rechazada
+          if (row.id_employes) {
+            // Buscar el empleado para obtener su id_user
+            const empleadoSolicitante = employes.find(emp => emp.id_employes === row.id_employes);
+            if (empleadoSolicitante?.id_user) {
+              await crearNotificacion('requisicion_rechazada', empleadoSolicitante.id_user, datosNotificacion);
+            }
+          }
+          toast.success(`Estado cambiado a ${newStatus}`);
+        } else if (newStatus === "Cancelado") {
+          // Notificar al solicitante que su requisición fue cancelada
+          if (row.id_employes) {
+            // Buscar el empleado para obtener su id_user
+            const empleadoSolicitante = employes.find(emp => emp.id_employes === row.id_employes);
+            if (empleadoSolicitante?.id_user) {
+              await crearNotificacion('requisicion_cancelada', empleadoSolicitante.id_user, datosNotificacion);
+            }
+          }
+          toast.success(`Estado cambiado a ${newStatus}`);
         } else {
           toast.success(`Estado cambiado a ${newStatus}`);
         }
+
         await GetRequisicionesContext();
       } catch (error) {
         toast.error("Error al cambiar el estado");
@@ -381,47 +485,99 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
     switch (status) {
       case "Pendiente":
-        return [
-          ...baseActions,
+        const pendienteActions = [...baseActions];
+
+        // Solo Administrador y Super Admin pueden aprobar/rechazar
+        if (roleName === "Administrador" || roleName === "Super Admin") {
+          pendienteActions.push(
+            {
+              header: "Acciones",
+              label: "Aprobar",
+              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Aprobado"),
+            },
+            {
+              header: "Acciones",
+              label: "Rechazar",
+              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
+            }
+          );
+        }
+
+        // Agregar acciones específicas para el solicitante
+        pendienteActions.push(
           {
             header: "Acciones",
             label: "Editar",
-            onClick: (row: RequisiDetail) => openEdit(row.id_requisi),
-          },
-          {
-            header: "Acciones",
-            label: "Aprobar",
-            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Aprobado"),
-          },
-          {
-            header: "Acciones",
-            label: "Rechazar",
-            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
+            onClick: (row: RequisiDetail) => {
+              if (row.id_employes === idEmployes) {
+                openEdit(row.id_requisi);
+              }
+            },
           },
           {
             header: "Acciones",
             label: "Cancelar",
-            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Cancelado"),
-          },
-        ];
+            onClick: (row: RequisiDetail) => {
+              if (row.id_employes === idEmployes) {
+                changeRequisicionStatus(row, "Cancelado");
+              }
+            },
+          }
+        );
+
+        return pendienteActions;
+
       case "Aprobado":
-        return [
-          ...baseActions,
-          {
-            header: "Acciones",
-            label: "Rechazar",
-            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
-          },
-          {
-            header: "Acciones",
-            label: "Cancelar",
-            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Cancelado"),
-          },
-        ];
+        const aprobadoActions = [...baseActions];
+
+        // Solo Administrador y Super Admin pueden rechazar o cancelar aprobadas
+        if (roleName === "Administrador" || roleName === "Super Admin") {
+          aprobadoActions.push(
+            {
+              header: "Acciones",
+              label: "Rechazar",
+              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
+            },
+            {
+              header: "Acciones",
+              label: "Cancelar",
+              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Cancelado"),
+            }
+          );
+        }
+
+        return aprobadoActions;
+
       case "Rechazado":
-        return baseActions;
+        const rechazadoActions = [...baseActions];
+
+        // Solo Administrador y Super Admin pueden recuperar rechazadas
+        if (roleName === "Administrador" || roleName === "Super Admin") {
+          rechazadoActions.push({
+            header: "Acciones",
+            label: "Recuperar",
+            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Pendiente"),
+          });
+        }
+
+        return rechazadoActions;
+
       case "Cancelado":
-        return baseActions;
+        const canceladoActions = [...baseActions];
+
+        // Solo el solicitante o administradores pueden recuperar canceladas
+        canceladoActions.push({
+          header: "Acciones",
+          label: "Recuperar",
+          onClick: (row: RequisiDetail) => {
+            if (row.id_employes === idEmployes || roleName === "Administrador" || roleName === "Super Admin") {
+              changeRequisicionStatus(row, "Pendiente");
+            }
+          },
+        });
+
+        return canceladoActions;
+
       default:
         return baseActions;
     }
@@ -430,9 +586,8 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 8. EFFECTS
   useEffect(() => {
     setLoading(true);
-    Promise.all([GetRequisicionesContext(), GetEmployeContext(), GetProductsContext()]).finally(() =>
-      setLoading(false)
-    );
+    Promise.all([GetRequisicionesContext(), GetEmployeContext(), GetProductsContext()])
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -444,8 +599,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     return <div>Cargando requisiciones...</div>;
   }
 
-  
-
   const dataListFormDisplay = dataListForm.map((item) => {
     const empleado = employes.find((e) => e.id_employes === item.id_employes);
     const producto = products.find((p) => p.id_product === item.id_product);
@@ -453,14 +606,15 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       ...item,
       employee_name: empleado?.name || empleado?.employee_name || "Sin nombre",
       product_name: producto?.nombre || producto?.product_name || "Sin nombre",
-     
     };
   });
 
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Requisiciones</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Gestión de Requisiciones
+      </h1>
 
       <div className="flex justify-end mb-4">
         <Button
@@ -517,20 +671,25 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <h2 className="text-xl font-bold mb-4 text-center">
-    {itemToEditList ? "Editar requisición de la lista" : "Agregar requisición a la lista"}
-  </h2>
+          {itemToEditList
+            ? "Editar requisición de la lista"
+            : "Agregar requisición a la lista"}
+        </h2>
         <GenericForm<Partial<RequisiDetail>>
           initialValues={
             itemToEditList
               ? itemToEditList
               : {
                   id_product: "",
-                  id_employes: "",
+                  // Aquí forzamos el empleado actual si no es Admin:
+                  id_employes:
+                    roleName === "Administrador" || roleName === "Super Admin"
+                      ? ""
+                      : idEmployes || "",
                   fecha: formattedDate(),
                   estado: "Pendiente",
                   descripcion: "",
                   cantidad: "",
-                  
                 }
           }
           fields={requisicionFields.map((f) =>
@@ -591,7 +750,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             className="bg-hpmm-amarillo-claro hover:bg-hpmm-amarillo-oscuro text-gray-800 font-bold py-2 px-4 rounded"
             disabled={saving}
           >
-            Cancelar 
+            Cancelar
           </Button>
         </div>
       </Modal>
@@ -640,72 +799,41 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       </Modal>
 
       {/* Modal Detalle */}
-      <Modal isOpen={isDetailOpen} onClose={closeDetail} showHeader={false} showFooter={false}>
+      <Modal
+        isOpen={isDetailOpen}
+        onClose={closeDetail}
+        showHeader={false}
+        showFooter={false}
+      >
         {itemToView && (
           <div className="max-w-2xl mx-auto">
-            {/* Título */}
-            <div className="mb-6">
-              <h2 className="text-center text-2xl font-light text-hpmm-azul-oscuro tracking-wide select-none">
-                Detalle de la Requisición
-              </h2>
-              <hr className="mt-3 border-hpmm-azul-claro opacity-40" />
-            </div>
-            {/* Datos principales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 mb-8">
-              <div className="space-y-5">
-                <div>
-                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Solicitante</div>
-                  <div className="text-xl font-bold text-hpmm-azul-oscuro bg-hpmm-azul-claro/10 px-2 py-1 rounded">
-                    {itemToView.employee_name}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Unidad</div>
-                  <div className="text-lg text-gray-800">{itemToView.unit_name}</div>
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Estado</div>
-                  <span className={`inline-block px-3 py-1 rounded-full text-base font-bold ${
-                    itemToView.estado === "Pendiente" ? "bg-yellow-100 text-yellow-800" :
-                    itemToView.estado === "Aprobado" ? "bg-green-100 text-green-800" :
-                    itemToView.estado === "Rechazado" ? "bg-red-100 text-red-800" :
-                    itemToView.estado === "Cancelado" ? "bg-gray-200 text-gray-800" : ""
-                  }`}>
-                    {itemToView.estado}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-5">
-                <div>
-                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Producto</div>
-                  <div className="text-xl font-bold text-green-700 bg-green-100 px-2 py-1 rounded">
-                    {itemToView.product_name}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Cantidad</div>
-                  <div className="text-xl font-semibold text-hpmm-azul-oscuro">{Number(itemToView.cantidad).toFixed(2)}</div>
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-1">Fecha de Solicitud</div>
-                  <div className="text-lg text-gray-800">{new Date(itemToView.fecha).toLocaleDateString()}</div>
-                </div>
-              </div>
-            </div>
-            {/* Descripción */}
-            <div className="mb-8">
-              <div className="text-base font-semibold text-gray-500 uppercase tracking-widest mb-2">Descripción</div>
-              <div className="bg-yellow-50 border-l-4 border-hpmm-amarillo-claro p-4 rounded-lg min-h-[48px] text-base text-gray-900">
-                {itemToView.descripcion
-                  ? itemToView.descripcion
-                  : <span className="italic text-gray-400">Sin descripción</span>}
-              </div>
-            </div>
-            {/* Botón cerrar */}
-            <div className="text-right">
+            <h2 className="text-center text-xl font-semibold tracking-wide mb-4">
+              Detalle de la Requisición
+            </h2>
+
+            <DataSheet
+              items={[
+                { label: "Solicitante", value: itemToView.employee_name },
+                { label: "Unidad", value: itemToView.unit_name },
+                { label: "Producto", value: itemToView.product_name },
+                {
+                  label: "Cantidad",
+                  value: Number(itemToView.cantidad).toFixed(2),
+                },
+                { label: "Estado", value: itemToView.estado },
+                {
+                  label: "Fecha de Solicitud",
+                  value: new Date(itemToView.fecha).toLocaleDateString(),
+                },
+                { label: "Descripción", value: itemToView.descripcion || "" },
+              ]}
+              columns={1}
+            />
+
+            <div className="mt-6 text-right">
               <button
                 onClick={closeDetail}
-                className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-semibold py-2 px-6 rounded transition"
+                className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition"
               >
                 Cerrar
               </button>

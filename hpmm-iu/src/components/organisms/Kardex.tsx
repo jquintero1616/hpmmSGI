@@ -1,4 +1,3 @@
-// src/components/pages/Kardex.tsx
 import React, { useContext, useEffect, useState } from "react";
 import { useKardex } from "../../hooks/use.Kardex";
 import { ShoppingInterface } from "../../interfaces/shopping.interface";
@@ -19,7 +18,7 @@ import { useVendedor } from "../../hooks/use.vendedor";
 import RFIDScannerModal from "../molecules/RFIDScannerModal";
 import { AuthContext } from "../../contexts/Auth.context";
 import { useLocation } from "react-router-dom";
-import { useRequisicion } from "../../hooks/use.Requisicion"; // <--- Agrega este import
+import { useRequisicion } from "../../hooks/use.Requisicion"; 
 
 type KardexRow = KardexDetail & Partial<ShoppingInterface>;
 
@@ -38,7 +37,7 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const { scompras } = useSolicitudCompras();
   const { vendedor } = useVendedor();
   const location = useLocation();
-  const { PutUpdateRequisicionContext } = useRequisicion(); // <--- Usa el hook aquí
+  const { PutUpdateRequisicionContext } = useRequisicion(); 
 
   // 1. Obtén el contexto de autenticación
   const auth = useContext(AuthContext);
@@ -68,8 +67,8 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // NUEVOS ESTADOS para la lista temporal en el modal de creación
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
-  const [rfidScanRow, setRfidScanRow] = useState<string | null>(null); // <-- NUEVO estado
-  const [isSalida, setIsSalida] = useState(false); // <-- NUEVO estado
+  const [rfidScanRow, setRfidScanRow] = useState<string | null>(null); 
+  const [isSalida, setIsSalida] = useState(false); 
 
   useEffect(() => {
     handleTableContent(kardex);
@@ -105,12 +104,27 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   
 const cargarProductosParaSalida = (id_shopping : string) => {
-  // Solo productos aprobados y con stock > 0
-  const productosAprobados = kardex
-    .filter((item) => item.tipo === "Aprobado" && item.id_shopping == id_shopping)
+  // Solo productos de ENTRADA que están aprobados para esta factura/shopping
+  const productosEntradaAprobados = kardex.filter(
+    (item) => 
+      item.tipo === "Aprobado" && 
+      item.tipo_movimiento === "Entrada" && 
+      item.id_shopping === id_shopping
+  );
 
-  // Formatea para la tabla
-  return productosAprobados.map((item) => ({
+  // Filtrar solo los que NO tienen salida registrada
+  const productosSinSalida = productosEntradaAprobados.filter(entrada => {
+    const tieneSalida = kardex.some(salida => 
+      salida.tipo === "Aprobado" && 
+      salida.tipo_movimiento === "Salida" && 
+      salida.id_shopping === id_shopping &&
+      salida.id_product === entrada.id_product
+    );
+    return !tieneSalida; // Solo productos que NO tienen salida
+  });
+
+  // Formatear para la tabla
+  return productosSinSalida.map((item) => ({
     ...item,
     tipo_movimiento: "Salida",
   }));
@@ -120,7 +134,10 @@ const cargarProductosParaSalida = (id_shopping : string) => {
   const kardexColumns: Column<KardexRow>[] = [
     {
       header: "Fecha Movimiento",
-      accessor: (row) => row.fecha_movimiento || "N/A",
+      accessor: (row) =>
+        row.fecha_movimiento
+          ? new Date(row.fecha_movimiento).toLocaleDateString("es-HN")
+          : "N/A",
     },
     {
       header: "Factura",
@@ -140,10 +157,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         <span className="font-medium">{Number(row.cantidad).toFixed(2)}</span>
       ),
     },
-    {
-      header: "Cantidad Recepcionada",
-      accessor: "cantidad_recepcionada",
-    },
+    
     {
       header: "Precio Unitario",
       accessor: (row) => (
@@ -154,13 +168,31 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     },
     {
       header: "Total",
-      accessor: (row) => (
-        <span className="font-medium">{Number(row.total).toFixed(2)}</span>
-      ),
+      accessor: (row) => {
+        const precio = Number(row.precio_unitario) || 0;
+        const cantidad = Number(row.cantidad_recepcionada ?? row.cantidad) || 0;
+        const subtotal = precio * cantidad;
+        const aplicaISV = row.ISV || row.isv;
+        const total = aplicaISV ? subtotal * 1.15 : subtotal;
+        return (
+          <span className="font-medium">
+            L.{total.toFixed(2)}
+          </span>
+        );
+      },
     },
     {
-      header: "Impuesto",
-      accessor: (row) => (row.isv ? "15%" : "0.00"),
+      header: "Impuesto (L.)",
+      accessor: (row) => {
+        // Si el producto tiene ISV, calcula el impuesto
+        if (row.ISV || row.isv) {
+          const precio = Number(row.precio_unitario) || 0;
+          const cantidad = Number(row.cantidad_recepcionada ?? row.cantidad) || 0;
+          const impuesto = precio * cantidad * 0.15;
+          return impuesto.toFixed(2);
+        }
+        return "0.00";
+      },
     },
     {
       header: "Proveedor",
@@ -252,11 +284,22 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     },
     {
       header: "ISV",
-      accessor: (row) => (row.ISV ? "15%" : "0.00"),
+      accessor: (row) => (row.ISV || row.isv ? "Sí (15%)" : "No"),
     },
     {
       header: "Total",
-      accessor: "total",
+      accessor: (row) => {
+        const precio = Number(row.precio_unitario) || 0;
+        const cantidad = Number(row.cantidad_recepcionada ?? row.cantidad) || 0;
+        const subtotal = precio * cantidad;
+        const aplicaISV = row.ISV || row.isv;
+        const total = aplicaISV ? subtotal * 1.15 : subtotal;
+        return (
+          <span className="font-medium">
+            L.{total.toFixed(2)}
+          </span>
+        );
+      },
     },
     {
       header: "Cantidad Recepcionada",
@@ -278,6 +321,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       header: "Fecha de Vencimiento",
       accessor: "fecha_vencimiento",
       editable: true,
+      editType: "date",
     },
     {
       header: "Número de Lote",
@@ -323,7 +367,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
           </button>
         </div>
       ),
-      editable: false, // El input no es editable manualmente
+      editable: false, 
     },
   ];
 
@@ -342,14 +386,30 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       options: shopping
         .filter((s, idx, arr) => {
           if (!isSalida) {
-            // ENTRADA: solo mostrar si está activa
+            // ENTRADA: solo mostrar facturas activas (sin cambios)
             return s.estado === true && arr.findIndex(other => other.id_scompra === s.id_scompra) === idx;
           } else {
-            // SALIDA: mostrar si hay al menos un kardex aprobado con ese id_scompra
-            const existeAprobado = kardex.some(
-              (k) => k.id_scompra === s.id_scompra && k.tipo === "Aprobado"
-            );
-            return existeAprobado && arr.findIndex(other => other.id_scompra === s.id_scompra) === idx;
+            // SALIDA: solo mostrar facturas que tienen entradas aprobadas SIN salidas registradas
+            const tieneEntradaAprobadaSinSalida = kardex.some(entrada => {
+              // Debe ser una entrada aprobada de esta factura
+              if (entrada.tipo !== "Aprobado" || 
+                  entrada.tipo_movimiento !== "Entrada" || 
+                  entrada.id_scompra !== s.id_scompra) {
+                return false;
+              }
+
+              // Verificar que NO exista una salida para el mismo producto de esta factura
+              const tieneSalida = kardex.some(salida => 
+                salida.tipo === "Aprobado" && 
+                salida.tipo_movimiento === "Salida" && 
+                salida.id_scompra === s.id_scompra &&
+                salida.id_product === entrada.id_product
+              );
+
+              return !tieneSalida; 
+            });
+
+            return tieneEntradaAprobadaSinSalida && arr.findIndex(other => other.id_scompra === s.id_scompra) === idx;
           }
         })
         .map((s) => ({
@@ -381,7 +441,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
           JSON.stringify(originalItemToEditList)
       );
     } else {
-      setValidateEdition(true); // Si no hay edición, está validado
+      setValidateEdition(true); 
     }
   }, [itemToEditList, originalItemToEditList]);
 
@@ -413,10 +473,10 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       const original = originalItemToEditList[i];
       const current = dataListForm[i];
       if (!isObjectEqual(original, current)) {
-        return true; // Hay al menos un cambio
+        return true; 
       }
     }
-    return false; // Todos los objetos son iguales
+    return false; 
   };
 
   // 4. EFFECTS
@@ -475,11 +535,22 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     setFilteredData(processed);
   }, [kardexDetail, status, shopping, location.pathname]);
 
+  // Justo antes del filtro por roles
+  console.log("Debug filtrado:", {
+    roleName,
+    idEmployes,
+    totalData: filteredData.length,
+    dataWithEmployeeId: filteredData.filter(row => row.id_empleado_sf).length,
+    employeeIds: [...new Set(filteredData.map(row => row.id_empleado_sf))],
+  });
+
   // Filtrado para mostrar solo los registros propios, excepto para roles especiales
   const filteredDataByRole =
-    roleName === "Super Admin" || roleName === "Jefe Almacen"
+    roleName === "Super Admin" || roleName === "Jefe Almacen" || roleName === "Tecnico Almacen" || roleName === "Administrador" || roleName === "Jefe de Logistica"
       ? filteredData
       : filteredData.filter((row) => row.id_empleado_sf === idEmployes);
+
+  console.log("Después del filtro por rol:", filteredDataByRole.length);
 
   // Filtrar Kardex aprobados para entradas y salidas
   const kardexAprobadosEntrada = filteredDataByRole.filter(
@@ -489,12 +560,63 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     (row) => row.tipo === "Aprobado" && row.tipo_movimiento === "Salida"
   );
 
+  // NUEVA FUNCIÓN: Sincronizar las tablas por producto/factura
+const crearTablasEmparejadas = (): { entradasSync: (KardexRow | null)[]; salidasSync: (KardexRow | null)[] } => {
+  // Crear mapas para búsqueda rápida
+  const entradasMap = new Map<string, { item: KardexRow; index: number }>();
+  const salidasMap = new Map<string, { item: KardexRow; index: number }>();
+  
+  // Llenar mapas con índices
+  kardexAprobadosEntrada.forEach((item, index) => {
+    const key = `${item.id_product}-${item.numero_factura}`;
+    entradasMap.set(key, { item, index });
+  });
+  
+  kardexAprobadosSalida.forEach((item, index) => {
+    const key = `${item.id_product}-${item.numero_factura}`;
+    salidasMap.set(key, { item, index });
+  });
+  
+  // Obtener todas las claves únicas
+  const allKeys = new Set([...entradasMap.keys(), ...salidasMap.keys()]);
+  
+  // Crear arrays sincronizados con tipos explícitos
+  const entradasSync: (KardexRow | null)[] = [];
+  const salidasSync: (KardexRow | null)[] = [];
+  
+  // Llenar arrays sincronizados
+  allKeys.forEach(key => {
+    const entrada = entradasMap.get(key);
+    const salida = salidasMap.get(key);
+    
+    if (entrada && salida) {
+      // Ambos existen - agregar en el mismo índice
+      entradasSync.push(entrada.item);
+      salidasSync.push(salida.item);
+    } else if (entrada && !salida) {
+      // Solo entrada - agregar entrada y placeholder para salida
+      entradasSync.push(entrada.item);
+      salidasSync.push(null);
+    } else if (!entrada && salida) {
+      // Solo salida - agregar placeholder para entrada y salida
+      entradasSync.push(null);
+      salidasSync.push(salida.item);
+    }
+  });
+  
+  return { entradasSync, salidasSync };
+};
+
+// Usar las tablas sincronizadas solo en /kardex con tipos explícitos
+const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salidasSync: (KardexRow | null)[] } = location.pathname === "/kardex" 
+  ? crearTablasEmparejadas() 
+  : { entradasSync: kardexAprobadosEntrada, salidasSync: kardexAprobadosSalida };
+
   if (loading) return <div>Cargando kardex…</div>;
 
   const cargarProductosDeCompra = async (id_scompra: string) => {
     try {
       const compra = shopping.filter((s) => s.id_scompra === id_scompra);
-
       const cargadoEnKardex = kardex.filter((k) => k.id_scompra === id_scompra);
 
       if (!compra) {
@@ -502,14 +624,12 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         return [];
       }
 
-      // Si tienes los productos en la compra:
       if (!compra || compra.length === 0) {
         toast.error("No se encontraron productos en la compra seleccionada.");
         return [];
       }
 
       if (isSalida && cargadoEnKardex.length > 0) {
-        // Si es una salida y ya hay productos cargados en el kardex, cargar solo los productos aprobados
         const productosSalida = cargarProductosParaSalida(compra[0].id_shopping);
         if (productosSalida.length === 0) {
           toast.error("No hay productos aprobados para esta salida.");
@@ -518,7 +638,6 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         return productosSalida;
       }
 
-      // Formatea los productos para el Kardex
       const productosFormateados = compra.map((producto: any) => ({
         id_temp: crypto.randomUUID(),
         id_scompra: producto.id_scompra,
@@ -528,7 +647,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         nombre_producto: producto.nombre_producto,
         cantidad: producto.cantidad_comprada || 0,
         cantidad_solicitada: producto.cantidad_solicitada || 0,
-        cantidad_recepcionada: producto.cantidad_recepcionada || 0,
+        cantidad_recepcionada: producto.cantidad_recepcionada || "",
         precio_unitario: producto.precio_unitario || 0,
         isv: producto.ISV || 0,
         total: producto.total || 0,
@@ -540,6 +659,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         anio_creacion: new Date().getFullYear(),
         tipo_solicitud: producto.id_scompra ? "Requisicion" : "Pacto",
         requisicion_numero: producto.requisicion_numero || "",
+        id_empleado_sf: producto.id_empleado_sf || idEmployes, 
       }));
 
       return productosFormateados;
@@ -553,6 +673,11 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     rowKey: string,
     newValues: Partial<ShoppingInterface>
   ) => {
+    // Expresión regular para detectar letras
+    const hasLetters = /[a-zA-Z]/;
+    // Solo números positivos (decimales permitidos)
+    const onlyPositiveNumbers = /^([1-9]\d*(\.\d{1,2})?)$/;
+
     setDataListForm((prev) =>
       prev.map((item) => {
         if (item.id_shopping === rowKey) {
@@ -562,7 +687,24 @@ const cargarProductosParaSalida = (id_shopping : string) => {
             Number(newValues.cantidad_recepcionada) > Number(item.cantidad)
           ) {
             toast.error("La cantidad recepcionada no puede ser mayor a la cantidad comprada.");
-            return item; // No actualiza si es inválido
+            return item; 
+          }
+          // Validación: no letras
+          if (
+            newValues.cantidad_recepcionada !== undefined &&
+            hasLetters.test(String(newValues.cantidad_recepcionada))
+          ) {
+            toast.error("No se permiten letras en Cantidad Recepcionada.");
+            return item;
+          }
+          // Validación: solo números mayores a 0
+          if (
+            newValues.cantidad_recepcionada !== undefined &&
+            (!onlyPositiveNumbers.test(String(newValues.cantidad_recepcionada)) ||
+              isNaN(Number(newValues.cantidad_recepcionada)))
+          ) {
+            toast.error("Ingrese solo números mayores a 0 en Cantidad Recepcionada.");
+            return item;
           }
           return { ...item, ...newValues };
         }
@@ -582,7 +724,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
   const handleSaveAllList = async () => {
     setSaving(true);
     try {
-      // Solo mostrar el warning si está editando (itemToEditList existe), no es salida y no hay cambios
+      
       if (itemToEditList && !isEditListChanged() && !isSalida) {
         toast.warning(
           "No se realizaron cambios. Por favor, edite algún valor antes de guardar."
@@ -605,6 +747,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
           cantidad: Number(item.cantidad) || 0,
           tipo: "Pendiente",
           isv: item.isv ? 0.15 : 0,
+          id_empleado_sf: item.id_empleado_sf || idEmployes, // <- PRESERVAR el ID del empleado que hizo la solicitud
         };
 
         if (existeEnKardex && existeEnShopping && !isSalida) {
@@ -725,8 +868,6 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     }
   };
 
-  // Handlers específicos
-  // Función helper para cambiar estado del kardex
   const changeKardexStatus = async (
     row: KardexDetail,
     newStatus: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado"
@@ -738,6 +879,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         await PutUpdateKardexContext(item.id_kardex, {
           ...item,
           tipo: newStatus,
+          id_empleado_sf: item.id_empleado_sf,
         });
         toast.success(`Estado cambiado a ${newStatus}`);
         await GetKardexContext();
@@ -839,7 +981,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       <ToastContainer />
 
       {location.pathname === "/kardex" ? (
-        // Vista doble SOLO en /kardex
+        // Vista doble SINCRONIZADA SOLO en /kardex
         <div className="flex flex-col md:flex-row gap-4">
           {/* ENTRADAS */}
           <div className="flex-1 min-w-[350px] max-w-full overflow-x-auto">
@@ -853,7 +995,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
                   setItemToEditList(null);
                   setOriginalItemToEditList(null);
                   setDataListForm([]);
-                  setIsSalida(false); // Es entrada
+                  setIsSalida(false);
                 }}
               >
                 + Nueva Entrada
@@ -861,10 +1003,10 @@ const cargarProductosParaSalida = (id_shopping : string) => {
             </div>
             <GenericTable
               columns={kardexColumns}
-              data={kardexAprobadosEntrada}
+              data={entradasSync.filter((item): item is KardexRow => item !== null)} // Type guard
               rowKey={(row) => row.id_shopping}
               actions={getActionsForStatus("Aprobado")}
-              rowClassName={(row) => row.estado === false ? "opacity-40 " : ""}
+              rowClassName={(row) => row.estado === false ? "opacity-700 " : ""}
             />
           </div>
 
@@ -880,7 +1022,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
                   setItemToEditList(null);
                   setOriginalItemToEditList(null);
                   setDataListForm([]);
-                  setIsSalida(true); // Es salida
+                  setIsSalida(true);
                 }}
               >
                 + Nueva Salida
@@ -888,15 +1030,15 @@ const cargarProductosParaSalida = (id_shopping : string) => {
             </div>
             <GenericTable
               columns={kardexColumns}
-              data={kardexAprobadosSalida}
+              data={salidasSync.filter((item): item is KardexRow => item !== null)} 
               rowKey={(row) => row.id_shopping}
               actions={getActionsForStatus("Aprobado")}
-              rowClassName={(row) => row.estado === false ? "opacity-40 " : ""}
+              rowClassName={(row) => row.estado === false ? "opacity-700 " : ""}
             />
           </div>
         </div>
       ) : (
-        // Vista normal para otras rutas, pero con los botones arriba
+        // Vista normal para otras rutas 
         <>
           <div className="flex gap-2 justify-end mb-2">
             <Button
@@ -907,7 +1049,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
                 setItemToEditList(null);
                 setOriginalItemToEditList(null);
                 setDataListForm([]);
-                setIsSalida(false); // Es entrada
+                setIsSalida(false);
               }}
             >
               + Nueva Entrada
@@ -920,7 +1062,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
                 setItemToEditList(null);
                 setOriginalItemToEditList(null);
                 setDataListForm([]);
-                setIsSalida(true); // Es salida
+                setIsSalida(true);
               }}
             >
               + Nueva Salida
@@ -931,7 +1073,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
             data={filteredDataByRole}
             rowKey={(row) => row.id_shopping}
             actions={getActionsForStatus(status)}
-            rowClassName={(row) => row.estado === false ? "opacity-40 " : ""}
+            rowClassName={(row) => row.estado === false ? "opacity-700 " : ""}
           />
         </>
       )}
@@ -972,7 +1114,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
             title="Editar compra de la lista"
             submitDisabled={saving}
             onChange={(values) => setItemToEditList(values)}
-            readOnly={isReadOnly} // <-- Solo lectura
+            readOnly={isReadOnly} 
           />
         ) : (
           <GenericForm
@@ -999,7 +1141,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
             }
             submitDisabled={saving}
             onChange={handleFormChange}
-            readOnly={isReadOnly} // <-- Solo lectura
+            readOnly={isReadOnly} 
           />
         )}
         <GenericTable
@@ -1010,7 +1152,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
           rowKey={(row) => row.id_shopping}
           onEditRow={handleEditRow}
           rowClassName={(row) =>
-            row.estado === false ? "opacity-40 " : ""
+            row.estado === false ? "opacity" : ""
           }
         />
         {!isReadOnly ? (
@@ -1047,7 +1189,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
                   Creando...
                 </span>
               ) : (
-                "Crear todas"
+                "Ingresar Solicitud"
               )}
             </Button>
           ) : null}

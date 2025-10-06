@@ -2,6 +2,8 @@ export interface ProductInterface {
   id_product: string;
   id_subcategory: string;
   subcategory_name: string;
+  id_category: string;
+  category_name: string;
   nombre: string;
   descripcion: string;
   stock_actual: number;
