@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import Button from "../atoms/Buttons/Button";
 import Pagination from "../molecules/Pagination";
 import { FaSort, FaSortUp, FaSortDown, FaSearch } from "react-icons/fa";
-import { useAuth } from "../../hooks/use.Auth";
+
 
 type SortDirection = "asc" | "desc" | null;
 
@@ -59,7 +59,6 @@ const GenericTable = <T extends Record<string, any>>({
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const filterRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const { roleName } = useAuth();
 
   // ───> Aquí: cada vez que cambie `data`, vuelvo a página 1:
   useEffect(() => {

@@ -35,12 +35,13 @@ export async function updateSuppliersModel(
     id_contacto: string,
     nombre: string,
     numero_contacto: string,
+    rtn: string,
     correo: Date,
     estado: boolean
 ): Promise<NewSuppliers> {
     const [updatedSuppliers] = await knexTableName()
         .where({ id_supplier })
-        .update({ id_contacto, nombre, numero_contacto, correo, estado })
+        .update({ id_contacto, nombre, numero_contacto, rtn, correo, estado })
         .returning("*");
     return updatedSuppliers;
 }   

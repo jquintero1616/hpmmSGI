@@ -18,6 +18,8 @@ import { useRequisicion } from "../../hooks/use.Requisicion";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { subMenuVisibility } from "../../config/permissions";
 import dayjs from "dayjs";
+import "dayjs/locale/es";
+dayjs.locale("es");
 
 // Simulación de servicios
 const useDashboardData = () => {
@@ -46,6 +48,16 @@ const useDashboardData = () => {
   return data;
 };
 
+const formatFechaLarga = () => {
+  const d = dayjs();
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const weekday = capitalize(d.format("dddd"));
+  const dayNum = d.format("DD");
+  const month = capitalize(d.format("MMMM"));
+  const year = d.format("YYYY");
+  return `${weekday} ${dayNum} de ${month} del ${year}`;
+};
+
 const HomePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,6 +67,7 @@ const HomePage: React.FC = () => {
   const { kardex } = useKardex();
   const { requisitions } = useRequisicion();
   const { scompras } = useSolicitudCompras();
+  const [fechaHoy, setFechaHoy] = useState(formatFechaLarga());
 
   // Función para saber si el usuario puede ver la card (igual que en Sidebar)
   const canViewCard = (
@@ -169,8 +182,19 @@ const HomePage: React.FC = () => {
 
   // Bajas existencias: stock actual menor al 30% del stock máximo
   const bajasExistencias = productosConStock.filter(
-    (p) => p.stock_maximo > 0 && p.stock_actual / p.stock_maximo < 0.1 // cambiar 0.1 a 0.3 si se quiere el 30%
+    (p) => p.stock_maximo > 0 && p.stock_actual / p.stock_maximo < 0.1
   ).length;
+
+  // Nuevo: Productos en existencia (stock > 0)
+  const productosEnExistencia = productosConStock.filter(
+    (p) => p.stock_actual > 0
+  ).length;
+
+  useEffect(() => {
+    // Actualiza cada minuto por si cruza medianoche
+    const id = setInterval(() => setFechaHoy(formatFechaLarga()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -178,105 +202,107 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
             {getSaludo()}, {username || "Usuario"}!
           </h1>
-          <p className="text-gray-600">Resumen del estado actual del sistema</p>
+          {/* Fecha arriba del resumen */}
+          <p className="text-sm text-gray-500">{fechaHoy}</p>
+          <p className="text-gray-600 mt-1">Resumen del estado actual del sistema</p>
         </div>
-        {/* Grid de tarjetas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* Productos Registrados */}
-          {canViewCard("inventario", "/products") && (
-            <DashboardCard
-              title="Productos"
-              subtitle="Registrados"
-              value={products.length}
-              icon={<CubeIcon className="w-5 h-5 text-blue-600" />}
-              onClick={() => navigate("/products")}
-            />
-          )}
 
-          {/* Productos Próximos a Vencer */}
-          {canViewCard("inventario", "/products") && (
-            <DashboardCard
-              title="Productos"
-              subtitle="Próximos a Vencer"
-              value={proximosAVencer}
-              icon={
-                <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />
-              }
-              onClick={() => navigate("/products")}
-            />
-          )}
-
-          {/* Productos Bajas Existencias */}
-          {canViewCard("inventario", "/stock-critico") && (
-            <DashboardCard
-              title="Productos"
-              subtitle="Bajas Existencias"
-              value={bajasExistencias}
-              icon={<CubeIcon className="w-5 h-5 text-yellow-800" />}
-              onClick={() => navigate("/products")}
-            />
-          )}
-
-          {/* Productos Vencidos */}
-          {canViewCard("inventario", "/products") && (
-            <DashboardCard
-              title="Productos"
-              subtitle="Vencidos"
-              value={vencidos}
-              icon={<CheckCircleIcon className="w-5 h-5 text-red-600" />}
-              onClick={() => navigate("/products")}
-            />
-          )}
-
-          {/* Kardex Solicitudes a Fusiones */}
-          {canViewCard("kardex", "/KardexPendiente") && (
-            <DashboardCard
-              title="Kardex"
-              subtitle="Solicitudes a Fusiones"
-              value={kardexPendientes.length}
-              icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
-              onClick={() => navigate("/KardexPendiente")}
-            />
-          )}
-
-          {/* Kardex Aprobados */}
-          {canViewCard("kardex", "/kardex") && (
-            <DashboardCard
-              title="Kardex"
-              subtitle="Aprobados"
-              value={kardexAprobados.length}
-              icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
-              onClick={() => navigate("/kardex")}
-            />
-          )}
-
-          {/* Requisiciones */}
-          {canViewCard("requisiciones", "/requisicionPendiente") && (
-            <DashboardCard
-              title="Requisiciones"
-              subtitle="Pendientes"
-              value={requisicionesUsuario?.length || 0}
-              icon={
-                <ClipboardDocumentListIcon className="w-5 h-5 text-indigo-600" />
-              }
-              onClick={() => navigate("/requisicionPendiente")}
-            />
-          )}
-
-          {/* Progreso de Requisición */}
-          {canViewCard("requisiciones", "/requisicionSeguimiento") && (
-            <DashboardCard
-              title="Solicitud de Requisición"
-              subtitle="En Espera"
-              value={solicitudesUsuario?.length || 0}
-              icon={<ShoppingCartIcon className="w-5 h-5 text-green-600" />}
-              onClick={() => navigate("/requisicionSeguimiento")}
-            />
-          )}
+        {/* ================== SECCIÓN PRODUCTOS ================== */}
+        <div className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Productos</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {canViewCard("inventario", "/products") && (
+              <DashboardCard
+                title="Productos"
+                subtitle="En Existencia"
+                value={productosEnExistencia}
+                icon={<CubeIcon className="w-5 h-5 text-green-600" />}
+                onClick={() => navigate("/products")}
+              />
+            )}
+            {canViewCard("inventario", "/products") && (
+              <DashboardCard
+                title="Productos"
+                subtitle="Próximos a Vencer"
+                value={proximosAVencer}
+                icon={<ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
+                onClick={() => navigate("/products")}
+              />
+            )}
+            {canViewCard("inventario", "/products") && (
+              <DashboardCard
+                title="Productos"
+                subtitle="Vencidos"
+                value={vencidos}
+                icon={<ExclamationTriangleIcon className="w-5 h-5 text-red-600" />}
+                onClick={() => navigate("/products")}
+              />
+            )}
+            {canViewCard("inventario", "/stock-critico") && (
+              <DashboardCard
+                title="Productos"
+                subtitle="Bajas Existencias"
+                value={bajasExistencias}
+                icon={<CubeIcon className="w-5 h-5 text-yellow-800" />}
+                onClick={() => navigate("/products")}
+              />
+            )}
+          </div>
         </div>
+
+        {/* ================== SECCIÓN KARDEX ================== */}
+        <div className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Kardex</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {canViewCard("kardex", "/KardexPendiente") && (
+              <DashboardCard
+                title="Kardex"
+                subtitle="Solicitudes a Fusiones"
+                value={kardexPendientes.length}
+                icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
+                onClick={() => navigate("/KardexPendiente")}
+              />
+            )}
+            {canViewCard("kardex", "/kardex") && (
+              <DashboardCard
+                title="Kardex"
+                subtitle="Aprobados"
+                value={kardexAprobados.length}
+                icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
+                onClick={() => navigate("/kardex")}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* ================== SECCIÓN REQUISICIONES ================== */}
+        <div className="mb-10">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Requisiciones</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {canViewCard("requisiciones", "/requisicionPendiente") && (
+              <DashboardCard
+                title="Requisiciones"
+                subtitle="Pendientes"
+                value={requisicionesUsuario?.length || 0}
+                icon={<ClipboardDocumentListIcon className="w-5 h-5 text-indigo-600" />}
+                onClick={() => navigate("/requisicionPendiente")}
+              />
+            )}
+            {canViewCard("requisiciones", "/requisicionSeguimiento") && (
+              <DashboardCard
+                title="Solicitud de Requisición"
+                subtitle="En Espera"
+                value={solicitudesUsuario?.length || 0}
+                icon={<ShoppingCartIcon className="w-5 h-5 text-green-600" />}
+                onClick={() => navigate("/requisicionSeguimiento")}
+              />
+            )}
+          </div>
+        </div>
+
         {/* Enlace al historial de notificaciones */}
         <div className="mt-8 text-center">
           <Link to="/notificaciones" className="text-blue-600 underline">

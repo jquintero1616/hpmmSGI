@@ -41,6 +41,7 @@ export const updateSuppliersService = async (
     id_contacto: string, 
     nombre: string, 
     numero_contacto: string, 
+    rtn: string, 
     correo: Date, 
     estado: boolean
 ): Promise<NewSuppliers> => {
@@ -50,6 +51,7 @@ export const updateSuppliersService = async (
         id_contacto,
         nombre,
         numero_contacto,
+        rtn,
         correo,
         estado
       );

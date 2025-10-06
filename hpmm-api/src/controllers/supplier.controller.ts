@@ -44,8 +44,8 @@ export const createSuppliersController = asyncWrapper(
 export const updateSuppliersController = asyncWrapper(
     async (req: Request, res: Response): Promise<void> => {
         const id_supplier = (req.params.id || "").trim();
-        const { id_contacto, nombre, numero_contacto, correo, estado } = req.body;
-        const suppliers = await ShoppingService.updateSuppliersService(id_supplier, id_contacto, nombre, numero_contacto, correo, estado);
+        const { id_contacto, nombre, numero_contacto, rtn,  correo, estado } = req.body;
+        const suppliers = await ShoppingService.updateSuppliersService(id_supplier, id_contacto, nombre, numero_contacto, rtn, correo, estado);
         if (!suppliers) {
             res.status(404).json({ msg: "Proveedor no encontrado" });
             return;

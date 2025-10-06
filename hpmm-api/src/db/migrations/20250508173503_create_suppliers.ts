@@ -8,15 +8,13 @@ export async function up(knex: Knex): Promise<void> {
       .primary()
       .defaultTo(knex.raw("uuid_generate_v4()"));
 
-    table.string("numero_contacto").notNullable();
     table.string("nombre").notNullable();
     table.string("correo").notNullable();
+    table.string("numero_contacto").notNullable();
+    table.string("rtn").notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
-    
   });
-
-     
 }
 
 export async function down(knex: Knex): Promise<void> {

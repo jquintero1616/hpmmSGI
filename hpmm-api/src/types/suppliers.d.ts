@@ -3,6 +3,7 @@ export interface suppliers {
   nombre: string;
   numero_contacto?: string;
   correo: Date;
+  rtn: string;
   estado: boolean;
   created_at?: Date;
   updated_at?: Date;

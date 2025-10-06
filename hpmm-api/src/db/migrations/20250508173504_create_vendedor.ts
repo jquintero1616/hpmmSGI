@@ -12,6 +12,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid("id_supplier").notNullable();
     table.string("nombre_contacto").notNullable();
     table.string("correo").notNullable();
+    table.string("identidad").notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
 
