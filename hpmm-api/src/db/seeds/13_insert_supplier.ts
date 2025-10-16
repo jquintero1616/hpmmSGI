@@ -11,7 +11,7 @@ export async function seed(knex: Knex): Promise<void> {
       nombre: "Distribuidora Medica",
       correo: "contacto@distribuidoramedica.hn",
       numero_contacto: "9376-5432",
-      rtn: "0801-1997-232678",
+      rtn: "08011996232678",
       estado: true,
     },
     {
@@ -19,7 +19,7 @@ export async function seed(knex: Knex): Promise<void> {
       nombre: "Labsanangel",
       correo: "info@labsanangel.com",
       numero_contacto: "9476-5432",
-      rtn: "0801-1997-232679",
+      rtn: "08011997232679",
       estado: true,
     },
     {
@@ -27,7 +27,7 @@ export async function seed(knex: Knex): Promise<void> {
       nombre: "SuministrosHN",
       correo: "ventas@suministroshn.hn",
       numero_contacto: "9676-5432",
-      rtn: "0801-1997-232680",
+      rtn: "08011998232680",
       estado: true,
     },
   ]);

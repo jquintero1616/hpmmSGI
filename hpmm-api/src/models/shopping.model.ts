@@ -63,7 +63,7 @@ export async function updateShoppingModel(
   total: number,
   estado: boolean,
   nombre_producto: string,
-  cantidad: number,
+  cantidad_comprada: number,
   precio_unitario: number,
   cantidad_solicitada: number,
   id_product: string
@@ -85,7 +85,7 @@ export async function updateShoppingModel(
       ISV,
       estado,
       nombre_producto,
-      cantidad,
+      cantidad_comprada,
       precio_unitario,
       cantidad_solicitada,
       id_product

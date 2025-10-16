@@ -49,24 +49,35 @@ export const SeguimientoTramite: React.FC<Props> = ({
     const req = requisitions.find((r) => r.id_requisi === id_requisicion);
     const scompra = scompras.find((s) => s.id_requisi === id_requisicion);
     const shop = shopping.find((s) => s.id_scompra === scompra?.id_scompra);
-    const kardexItem = kardex.find((k) => k.id_shopping === shop?.id_shopping);
+
+    // Separar ingreso (Entrada) y salida (Salida) en kardex
+    const kardexEntrada = kardex.find(
+      (k) => k.id_shopping === shop?.id_shopping && k.tipo_movimiento === "Entrada"
+    );
+    const kardexSalida = kardex.find(
+      (k) => k.id_shopping === shop?.id_shopping && k.tipo_movimiento === "Salida"
+    );
 
     return [
       {
-        label: "Requisición",
+        label: "Solicitud de Compra",
         estado: req?.estado || "espera",
       },
       {
-        label: "Solicitud Compra",
+        label: "Aprobación de Compra",
         estado: scompra?.estado || "pendiente",
       },
       {
         label: "Compra",
-        estado: (shop?.shopping_order_id ? "comprado" : "espera"),
+        estado: shop?.shopping_order_id ? "comprado" : "espera",
       },
       {
-        label: "Kardex",
-        estado: kardexItem ? "kardex" : "espera",
+        label: "Ingreso a Kardex",
+        estado: kardexEntrada ? "kardex" : "espera",
+      },
+      {
+        label: "Salida de Kardex",
+        estado: kardexSalida ? "kardex" : "espera",
       },
     ];
   }, [requisitions, scompras, shopping, kardex, id_requisicion]);

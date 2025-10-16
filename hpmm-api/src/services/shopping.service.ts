@@ -14,15 +14,11 @@ export const getAllShoppingService = async (): Promise<NewShopping[]> => {
     }
 
 }
-    
-
 export const getShoppingByIdService = async (
     id_shopping: string
 ): Promise<NewShopping | null> => {
     return ShoppingModel.getShoppingByIdModel(id_shopping);
 }
-
-
 export const CreateShoppingService = async (data: NewShopping) => {
     try {
         return await ShoppingModel.createShoppingModel(data);

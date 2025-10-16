@@ -25,14 +25,11 @@ const SeguimientoTramiteOrganism: React.FC = () => {
           Monitorea el progreso de tus solicitudes de inventario desde la
           requisición inicial hasta su registro en kardex
         </p>
-        <div className="mt-2 text-sm text-gray-500">
-          Selecciona una requisición para ver su estado detallado
-        </div>
+
       </div>
 
       <label className="block mb-2 font-semibold text-gray-700">
-        Selecciona una requisición:
-      </label>
+          Selecciona una requisición para ver su estado detallado:       </label>
       <select
         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
         value={selectedId}
