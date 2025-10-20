@@ -824,7 +824,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                 {
                   label: "Fecha de Solicitud",
                   value: new Date(itemToView.fecha).toLocaleDateString(),
-                },
+                },  
                 { label: "Descripción", value: itemToView.descripcion || "" },
               ]}
               columns={1}

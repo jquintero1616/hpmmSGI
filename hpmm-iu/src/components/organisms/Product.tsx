@@ -94,12 +94,33 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     setFilteredData(data);
   }, [ProductDetail, kardex, status, stockFilter]);
 
+  // Función para formatear el nombre con números en negrita
+  const formatProductName = (name: string) => {
+    // Regex para encontrar secuencias de números
+    const parts = name.split(/(\d+)/);
+
+    return (
+      <span>
+        {parts.map((part, index) => {
+          // Si la parte es un número, la mostramos en negrita
+          if (/^\d+$/.test(part)) {
+            return <strong key={index}>{part}</strong>;
+          }
+          return part;
+        })}
+      </span>
+    );
+  };
+
   // Columnas
   const productColumns: Column<ProductDetail>[] = [
-    { header: "Nombre", accessor: "nombre" },
+    {
+      header: "Nombre",
+      accessor: (row) => formatProductName(row.nombre),
+    },
     { header: "Cat.", accessor: "category_name" },
     { header: "Subcat.", accessor: "subcategory_name" },
-    
+
     {
       header: "Existencias",
       accessor: (row) => {
@@ -132,16 +153,12 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Máx.",
       accessor: (row) => String(row.stock_maximo),
     },
-    
+
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
     },
-    {
-      header: "Fecha Creación",
-      accessor: (row) =>
-        row.created_at ? new Date(row.created_at).toLocaleString() : "",
-    },
+    
     {
       header: "Fecha Actualización",
       accessor: (row) =>
@@ -153,7 +170,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     {
       header: "Categoria",
       accessor: (row) =>
-        category.find((c) => c.id_category === row.id_category)?.name|| "N/A",
+        category.find((c) => c.id_category === row.id_category)?.name || "N/A",
     },
     {
       header: "Subcategoria",
@@ -161,8 +178,11 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         subcategory.find((s) => s.id_subcategory === row.id_subcategory)
           ?.subcategory_name || "N/A",
     },
-    { header: "Nombre", accessor: "nombre" },
-   
+    {
+      header: "Nombre",
+      accessor: (row) => formatProductName(row.nombre),
+    },
+
     {
       header: "Existencias",
       accessor: (row) => {
@@ -191,8 +211,6 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         );
       },
     },
-    
-    
   ];
 
   // Campos del formulario

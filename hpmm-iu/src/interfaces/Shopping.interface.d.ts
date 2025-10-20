@@ -15,7 +15,11 @@ export interface ShoppingInterface extends Partial<RequisiDetail> {
   lugar_entrega?: string;
   cantidad_comprada: number;
   precio_unitario: number;
-  ISV: boolean
+  ISV: boolean;
+  
+  tipo_compra: string;
+  financiamiento: string;
+
   total: number;
   estado: boolean;
   created_at?: Date;

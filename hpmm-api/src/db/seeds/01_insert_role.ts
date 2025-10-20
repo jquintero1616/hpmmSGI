@@ -37,5 +37,11 @@ export async function seed(knex: Knex): Promise<void> {
       descripcion: "Personal del Area de Logística",
       estado:      true,
     },
+    {
+      id_rol:      "6fc3d25d-7976-4b20-a767-cb4b10706c0c",
+      name:        "Usuario Test",
+      descripcion: "Usuario para pruebas",
+      estado:      true,
+    }
   ]);
 }
