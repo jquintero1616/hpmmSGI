@@ -330,99 +330,103 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
       {/* Modal Detalle */}
       <Modal isOpen={isDetailOpen} onClose={() => setDetailOpen(false)}>
         {itemToDetail && (
-          <div>
-            <h3 className="text-2xl font-bold mb-6 text-hpmm-azul-oscuro text-center">
-              Detalle de Solicitud de Compra
+          <div className="p-6 max-w-md mx-auto">
+            <h3 className="text-xl font-bold mb-6 text-center text-gray-800">
+              Detalle de la Solicitud de Compra
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-2">
-              <div className="space-y-6 border-r border-gray-200 pr-4">
-                <div>
-                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
-                    Cantidad
-                  </span>
-                  <span className="block text-base text-gray-700">
-                    {itemToDetail.cantidad}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
-                    Empleado Solicitante
-                  </span>
-                  <span className="block text-base text-gray-700">
-                    {itemToDetail.nombre_empleado}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
-                    Unidad
-                  </span>
-                  <span className="block text-base text-gray-700">
-                    {itemToDetail.nombre_unidad}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-6 pl-4">
-                <div>
-                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
-                    Producto
-                  </span>
-                  <span className="block text-base text-gray-700">
-                    {itemToDetail.nombre_producto}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase mb-1">
-                    Descripción
-                  </span>
-                  <span className="block text-base text-gray-800 bg-gray-50 rounded p-3 min-h-[48px] max-h-48 overflow-auto">
-                    {itemToDetail.descripcion || "N/A"}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap justify-between items-center gap-4 border-t pt-4 mb-4">
-              <div>
-                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
-                  N.º Solicitud
+            
+            <div className="space-y-4">
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  SOLICITANTE
                 </span>
-                <span className="font-mono text-sm text-gray-700">
-                  {`SOLICITUD-${itemToDetail.id_scompra.split("-")[0].toLocaleUpperCase()}`}
+                <span className="text-gray-800 font-medium">
+                  {itemToDetail.nombre_empleado}
                 </span>
               </div>
-              <div>
-                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
-                  N.º Requisición
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  UNIDAD
                 </span>
-                <span className="font-mono text-sm text-gray-700">
-                  {`REQUISICIÓN-${itemToDetail.id_requisi.split("-")[0].toLocaleUpperCase()}`}
+                <span className="text-gray-800 font-medium">
+                  {itemToDetail.nombre_unidad}
                 </span>
               </div>
-              <div>
-                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
-                  Estado
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  PRODUCTO
                 </span>
-                <span className="font-semibold text-sm text-gray-800">
+                <span className="text-gray-800 font-medium">
+                  {itemToDetail.nombre_producto}
+                </span>
+              </div>
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  CANTIDAD
+                </span>
+                <span className="text-gray-800 font-medium">
+                  {itemToDetail.cantidad}
+                </span>
+              </div>
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  ESTADO
+                </span>
+                <span className="text-gray-800 font-medium">
                   {itemToDetail.estado}
                 </span>
               </div>
-              <div>
-                <span className="block text-xs font-bold text-hpmm-azul-oscuro uppercase">
-                  Fecha de Creación
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  FECHA DE CREACIÓN
                 </span>
-                <span className="text-sm text-gray-700">
+                <span className="text-gray-800 font-medium">
                   {itemToDetail.created_at
-                    ? new Date(itemToDetail.created_at).toLocaleString()
-                    : ""}
+                    ? new Date(itemToDetail.created_at).toLocaleDateString()
+                    : "N/A"}
+                </span>
+              </div>
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  N.º SOLICITUD
+                </span>
+                <span className="text-gray-800 font-medium font-mono">
+                  {`SOLICITUD-${itemToDetail.id_scompra.split("-")[0].toLocaleUpperCase()}`}
+                </span>
+              </div>
+
+              <div className="flex border-b border-gray-200 pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  N.º REQUISICIÓN
+                </span>
+                <span className="text-gray-800 font-medium font-mono">
+                  {`REQUISICIÓN-${itemToDetail.id_requisi.split("-")[0].toLocaleUpperCase()}`}
+                </span>
+              </div>
+
+              <div className="flex pb-3">
+                <span className="text-gray-500 uppercase text-sm font-medium w-40">
+                  DESCRIPCIÓN
+                </span>
+                <span className="text-gray-800 font-medium">
+                  {itemToDetail.descripcion || "Sin descripción"}
                 </span>
               </div>
             </div>
-            <div className="flex justify-end">
-              <Button
+
+            <div className="flex justify-end mt-8">
+              <button
                 onClick={() => setDetailOpen(false)}
-                className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-6 rounded"
+                className="px-6 py-2 text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
               >
                 Cerrar
-              </Button>
+              </button>
             </div>
           </div>
         )}

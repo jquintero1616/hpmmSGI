@@ -1,5 +1,5 @@
 export interface Shopping {
-   id_shopping: string;
+  id_shopping: string;
   id_scompra: string;
   id_vendedor: string;
   fecha_compra: Date;
@@ -9,7 +9,11 @@ export interface Shopping {
   lugar_entrega: string;
   shopping_order_id: string;
   precio_unitario: number;        
-  cantidad_comprada: number;      
+  cantidad_comprada: number;
+
+  tipo_compra: string;
+  financiamiento: string;
+  
   ISV: boolean;
   total: number;
   cantidad_solicitada: number;    

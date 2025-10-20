@@ -4,7 +4,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
   await knex.schema.createTable("shopping", table => {
     
-      table.uuid("id_shopping").primary().defaultTo(knex.raw('uuid_generate_v4()'));
+    table.uuid("id_shopping").primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid("id_scompra").notNullable();
     table.uuid("id_vendedor").notNullable();
     table.date("fecha_compra").notNullable();
@@ -15,6 +15,10 @@ export async function up(knex: Knex): Promise<void> {
     table.string("nombre_unidad", 100).notNullable();
     table.decimal("precio_unitario", 10, 2).notNullable();
     table.decimal ("cantidad_comprada", 10, 2).notNullable();
+
+    table.string("tipo_compra", 50).notNullable();
+    table.string("financiamiento", 100).notNullable();
+
     table.boolean("ISV").notNullable().defaultTo(false);
     table.decimal("total",10, 2).notNullable();
     table.decimal("cantidad_solicitada", 10, 2).notNullable();

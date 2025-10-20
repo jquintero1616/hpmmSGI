@@ -19,11 +19,14 @@ export async function seed(knex: Knex): Promise<void> {
       cantidad_comprada: 10,
       precio_unitario: 100.05,
       ISV: false,
+      tipo_compra: "Compra Directa",
+      financiamiento: "Presupuesto Nacional",
+
       total: 1000.5,
       estado: true,
       cantidad_solicitada: 10,
       nombre_producto: "Paracetamol",
-      id_product: "11111111-6666-1111-1111-111111112222"
+      id_product: "11111111-6666-1111-1111-111111112222",
     },
     {
       id_shopping: "11111111-1111-1111-1111-111111114444",
@@ -36,13 +39,17 @@ export async function seed(knex: Knex): Promise<void> {
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Materiales HPMMM",
       ISV: false,
+
+      tipo_compra: "Licitacion",
+      financiamiento: "Presupuesto Nacional",
+
       cantidad_comprada: 5,
       precio_unitario: 200.1,
       total: 1000.5,
       cantidad_solicitada: 5,
       estado: true,
       nombre_producto: "Guantes de Latex",
-      id_product: "22222222-7777-2222-2222-222222223333"
+      id_product: "22222222-7777-2222-2222-222222223333",
     },
     {
       id_shopping: "11111111-1111-1111-1111-111111115555",
@@ -55,6 +62,10 @@ export async function seed(knex: Knex): Promise<void> {
       nombre_unidad: "HPMM",
       lugar_entrega: "Almacen Materiales HPMMM",
       ISV: false,
+
+      tipo_compra: "Licitacion",
+      financiamiento: "Presupuesto Nacional",
+      
       cantidad_comprada: 2,
       precio_unitario: 500.25,
       cantidad_solicitada: 2,

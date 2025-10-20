@@ -33,18 +33,27 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id_user: "88888888-8888-8888-8888-888888888888",
       username: "Testing Tecnico Almacen",
-      email: "testingTecnicoAlmacen@hpmm.com",
-      password: "$2b$10$KIhBbK2MU4k6Te2OVYf2bO6bo8CCofrKhxzJtz/62XpgR2C6k9feG",
+      email: "almacen@hpmm.com",
+      password: "$2b$10$4HRub4o3MYyGKGmN5EUMvep9xbVdhaypQsMPf4MgnunvJ1fokITXy",
       id_rol: "44444444-4444-4444-4444-444444444444",
       estado: true,
     },
     {
       id_user: "09847bb2-fbd9-410d-be44-630c36f3628d",
       username: "Testing Logistica",
-      email: "testingLogistica@hpmm.com",
-      password: "$2b$10$dZHIngWqVJKkSOhtsVjJa.ihs0.Pk.3ZVgP6TFUYZ3EtsxOnhe0rS",
+      email: "logistica@hpmm.com",
+      password: "$10$coXZfC8.NNpbDUhU6Zs.puuzwTk78MH.s8pmo9OrzZnrOA6H6WFNm",
       id_rol: "55555555-5555-5555-5555-555555555555",
       estado: true,
     },
+
+    {
+      id_user: "0516e8d5-35cd-4a1b-b4f7-a4c8662945a2",
+      username: "Usuario Test",
+      email: "usuario@hpmm.com",
+      password: "$2b$10$5bpSacP/3/7nS72mo/wTbeEKmHH4zOUzmh/EFGU5T1fiaM/dqiOMa",
+      id_rol: "6fc3d25d-7976-4b20-a767-cb4b10706c0c",
+      estado: true,
+    }
   ]);
 }

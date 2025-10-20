@@ -82,7 +82,9 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         row.fecha_compra ? new Date(row.fecha_compra).toLocaleDateString() : "",
     },
     { header: "N.º Orden", accessor: "shopping_order_id" },
-    { header: "Nombre Unidad Ejecutora", accessor: "nombre_unidad" },
+    { header: "Unidad Ejecutora", accessor: "nombre_unidad" },
+    { header: "Tipo de Compra", accessor: "tipo_compra" },
+    { header: "Financiamiento", accessor: "financiamiento" },
     { header: "Lugar Entrega", accessor: "lugar_entrega" },
     { header: "N.º Cotización", accessor: "numero_cotizacion" },
     { header: "N.º Pedido", accessor: "numero_pedido" },
@@ -109,10 +111,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         return (Math.ceil(total * 100) / 100).toFixed(2);
       },
     },
-    {
-      header: "Estado",
-      accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
-    },
+    
     {
       header: "Fecha Creación",
       accessor: (row) =>
@@ -135,6 +134,26 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Nombre Unidad",
       accessor: "nombre_unidad",
       editable: false,
+    },
+    {
+      header: "Tipo de Compra",
+      accessor: "tipo_compra",
+      editable: true,
+      editType: "select",
+      editOptions: [
+      { label: "Compra Directa", value: "Compra Directa" },
+        { label: "Licitación", value: "Licitación" },
+      ],
+    },
+    {
+      header: "Financiamiento",
+      accessor: "financiamiento",
+      editable: true,
+      editType: "select",
+      editOptions: [
+        { label: "Presupuesto Nacional", value: "Presupuesto Nacional" },
+        { label: "Fondos Recuperados", value: "Fondos Recuperados" },
+      ],
     },
     {
       header: "Lugar Entrega",
@@ -167,6 +186,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     },
     { header: "N.º cotización", editable: true, accessor: "numero_cotizacion" },
     { header: "N.º pedido", editable: true, accessor: "numero_pedido" },
+
     {
       header: "Vendedor",
       accessor: "vendedor_nombre",
@@ -177,14 +197,18 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         value: v.nombre_contacto,
       })),
     },
-    { header: "Nombre Productos", accessor: (row) => row.product_name ? row.product_name : row.nombre_producto },
+    {
+      header: "Nombre Productos",
+      accessor: (row) =>
+        row.product_name ? row.product_name : row.nombre_producto,
+    },
     { header: "Cantidad Solicitada", accessor: "cantidad_solicitada" },
     {
       header: "Cantidad Comprada",
       editable: true,
       accessor: "cantidad_comprada",
-      
     },
+
     { header: "Precio Unitario", editable: true, accessor: "precio_unitario" },
     {
       header: "Incluye ISV (15%)",
@@ -254,6 +278,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         required: true,
         disabled: (values) => !values.id_scompra,
       },
+      
       {
         name: "shopping_order_id",
         label: "Numero Orden",
