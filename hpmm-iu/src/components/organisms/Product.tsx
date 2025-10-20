@@ -101,7 +101,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Subcat.", accessor: "subcategory_name" },
     
     {
-      header: "Exist.",
+      header: "Existencias",
       accessor: (row) => {
         const actual = row.stock_actual;
         const max = row.stock_maximo;
@@ -350,34 +350,6 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <h2 className="text-2xl font-semibold mb-4">Productos</h2>
       <ToastContainer />
 
-      {/* Controles: Nuevo + Filtro de stock */}
-      <div className="flex flex-wrap items-center justify-between mb-4">
-        <div className="flex items-center">
-          <label htmlFor="stockFilter" className="mr-2 font-medium">
-            Filtro de stock:
-          </label>
-          <Select
-            name="stockFilter"
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value as StockFilter)}
-            options={[
-              { label: "Todas", value: "Todas" },
-              { label: "Bajas existencias", value: "Bajas" },
-              { label: "Excedidas", value: "Excedidas" },
-              { label: "Stock normales", value: "Normales" },
-            ]}
-            placeholder="Todas"
-            className="w-48"
-          />
-        </div>
-        <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
-          onClick={() => setCreateOpen(true)}
-        >
-          + Nuevo producto
-        </Button>
-      </div>
-
       {filteredData.length > 0 ? (
         <GenericTable
           columns={productColumns}
@@ -403,7 +375,9 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modales Crear / Editar / Eliminar */}
       <GenericModal isOpen={isCreateOpen} onClose={closeAll}>
         <h2 className="text-xl font-bold mb-4 text-center">
-          {itemToEditList ? "Editar producto de la lista" : "Agregar producto a la lista"}
+          {itemToEditList
+            ? "Editar producto de la lista"
+            : "Agregar producto a la lista"}
         </h2>
         <GenericForm
           initialValues={
@@ -465,7 +439,8 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           data={dataListForm.map((item) => ({
             ...item,
             category_name:
-              category.find((c) => c.id_category === item.id_category)?.name || "N/A",
+              category.find((c) => c.id_category === item.id_category)?.name ||
+              "N/A",
             subcategory_name:
               subcategory.find((s) => s.id_subcategory === item.id_subcategory)
                 ?.subcategory_name || "N/A",
@@ -511,10 +486,9 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             initialValues={{
               id_subcategory: itemToEdit.id_subcategory,
               nombre: itemToEdit.nombre,
-              
+
               stock_actual: itemToEdit.stock_actual,
               stock_maximo: itemToEdit.stock_maximo,
-              
             }}
             fields={productFieldsNoEstado}
             onSubmit={handleSave}

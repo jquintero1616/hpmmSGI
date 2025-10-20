@@ -68,10 +68,14 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Proveedor", accessor: "supplier_name" },
     { header: "Nombre Contacto", accessor: "nombre_contacto" },
     { header: "Correo Electrónico", accessor: "correo" },
+    { header: "Teléfono", accessor: "telefono" },
+    { header: "Identidad", accessor: "identidad" },
+
     {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
     },
+    
     {
       header: "Fecha Creación",
       accessor: (row) =>
@@ -108,6 +112,18 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       type: "email",
       required: true,
       pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+    },
+    {
+      name: "telefono",
+      label: "Teléfono",
+      type: "number",
+      required: true,
+    },
+    {
+      name: "identidad",
+      label: "Identidad",
+      type: "text",
+      required: true,
     },
     {
       name: "estado",
@@ -188,6 +204,8 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       values.id_supplier !== itemToEdit.id_supplier ||
       values.nombre_contacto !== itemToEdit.nombre_contacto ||
       values.correo !== itemToEdit.correo ||
+      values.telefono !== itemToEdit.telefono ||
+      values.identidad !== itemToEdit.identidad ||
       values.estado !== itemToEdit.estado;
 
     if (!hasChanges) {
@@ -300,6 +318,8 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               id_supplier: itemToEdit.id_supplier , 
               nombre_contacto: itemToEdit.nombre_contacto,
               correo: itemToEdit.correo,
+              telefono: itemToEdit.telefono,
+              identidad: itemToEdit.identidad,
               estado: true, 
             }}
             fields={vendedorFields}

@@ -40,6 +40,7 @@ export const PostCreateSupplierService = async (
         numero_contacto: supplier.numero_contacto,
         nombre: supplier.nombre,
         correo: supplier.correo,
+        rtn: supplier.rtn,
         estado: supplier.estado,
       },
       { headers: { "Content-Type": "application/json" } }
@@ -57,11 +58,12 @@ export const PutUpdateSupplierService = async (
   axiosPrivate: AxiosInstance
 ): Promise<void> => {
   try {
-    const { numero_contacto, nombre, correo, estado } = supplier;
+    const { numero_contacto, nombre, correo, rtn, estado } = supplier;
     await axiosPrivate.put(`supplier/${id_supplier}`, {
       numero_contacto,
       nombre,
       correo,
+      rtn,
       estado,
     });
   } catch (error) {

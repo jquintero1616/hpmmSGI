@@ -12,6 +12,7 @@ export async function seed(knex: Knex): Promise<void> {
       nombre_contacto: "Mario Aguilar",
       correo: "MarioAguilarlarachhn@example.com",
       identidad: "0801-1990-12345",
+      telefono: "1234-5678",
       estado: true,
     
     },
@@ -21,6 +22,7 @@ export async function seed(knex: Knex): Promise<void> {
       nombre_contacto: "Alex Rodriguez",
       correo: "AlexRodriguez@example.com",
       identidad: "0801-1985-54321",
+      telefono: "2345-6789",
       estado: true,
     },
     {
@@ -29,6 +31,7 @@ export async function seed(knex: Knex): Promise<void> {
       nombre_contacto: "Juan Perez",
       correo: "Junperez@example.com",
       identidad: "0801-1975-67890",
+      telefono: "3456-7890",
       estado: true,
     }
   ]);

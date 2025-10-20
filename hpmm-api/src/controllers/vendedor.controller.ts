@@ -62,12 +62,14 @@ export const updateVendedorController = asyncWrapper(
              nombre_contacto,
               correo,
               identidad,
+              telefono,
                estado } = req.body;
         const vendedor = await VendedorService.updateVendedorService(id_vendedor,
              id_proveedor,
               nombre_contacto,
                correo,
                identidad,
+               telefono,
                 estado);
         if (!vendedor) {
             res.status(404).json({ msg: "vendedor no encontrado" });

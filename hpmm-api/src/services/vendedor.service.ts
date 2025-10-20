@@ -41,6 +41,7 @@ export const updateVendedorService = async (
     nombre_contacto: string, 
     correo:string,
     identidad: string,
+    telefono: string,
     estado: boolean
 
 ): Promise<NewVendedor> => {
@@ -51,6 +52,7 @@ export const updateVendedorService = async (
         nombre_contacto,
         correo,
         identidad,
+        telefono,
         estado
     );
     

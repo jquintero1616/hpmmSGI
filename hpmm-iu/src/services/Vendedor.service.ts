@@ -40,6 +40,8 @@ export const PostCreateVendedorService = async (
                 id_supplier: vendedor.id_supplier,
                 nombre_contacto: vendedor.nombre_contacto,
                 correo: vendedor.correo,
+                telefono: vendedor.telefono,
+                identidad: vendedor.identidad,
                 estado: vendedor.estado,
             },
             { headers: { "Content-Type": "application/json" }}

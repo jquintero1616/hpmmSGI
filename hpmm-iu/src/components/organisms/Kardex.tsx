@@ -182,7 +182,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       },
     },
     {
-      header: "Impuesto (L.)",
+      header: "Impuesto",
       accessor: (row) => {
         // Si el producto tiene ISV, calcula el impuesto
         if (row.ISV || row.isv) {

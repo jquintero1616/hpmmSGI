@@ -69,6 +69,17 @@ const HomePage: React.FC = () => {
   const { scompras } = useSolicitudCompras();
   const [fechaHoy, setFechaHoy] = useState(formatFechaLarga());
 
+  // Roles que pueden ver Productos y Kardex
+  const rolesConAccesoInventario = [
+    "Jefe de Logistica",
+    "Jefa de Almacen",
+    "Administrador",
+    "Super Admin",
+  ];
+
+  // Verificar si el usuario actual puede ver las secciones de inventario
+  const puedeVerInventario = rolesConAccesoInventario.includes(roleName || "");
+
   // Función para saber si el usuario puede ver la card (igual que en Sidebar)
   const canViewCard = (
     menuKey: keyof typeof subMenuVisibility,
@@ -210,75 +221,79 @@ const HomePage: React.FC = () => {
           <p className="text-gray-600 mt-1">Resumen del estado actual del sistema</p>
         </div>
 
-        {/* ================== SECCIÓN PRODUCTOS ================== */}
-        <div className="mb-10">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Productos</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {canViewCard("inventario", "/products") && (
-              <DashboardCard
-                title="Productos"
-                subtitle="En Existencia"
-                value={productosEnExistencia}
-                icon={<CubeIcon className="w-5 h-5 text-green-600" />}
-                onClick={() => navigate("/products")}
-              />
-            )}
-            {canViewCard("inventario", "/products") && (
-              <DashboardCard
-                title="Productos"
-                subtitle="Próximos a Vencer"
-                value={proximosAVencer}
-                icon={<ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
-                onClick={() => navigate("/products")}
-              />
-            )}
-            {canViewCard("inventario", "/products") && (
-              <DashboardCard
-                title="Productos"
-                subtitle="Vencidos"
-                value={vencidos}
-                icon={<ExclamationTriangleIcon className="w-5 h-5 text-red-600" />}
-                onClick={() => navigate("/products")}
-              />
-            )}
-            {canViewCard("inventario", "/stock-critico") && (
-              <DashboardCard
-                title="Productos"
-                subtitle="Bajas Existencias"
-                value={bajasExistencias}
-                icon={<CubeIcon className="w-5 h-5 text-yellow-800" />}
-                onClick={() => navigate("/products")}
-              />
-            )}
+        {/* ================== SECCIÓN PRODUCTOS - SOLO ROLES ESPECÍFICOS ================== */}
+        {puedeVerInventario && (
+          <div className="mb-10">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Productos</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {canViewCard("inventario", "/products") && (
+                <DashboardCard
+                  title="Productos"
+                  subtitle="En Existencia"
+                  value={productosEnExistencia}
+                  icon={<CubeIcon className="w-5 h-5 text-green-600" />}
+                  onClick={() => navigate("/products")}
+                />
+              )}
+              {canViewCard("inventario", "/products") && (
+                <DashboardCard
+                  title="Productos"
+                  subtitle="Próximos a Vencer"
+                  value={proximosAVencer}
+                  icon={<ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />}
+                  onClick={() => navigate("/products")}
+                />
+              )}
+              {canViewCard("inventario", "/products") && (
+                <DashboardCard
+                  title="Productos"
+                  subtitle="Vencidos"
+                  value={vencidos}
+                  icon={<ExclamationTriangleIcon className="w-5 h-5 text-red-600" />}
+                  onClick={() => navigate("/products")}
+                />
+              )}
+              {canViewCard("inventario", "/stock-critico") && (
+                <DashboardCard
+                  title="Productos"
+                  subtitle="Bajas Existencias"
+                  value={bajasExistencias}
+                  icon={<CubeIcon className="w-5 h-5 text-yellow-800" />}
+                  onClick={() => navigate("/products")}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* ================== SECCIÓN KARDEX ================== */}
-        <div className="mb-10">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Kardex</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {canViewCard("kardex", "/KardexPendiente") && (
-              <DashboardCard
-                title="Kardex"
-                subtitle="Solicitudes a Fusiones"
-                value={kardexPendientes.length}
-                icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
-                onClick={() => navigate("/KardexPendiente")}
-              />
-            )}
-            {canViewCard("kardex", "/kardex") && (
-              <DashboardCard
-                title="Kardex"
-                subtitle="Aprobados"
-                value={kardexAprobados.length}
-                icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
-                onClick={() => navigate("/kardex")}
-              />
-            )}
+        {/* ================== SECCIÓN KARDEX - SOLO ROLES ESPECÍFICOS ================== */}
+        {puedeVerInventario && (
+          <div className="mb-10">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Kardex</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {canViewCard("kardex", "/KardexPendiente") && (
+                <DashboardCard
+                  title="Kardex"
+                  subtitle="Solicitudes a Fusiones"
+                  value={kardexPendientes.length}
+                  icon={<DocumentTextIcon className="w-5 h-5 text-indigo-600" />}
+                  onClick={() => navigate("/KardexPendiente")}
+                />
+              )}
+              {canViewCard("kardex", "/kardex") && (
+                <DashboardCard
+                  title="Kardex"
+                  subtitle="Aprobados"
+                  value={kardexAprobados.length}
+                  icon={<CheckCircleIcon className="w-5 h-5 text-green-600" />}
+                  onClick={() => navigate("/kardex")}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* ================== SECCIÓN REQUISICIONES ================== */}
+        {/* ================== SECCIÓN REQUISICIONES - TODOS LOS ROLES ================== */}
         <div className="mb-10">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Requisiciones</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

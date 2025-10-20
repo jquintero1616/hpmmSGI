@@ -5,6 +5,7 @@ export interface vendedor {
   supplier_name?: string;
   correo: string;
   identidad: string;
+  telefono: string;
   estado: boolean;
   created_at?: Date;
   updated_at?: Date;

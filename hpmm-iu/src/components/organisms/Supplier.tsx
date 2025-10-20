@@ -68,6 +68,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Nombre", accessor: "nombre" },
     { header: "Teléfono", accessor: "numero_contacto" },
     { header: "Correo Electrónico", accessor: "correo" },
+    { header: "RTN", accessor: "rtn" },
     { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
     {
       header: "Fecha Creación",
@@ -82,14 +83,29 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   ];
 
   const supplierFields: FieldConfig[] = [
-    { name: "nombre", label: "Nombre", type: "text", required: true },
-    { name: "numero_contacto", label: "Teléfono", type: "text", required: true },
-    { 
-      name: "correo", 
-      label: "Correo Electrónico", 
-      type: "email", 
+    { name: "nombre", 
+      label: "Nombre proveedor",
+      type: "text",
+      required: true
+    },
+    {
+      name: "numero_contacto",
+      label: "Teléfono",
+      type: "text",
       required: true,
-      pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+    },
+    {
+      name: "correo",
+      label: "Correo Electrónico",
+      type: "email",
+      required: true,
+      pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+    },
+    {
+      name: "rtn",
+      label: "RTN",
+      type: "number",
+      required: true,
     },
     {
       name: "estado",
@@ -165,6 +181,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         nombre: values.nombre,
         numero_contacto: values.numero_contacto,
         correo: values.correo,
+        rtn: values.rtn, 
         estado: true,
       });
       
@@ -187,6 +204,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       values.nombre !== itemToEdit.nombre ||
       values.numero_contacto !== itemToEdit.numero_contacto ||
       values.correo !== itemToEdit.correo ||
+      values.rtn !== itemToEdit.rtn ||
       values.estado !== itemToEdit.estado;
 
     if (!hasChanges) {
@@ -211,6 +229,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         nombre: values.nombre,
         numero_contacto: values.numero_contacto,
         correo: values.correo,
+        rtn: values.rtn,
         estado: values.estado === true,
       });
 
@@ -263,7 +282,9 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Proveedores</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Gestión de Proveedores
+      </h1>
 
       <div className="flex justify-end mb-4">
         <Button
@@ -277,7 +298,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <GenericTable
         columns={supplierColumns}
         data={filteredData}
-        rowKey={(row) => row?.id_supplier || ''}
+        rowKey={(row) => row?.id_supplier || ""}
         actions={[
           {
             header: "Editar",
@@ -302,6 +323,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             nombre: "",
             numero_contacto: "",
             correo: "",
+            rtn: "",
             estado: true,
           }}
           fields={supplierFields.map((f) =>
@@ -334,6 +356,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               nombre: itemToEdit.nombre ?? "",
               numero_contacto: itemToEdit.numero_contacto ?? "",
               correo: itemToEdit.correo ?? "",
+              rtn: itemToEdit.rtn ?? "",
               estado: true,
             }}
             fields={supplierFields}
@@ -373,7 +396,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             <GenericTable
               columns={supplierColumns}
               data={[itemToDelete]}
-              rowKey={(row) => row?.id_supplier || 'delete-item'}
+              rowKey={(row) => row?.id_supplier || "delete-item"}
             />
 
             <div className="mt-4 text-right gap-2 flex justify-center">

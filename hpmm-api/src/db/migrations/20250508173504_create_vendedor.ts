@@ -13,6 +13,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string("nombre_contacto").notNullable();
     table.string("correo").notNullable();
     table.string("identidad").notNullable();
+    table.string("telefono").notNullable();
     table.boolean("estado").notNullable().defaultTo(true);
     table.timestamps(true, true);
 

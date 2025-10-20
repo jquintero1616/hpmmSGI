@@ -12,6 +12,7 @@ export const getAllVendedorModel = async (): Promise<NewVendedor[]> => {
       "sb.correo",
       "sb.identidad",
       "sb.estado",
+      "sb.telefono",
       "sb.created_at",
       "sb.updated_at",
       "c.nombre as supplier_name"
@@ -39,6 +40,7 @@ export async function updateVendedorModel(
     nombre_contacto: string, 
     correo:string,
     identidad: string,
+    telefono: string,
     estado: boolean
 ): Promise<NewVendedor> {
     const [updatedVendedor] = await knexTableName()
@@ -47,6 +49,7 @@ export async function updateVendedorModel(
         nombre_contacto, 
         correo, 
         identidad,
+        telefono,
         estado })
       .returning("*");
     return updatedVendedor;
