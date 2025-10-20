@@ -19,6 +19,10 @@ export const getAllshoppingModel = async (): Promise<NewShopping[]> => {
       "s.id_product",
       "s.ISV",
       "s.cantidad_comprada",
+      
+      "s.tipo_compra",
+      "s.financiamiento",
+
       "s.precio_unitario",
       "s.cantidad_solicitada",
       "s.nombre_producto",
@@ -60,6 +64,10 @@ export async function updateShoppingModel(
   lugar_entrega: string,
   shopping_order_id: string,
   ISV: boolean,
+
+  tipo_compra: string,
+  financiamiento: string,
+  
   total: number,
   estado: boolean,
   nombre_producto: string,
@@ -83,6 +91,8 @@ export async function updateShoppingModel(
       id_vendedor,
       shopping_order_id,
       ISV,
+      tipo_compra,
+      financiamiento,
       estado,
       nombre_producto,
       cantidad_comprada,

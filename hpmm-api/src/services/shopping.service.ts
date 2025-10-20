@@ -39,6 +39,10 @@ export const updateShoppingService = async (
   nombre_unidad: string,
   shopping_order_id: string,
   ISV: boolean,
+
+  tipo_compra: string,
+  financiamiento: string,
+
   total: number,
   estado: boolean,
   nombre_producto: string,
@@ -59,6 +63,8 @@ export const updateShoppingService = async (
       lugar_entrega,
       shopping_order_id,
       ISV,
+      tipo_compra,
+      financiamiento,
       total,
       estado,
       nombre_producto,
