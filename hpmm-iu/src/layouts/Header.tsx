@@ -232,13 +232,6 @@ const Header: React.FC = () => {
                     onClick={() => {
                       logout();
                       setUserMenuOpen(false);
-                      toast.success(
-                        "Sesión cerrada correctamente. ¡Hasta pronto!",
-                        {
-                          position: "top-right",
-                          autoClose: 3000,
-                        }
-                      );
                     }}
                   >
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors duration-200 flex-shrink-0">
