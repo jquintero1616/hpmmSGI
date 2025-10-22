@@ -11,7 +11,12 @@ import Redis from "ioredis";
 import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser";
 
-const FRONTEND_ORIGINS = "https://localhost:5173"
+const FRONTEND_ORIGINS = [
+  "https://localhost:5173",  // HTTPS desarrollo
+  "http://localhost:5173",   // HTTP desarrollo
+  "https://localhost:443",   // HTTPS producción
+  "https://localhost"        // HTTPS producción (sin puerto)
+];
 
 const corsOptions: CorsOptions = {
   origin: FRONTEND_ORIGINS, 
@@ -53,7 +58,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 1000 * 60 * 60 * 8, // 8 horas
     },
   })

@@ -1,0 +1,111 @@
+services:
+# PostgreSQL - Base de datos
+  postgres:
+    image: postgres:16-alpine
+    container_name: hpmm-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${PSQL_DB_USER}
+      POSTGRES_PASSWORD: ${PSQL_DB_PASSWORD}
+      POSTGRES_DB: ${PSQL_DB_NAME}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=es_ES.UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Script de inicialización (creará el schema)
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PSQL_DB_USER} -d ${PSQL_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hpmm-network
+      
+  # Redis - Para sesiones
+  redis:
+    image: redis:7-alpine
+    container_name: hpmm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - hpmm-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./hpmm-api
+      dockerfile: Dockerfile
+    container_name: hpmm-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Node
+      NODE_ENV: production
+      
+      # PostgreSQL - Ahora usa el contenedor
+      PSQL_DB_USER: ${PSQL_DB_USER}
+      PSQL_DB_PASSWORD: ${PSQL_DB_PASSWORD}
+      PSQL_DB_DATABASE: ${PSQL_DB_DATABASE}
+      PSQL_DB_HOST: postgres
+      PSQL_DB_SCHEMA: ${PSQL_DB_SCHEMA}
+      PSQL_DB_PORT: 5432
+      
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+      # Session
+      SESSION_SECRET: ${SESSION_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - hpmm-network
+    volumes:
+      # Si necesitas persistir uploads u otros archivos
+      - backend_uploads:/app/uploads
+
+  # Frontend
+  frontend:
+    build:
+      context: ./hpmm-iu
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://localhost:3000}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://localhost:3000/api}
+    container_name: hpmm-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"    # HTTP (redirige a HTTPS)
+      - "443:443"  # HTTPS
+    depends_on:
+      - backend
+    networks:
+      - hpmm-network
+
+networks:
+  hpmm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
