@@ -2,6 +2,7 @@
 import "dotenv/config";
 import app from "./app";
 import https from "https";
+import http from "http";
 import fs from "fs";
 import path from "path";
 
@@ -9,13 +10,23 @@ import path from "path";
 app.set("trust proxy", true);
 
 const PORT: number = parseInt(process.env.PORT ?? "3000", 10) || 3000;
+const USE_HTTPS = process.env.USE_HTTPS === "true";
 
-// Lee los certificados SSL
-const key = fs.readFileSync(path.resolve(__dirname, "../certs/key.pem"));
-const cert = fs.readFileSync(path.resolve(__dirname, "../certs/cert.pem"));
-
-https.createServer({ key, cert }, app).listen(PORT, "0.0.0.0", () => {
-  const localUrl = `https://localhost:${PORT}`;
-  console.info("\n Express App Running (HTTPS)...");
-  console.info(`\n -> Local: ${localUrl}/api \n`);
-});
+if (USE_HTTPS) {
+  // PRODUCCIÓN - HTTPS
+  const key = fs.readFileSync(path.resolve(__dirname, "../certs/key.pem"));
+  const cert = fs.readFileSync(path.resolve(__dirname, "../certs/cert.pem"));
+  
+  https.createServer({ key, cert }, app).listen(PORT, "0.0.0.0", () => {
+    const localUrl = `https://localhost:${PORT}`;
+    console.info("\n Express App Running (HTTPS)...");
+    console.info(`\n -> Local: ${localUrl}/api \n`);
+  });
+} else {
+  // DESARROLLO - HTTP
+  http.createServer(app).listen(PORT, "0.0.0.0", () => {
+    const localUrl = `http://localhost:${PORT}`;
+    console.info("\n Express App Running (HTTP - Desarrollo)...");
+    console.info(`\n -> Local: ${localUrl}/api \n`);
+  });
+}

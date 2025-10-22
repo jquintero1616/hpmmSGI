@@ -1,0 +1,120 @@
+# ========================================
+# Docker Compose - DESARROLLO
+# Hot Reload para Frontend y Backend
+# ========================================
+
+services:
+  # PostgreSQL - Sin cambios
+  postgres:
+    image: postgres:16-alpine
+    container_name: hpmm-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${PSQL_DB_USER}
+      POSTGRES_PASSWORD: ${PSQL_DB_PASSWORD}
+      POSTGRES_DB: ${PSQL_DB_NAME}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=es_ES.UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PSQL_DB_USER} -d ${PSQL_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hpmm-network
+
+  # Redis - Sin cambios
+  redis:
+    image: redis:7-alpine
+    container_name: hpmm-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - hpmm-network
+
+  # Backend - CON HOT RELOAD
+  backend:
+    build:
+      context: ./hpmm-api
+      dockerfile: Dockerfile.dev  # Dockerfile especial para desarrollo
+    container_name: hpmm-backend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      USE_HTTPS: "false"  # HTTP en desarrollo
+      PSQL_DB_USER: ${PSQL_DB_USER}
+      PSQL_DB_PASSWORD: ${PSQL_DB_PASSWORD}
+      PSQL_DB_DATABASE: ${PSQL_DB_DATABASE}
+      PSQL_DB_HOST: postgres
+      PSQL_DB_SCHEMA: ${PSQL_DB_SCHEMA}
+      PSQL_DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_SECRET: ${SESSION_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - hpmm-network
+    volumes:
+      # Montar código fuente para hot reload
+      - ./hpmm-api/src:/app/src:delegated
+      # Excluir node_modules para evitar conflictos
+      - /app/node_modules
+    command: npm run dev  # Usar nodemon para hot reload
+
+  # Frontend - CON HOT RELOAD
+  frontend:
+    build:
+      context: ./hpmm-iu
+      dockerfile: Dockerfile.dev  # Dockerfile especial para desarrollo
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    container_name: hpmm-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"  # Puerto de Vite dev server
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api}
+    depends_on:
+      - backend
+    networks:
+      - hpmm-network
+    volumes:
+      # Montar código fuente para hot reload
+      - ./hpmm-iu/src:/app/src:delegated
+      - ./hpmm-iu/public:/app/public:delegated
+      - ./hpmm-iu/index.html:/app/index.html:delegated
+      - ./hpmm-iu/vite.config.ts:/app/vite.config.ts:delegated
+      # Excluir node_modules
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
+networks:
+  hpmm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

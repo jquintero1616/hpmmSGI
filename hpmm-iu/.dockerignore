@@ -1,0 +1,62 @@
+# Dependencias
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build
+dist
+build
+.next
+
+# Archivos de entorno
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testing
+coverage
+.nyc_output
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentación
+README.md
+*.md
+
+# Otros
+.prettierrc.json
+.prettierignore
+.eslintrc*
+eslint.config.*
+# NO excluir tsconfig - se necesitan para compilar
+# tsconfig.json
+# tsconfig.*.json

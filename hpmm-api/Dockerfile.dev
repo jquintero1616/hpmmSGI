@@ -1,0 +1,37 @@
+# ========================================
+# Dockerfile para DESARROLLO - Backend
+# Con Hot Reload usando nodemon
+# ========================================
+
+FROM node:22-alpine
+
+# Instalar herramientas para desarrollo
+RUN apk add --no-cache dumb-init
+
+# Crear usuario no-root
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar TODAS las dependencias (incluyendo dev)
+RUN npm install && npm cache clean --force
+
+# Copiar todo el código fuente y configuración
+COPY . .
+
+# Cambiar permisos
+RUN chown -R nodejs:nodejs /app
+
+# Cambiar a usuario no-root
+USER nodejs
+
+# Exponer puerto
+EXPOSE 3000
+
+# Usar dumb-init y nodemon para hot reload
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npm", "run", "dev"]
