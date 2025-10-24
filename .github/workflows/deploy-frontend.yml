@@ -1,0 +1,60 @@
+name: Deploy Frontend to AWS ECS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'hpmm-iu/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REGISTRY: 861455913678.dkr.ecr.us-east-2.amazonaws.com
+  ECR_REPOSITORY: hpmm-sgi-repo
+  IMAGE_TAG: frontend-${{ github.sha }}
+
+jobs:
+  deploy-frontend:
+    name: Build and Push Frontend to ECR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Frontend Docker image
+        working-directory: ./hpmm-iu
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://backend:3000' }}
+        run: |
+          echo "🔨 Building frontend image..."
+          docker build \
+            --build-arg VITE_API_URL=${{ env.VITE_API_URL }} \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+          docker tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+                     ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:frontend-latest
+
+      - name: Push Frontend image to ECR
+        run: |
+          echo "📤 Pushing frontend image to ECR..."
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:frontend-latest
+
+      - name: Summary
+        run: |
+          echo "✅ Frontend deployed successfully!"
+          echo "📦 Image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          echo "🏷️  Latest: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:frontend-latest"

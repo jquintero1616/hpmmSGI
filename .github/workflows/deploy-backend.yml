@@ -1,0 +1,56 @@
+name: Deploy Backend to AWS ECS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'hpmm-api/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REGISTRY: 861455913678.dkr.ecr.us-east-2.amazonaws.com
+  ECR_REPOSITORY: hpmm-sgi-repo
+  IMAGE_TAG: backend-${{ github.sha }}
+
+jobs:
+  deploy-backend:
+    name: Build and Push Backend to ECR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Backend Docker image
+        working-directory: ./hpmm-api
+        run: |
+          echo "🔨 Building backend image..."
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+          docker tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+                     ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:backend-latest
+
+      - name: Push Backend image to ECR
+        run: |
+          echo "📤 Pushing backend image to ECR..."
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:backend-latest
+
+      - name: Summary
+        run: |
+          echo "✅ Backend deployed successfully!"
+          echo "📦 Image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          echo "🏷️  Latest: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:backend-latest"
