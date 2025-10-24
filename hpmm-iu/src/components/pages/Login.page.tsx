@@ -6,7 +6,7 @@ import LoginForm from "../molecules/LoginForm";
 import LoginFormProps from "../organisms/Login";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Logo from "../../assets/Hpmm2.png";
+import Logo from "../../assets/hpmm2.png";
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
