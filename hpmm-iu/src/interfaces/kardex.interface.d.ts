@@ -45,6 +45,7 @@ export interface KardexEdit {
   shopping_order_id: string;
   numero_cotizacion: string;
   numero_pedido: string;
+  cantidad_recepcionada?: number;
   rfid: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
 }
