@@ -1,0 +1,44 @@
+{
+  "family": "hpmm-sgi-frontend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::861455913678:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::861455913678:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "frontend-sgi",
+      "image": "IMAGE_NAME",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "VITE_API_URL",
+          "value": "http://BACKEND_IP:3000"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/hpmm-sgi-frontend",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "frontend",
+          "awslogs-create-group": "true"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost/ || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 30
+      }
+    }
+  ]
+}

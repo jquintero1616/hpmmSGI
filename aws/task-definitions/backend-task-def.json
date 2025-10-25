@@ -1,0 +1,70 @@
+{
+  "family": "hpmm-sgi-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::861455913678:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::861455913678:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "backend-sgi",
+      "image": "IMAGE_NAME",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "REDIS_URL",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_URL::"
+        },
+        {
+          "name": "REDIS_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_HOST::"
+        },
+        {
+          "name": "REDIS_PORT",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_PORT::"
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_PASSWORD::"
+        }
+      ],
+      "environment": [
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "PORT",
+          "value": "3000"
+        },
+        {
+          "name": "CORS_ORIGIN",
+          "value": "*"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/hpmm-sgi-backend",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "backend",
+          "awslogs-create-group": "true"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}

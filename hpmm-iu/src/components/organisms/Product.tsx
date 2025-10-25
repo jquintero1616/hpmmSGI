@@ -367,6 +367,34 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     <div>
       <h2 className="text-2xl font-semibold mb-4">Productos</h2>
       <ToastContainer />
+      {/* Controles: Nuevo + Filtro de stock */}
+      <div className="flex flex-wrap items-center justify-between mb-4">
+        <div className="flex items-center">
+          <label htmlFor="stockFilter" className="mr-2 font-medium">
+            Filtro de stock:
+          </label>
+          <Select
+            name="stockFilter"
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value as StockFilter)}
+            options={[
+              { label: "Todas", value: "Todas" },
+              { label: "Bajas existencias", value: "Bajas" },
+              { label: "Excedidas", value: "Excedidas" },
+              { label: "Stock normales", value: "Normales" },
+            ]}
+            placeholder="Todas"
+            className="w-48"
+          />
+        </div>
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nuevo producto
+        </Button>
+      </div>
+
 
       {filteredData.length > 0 ? (
         <GenericTable

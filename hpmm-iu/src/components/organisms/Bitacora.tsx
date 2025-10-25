@@ -71,7 +71,7 @@ const Bitacora: React.FC = () => {
       try {
         const detailedBitacora = await GetBitacoraByIdContext(id.toString());
         setItemToView(detailedBitacora || bitacora);
-      } catch (error) {
+      } catch  {
         setItemToView(bitacora);
       }
       setDetailOpen(true);

@@ -53,8 +53,19 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:frontend-latest
 
+      - name: Update ECS service
+        run: |
+          echo "🚀 Updating ECS service..."
+          aws ecs update-service \
+            --cluster hpmm-sgi-cluster \
+            --service hpmm-sgi-frontend-service \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+          echo "✅ ECS service update initiated"
+
       - name: Summary
         run: |
           echo "✅ Frontend deployed successfully!"
           echo "📦 Image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
           echo "🏷️  Latest: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:frontend-latest"
+          echo "🚀 ECS service: hpmm-sgi-frontend-service (deployment in progress)"
