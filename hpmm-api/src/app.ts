@@ -11,12 +11,15 @@ import Redis from "ioredis";
 import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser";
 
-const FRONTEND_ORIGINS = [
-  "https://localhost:5173",  // HTTPS desarrollo
-  "http://localhost:5173",   // HTTP desarrollo
-  "https://localhost:443",   // HTTPS producción
-  "https://localhost"        // HTTPS producción (sin puerto)
-];
+// CORS origins - Soporta múltiples orígenes desde variable de entorno
+const FRONTEND_ORIGINS = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : [
+      "https://localhost:5173",  // HTTPS desarrollo
+      "http://localhost:5173",   // HTTP desarrollo
+      "https://localhost:443",   // HTTPS producción
+      "https://localhost"        // HTTPS producción (sin puerto)
+    ];
 
 const corsOptions: CorsOptions = {
   origin: FRONTEND_ORIGINS, 
@@ -36,11 +39,21 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 
+// Configuración de Redis (soporta tanto local como Upstash)
+const redisClient = process.env.REDIS_URL 
+  ? new Redis(process.env.REDIS_URL)
+  : new Redis({
+      host: process.env.REDIS_HOST || "127.0.0.1",
+      port: parseInt(process.env.REDIS_PORT || "6379", 10),
+      password: process.env.REDIS_PASSWORD,
+    });
 
-const redisClient = new Redis({
-  host: process.env.REDIS_HOST, // "127.0.0.1"
-  port: parseInt(process.env.REDIS_PORT || "6379", 10),
-  // si en el futuro pones auth en Redis, agrega `password: process.env.REDIS_PASSWORD`
+redisClient.on("error", (err) => {
+  console.error("Redis connection error:", err);
+});
+
+redisClient.on("connect", () => {
+  console.log("✅ Connected to Redis successfully");
 });
 
 // 2) Configuramos connect-redis como store de express-session
@@ -63,6 +76,11 @@ app.use(
     },
   })
 );
+
+// Health check endpoint para ECS
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // monta tus rutas **públicas** y protegidas de Auth:
 app.use('/api/auth', authRouter);
