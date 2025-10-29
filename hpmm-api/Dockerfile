@@ -19,8 +19,8 @@ RUN npm run build
 # Etapa 2: Producción
 FROM node:22-alpine
 
-# Instalar dumb-init para manejar señales correctamente
-RUN apk add --no-cache dumb-init
+# Instalar dumb-init y curl para manejar señales correctamente y health checks
+RUN apk add --no-cache dumb-init curl
 
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001

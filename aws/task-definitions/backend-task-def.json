@@ -9,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "backend-sgi",
-      "image": "IMAGE_NAME",
+      "image": "861455913678.dkr.ecr.us-east-2.amazonaws.com/hpmm-sgi-repo:backend-latest",
       "essential": true,
       "portMappings": [
         {
@@ -23,16 +23,20 @@
           "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_URL::"
         },
         {
-          "name": "REDIS_HOST",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_HOST::"
+          "name": "PSQL_DB_HOST",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:host::"
         },
         {
-          "name": "REDIS_PORT",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_PORT::"
+          "name": "PSQL_DB_PORT",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:port::"
         },
         {
-          "name": "REDIS_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_PASSWORD::"
+          "name": "PSQL_DB_USER",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:username::"
+        },
+        {
+          "name": "PSQL_DB_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:password::"
         }
       ],
       "environment": [
@@ -47,6 +51,22 @@
         {
           "name": "CORS_ORIGIN",
           "value": "*"
+        },
+        {
+          "name": "PSQL_DB_NAME",
+          "value": "hpmmsgi"
+        },
+        {
+          "name": "PSQL_DB_DATABASE",
+          "value": "hpmmsgi"
+        },
+        {
+          "name": "PSQL_DB_SCHEMA",
+          "value": "mi_esquema"
+        },
+        {
+          "name": "SESSION_SECRET",
+          "value": "LyoZ.[VBo*sZ>K[vur\\QM<7.6.9M>:Fe"
         }
       ],
       "logConfiguration": {
