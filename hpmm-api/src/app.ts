@@ -26,19 +26,34 @@ const corsOptions: CorsOptions = {
   origin: FRONTEND_ORIGINS, 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
+  // Incluir Authorization y headers comunes solicitados en preflight
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  // Si quieres que el navegador lea headers específicos de respuesta
+  exposedHeaders: ["Authorization"],
   optionsSuccessStatus: 200,
 };
 
 const app = express();
 
-// CROS y Helmet
+// Si estás detrás de un ALB / proxy, habilitar trust proxy para cookies secure
+// y para que express detecte correctamente HTTPS
+app.set("trust proxy", true);
+
+// CORS: usar middleware y asegurar respuesta a OPTIONS
 app.use(cors(corsOptions));
+// Responder explicitamente OPTIONS para cualquier ruta (preflight)
+app.options("*", cors(corsOptions));
 
 // Paseo de JSON, cookies y seguridad
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
+
+// DEBUG: log de requests y origen para verificar preflight (quitar en prod si prefieres)
+app.use((req, res, next) => {
+  console.log(`[CORS DEBUG] ${req.method} ${req.originalUrl} Origin: ${req.headers.origin}`);
+  next();
+});
 
 // Configuración de Redis (soporta tanto local como Upstash)
 const redisClient = process.env.REDIS_URL 
@@ -52,7 +67,6 @@ const redisClient = process.env.REDIS_URL
 redisClient.on("error", (err) => {
   console.error("Redis connection error:", err);
 });
-
 
 redisClient.on("connect", () => {
   console.log("Connected to Redis successfully");
@@ -72,6 +86,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
+      // secure debe ser true en producción para usar cookies solo sobre HTTPS
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       maxAge: 1000 * 60 * 60 * 8, // 8 horas
