@@ -12,7 +12,7 @@ app.set("trust proxy", true);
 const USE_HTTPS = process.env.USE_HTTPS === "true";
 let portToUse = parseInt(process.env.PORT ?? "3000", 10) || 3000;
 if (USE_HTTPS) {
-  portToUse = 8443;
+  portToUse = 443;
   // PRODUCCIÓN - HTTPS
   const key = fs.readFileSync(path.resolve(__dirname, "../certs/key.pem"));
   const cert = fs.readFileSync(path.resolve(__dirname, "../certs/cert.pem"));
@@ -20,6 +20,7 @@ if (USE_HTTPS) {
     const localUrl = `https://localhost:${portToUse}`;
     console.info("\n Express App Running (HTTPS)...");
     console.info(`\n -> Local: ${localUrl}/api \n`);
+    console.info(`[DEBUG] Servidor HTTPS escuchando en 0.0.0.0:${portToUse}`);
   });
 } else {
   // DESARROLLO - HTTP
