@@ -8,7 +8,7 @@ export const getAllRolService = async (): Promise<NewRol[]> => {
     const roles = await RolModel.getallRolesModel();
     return roles;
   } catch (error) {
-    logger.error("Error en la búsqueda de roles", error);
+    logger.error("Error en la busqueda de roles", error);
     throw error;
   }
 };

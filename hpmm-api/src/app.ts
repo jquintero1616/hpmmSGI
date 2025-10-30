@@ -53,8 +53,9 @@ redisClient.on("error", (err) => {
   console.error("Redis connection error:", err);
 });
 
+
 redisClient.on("connect", () => {
-  console.log("✅ Connected to Redis successfully");
+  console.log("Connected to Redis successfully");
 });
 
 // 2) Configuramos connect-redis como store de express-session

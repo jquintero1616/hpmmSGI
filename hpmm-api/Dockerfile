@@ -49,6 +49,11 @@ COPY --chown=nodejs:nodejs certs ./certs
 RUN apk add --no-cache dos2unix && \
   dos2unix ./certs/cert.pem ./certs/key.pem
 
+
+# Forzar UTF-8 en todo el entorno
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 # Cambiar al usuario no-root
 USER nodejs
 
