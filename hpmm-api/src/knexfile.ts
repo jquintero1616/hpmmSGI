@@ -41,6 +41,7 @@ const config: { [key: string]: Knex.Config } = {
       password: process.env.PSQL_DB_PASSWORD,
       database: process.env.PSQL_DB_DATABASE,
       port: process.env.PSQL_DB_PORT ? parseInt(process.env.PSQL_DB_PORT, 10) : 5432,
+      ssl: { rejectUnauthorized: false }
     },
     searchPath: [esquema, "public"],
     migrations: {

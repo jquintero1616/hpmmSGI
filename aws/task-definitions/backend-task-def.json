@@ -23,20 +23,16 @@
           "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_URL::"
         },
         {
-          "name": "PSQL_DB_HOST",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:host::"
-        },
-        {
-          "name": "PSQL_DB_PORT",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:port::"
-        },
-        {
           "name": "PSQL_DB_USER",
           "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:username::"
         },
         {
           "name": "PSQL_DB_PASSWORD",
           "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:password::"
+        },
+        {
+          "name": "SESSION_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/session-secret-SZ848a:SESSION_SECRET::"
         }
       ],
       "environment": [
@@ -53,20 +49,24 @@
           "value": "*"
         },
         {
+          "name": "PSQL_DB_HOST",
+          "value": "hpmm-sgi-postgres.chyiw8yqwzr6.us-east-2.rds.amazonaws.com"
+        },
+        {
+          "name": "PSQL_DB_PORT",
+          "value": "5432"
+        },
+        {
           "name": "PSQL_DB_NAME",
-          "value": "hpmmsgi"
+          "value": "hpmm_sgi"
         },
         {
           "name": "PSQL_DB_DATABASE",
-          "value": "hpmmsgi"
+          "value": "hpmm_sgi"
         },
         {
           "name": "PSQL_DB_SCHEMA",
           "value": "mi_esquema"
-        },
-        {
-          "name": "SESSION_SECRET",
-          "value": "LyoZ.[VBo*sZ>K[vur\\QM<7.6.9M>:Fe"
         }
       ],
       "logConfiguration": {
