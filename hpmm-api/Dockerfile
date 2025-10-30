@@ -60,13 +60,13 @@ ENV PYTHONIOENCODING=utf-8
 # Cambiar al usuario no-root
 USER nodejs
 
-# Exponer el puerto
-EXPOSE 3000 443
 
+# Exponer el puerto real del backend
+EXPOSE 8443
 
 # Healthcheck simplificado para evitar problemas de encoding
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -k -f https://127.0.0.1:443/health || exit 1
+  CMD curl -k -f https://127.0.0.1:8443/health || exit 1
 
 # Usar dumb-init para manejar señales
 ENTRYPOINT ["dumb-init", "--"]
