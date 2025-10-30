@@ -24,11 +24,13 @@ const FRONTEND_ORIGINS = process.env.CORS_ORIGIN
 
 const corsOptions: CorsOptions = {
   origin: function(origin, callback) {
-    // Permitir solo origins explícitos
-    if (!origin) return callback(null, false); // bloquear requests sin origin
+    console.log('[CORS DEBUG] Origin recibido:', origin);
+    // Permitir sin origin (curl, Postman, health checks)
+    if (!origin) return callback(null, true);
     if (FRONTEND_ORIGINS.includes(origin)) {
       return callback(null, true);
     } else {
+      console.log('[CORS DEBUG] Origin NO permitido:', origin);
       return callback(new Error("Not allowed by CORS"), false);
     }
   },
