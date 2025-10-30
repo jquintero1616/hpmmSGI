@@ -145,7 +145,11 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     },
     {
       header: "Tipo de Movimiento",
-      accessor: "tipo_movimiento",
+      accessor: (row) => (
+        <span className={`font-bold ${row.tipo_movimiento === 'Entrada' ? 'text-green-600' : 'text-red-600'}`}>
+          {row.tipo_movimiento}
+        </span>
+      ),
     },
     {
       header: "Producto",
@@ -184,14 +188,11 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     {
       header: "Impuesto",
       accessor: (row) => {
-        // Si el producto tiene ISV, calcula el impuesto
+        // Si el producto tiene ISV, muestra 15%
         if (row.ISV || row.isv) {
-          const precio = Number(row.precio_unitario) || 0;
-          const cantidad = Number(row.cantidad_recepcionada ?? row.cantidad) || 0;
-          const impuesto = precio * cantidad * 0.15;
-          return impuesto.toFixed(2);
+          return <span className="font-bold">15%</span>;
         }
-        return "0.00";
+        return <span className="font-bold text-gray-500">0%</span>;
       },
     },
     {
@@ -337,7 +338,11 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     },
     {
       header: "Tipo de Movimiento",
-      accessor: "tipo_movimiento",
+      accessor: (row) => (
+        <span className={`font-bold ${row.tipo_movimiento === 'Entrada' ? 'text-green-600' : 'text-red-600'}`}>
+          {row.tipo_movimiento}
+        </span>
+      ),
       editable: false,
     },
     {
@@ -369,6 +374,16 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       ),
       editable: false, 
     },
+    {
+      header: "Impuesto",
+      accessor: (row) => {
+        if (row.ISV || row.isv) {
+          return <span className="font-bold text-blue-600">15%</span>;
+        }
+        return <span className="font-bold text-gray-500">0%</span>;
+      },
+      editable: false,
+    },
   ];
 
   const kardexFields: FieldConfig[] = [
@@ -378,6 +393,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       type: "select",
       options: [{ label: "Requisicion", value: "Requisicion" }],
       required: true,
+      showIf: () => !itemToEditList, // <- OCULTAR en modo edición
     },
     {
       name: "id_scompra",
@@ -418,7 +434,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         })),
       required: true,
       disabled: (values) => values.tipo_solicitud !== "Requisicion",
-      showIf: (values) => values.tipo_solicitud === "Requisicion",
+      showIf: () => !itemToEditList, // <- OCULTAR en modo edición
     },
     {
       name: "id_detalle_pacto",
@@ -430,7 +446,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       })),
       required: true,
       disabled: (values) => values.tipo_solicitud !== "Pacto",
-      showIf: (values) => values.tipo_solicitud === "Pacto",
+      showIf: (values) => values.tipo_solicitud === "Pacto" && !itemToEditList, // <- OCULTAR en modo edición
     },
   ];
 
@@ -663,7 +679,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
       }));
 
       return productosFormateados;
-    } catch (error) {
+    } catch  {
       toast.error("Error al cargar productos de la compra");
       return dataListForm;
     }
@@ -766,7 +782,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
       setOpenModal(false);
       setItemToEditList(null);
       setOriginalItemToEditList(null);
-    } catch (error) {
+    } catch  {
       toast.error("Error al guardar la lista de compras");
     } finally {
       setSaving(false);
@@ -790,6 +806,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
         shopping_order_id: item.shopping_order_id,
         numero_cotizacion: item.numero_cotizacion,
         numero_pedido: item.numero_pedido,
+        cantidad_recepcionada: item.cantidad_recepcionada,
         rfid: item.rfid,
         tipo: item.tipo,
       });
@@ -813,6 +830,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
         shopping_order_id: item.shopping_order_id,
         numero_cotizacion: item.numero_cotizacion,
         numero_pedido: item.numero_pedido,
+        cantidad_recepcionada: item.cantidad_recepcionada,
         rfid: item.rfid,
         tipo: item.tipo,
       });
@@ -883,7 +901,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
         });
         toast.success(`Estado cambiado a ${newStatus}`);
         await GetKardexContext();
-      } catch (error) {
+      } catch  {
         toast.error("Error al cambiar el estado");
       } finally {
         setSaving(false);
@@ -1080,7 +1098,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
 
       {/* Modal Crear con lista temporal */}
       <Modal isOpen={isOpenModal} onClose={closeAll} fullScreen={true}>
-        {!!itemToEditList ? (
+        {!itemToEditList ? (
           <GenericForm<Partial<ShoppingInterface>>
             fullScreen={true}
             initialValues={itemToEditList}
