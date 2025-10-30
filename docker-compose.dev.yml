@@ -87,14 +87,14 @@ services:
       context: ./hpmm-iu
       dockerfile: Dockerfile.dev  # Dockerfile especial para desarrollo
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+        VITE_API_URL: ${VITE_API_URL:-http://api.cfra2.com:3000}
     container_name: hpmm-frontend-dev
     restart: unless-stopped
     ports:
       - "5173:5173"  # Puerto de Vite dev server
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api}
+      VITE_API_URL: ${VITE_API_URL:-http://api.cfra2.com:3000}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://api.cfra2.com:3000/api}
     depends_on:
       - backend
     networks:
