@@ -12,7 +12,7 @@ app.set("trust proxy", true);
 const USE_HTTPS = process.env.USE_HTTPS === "true";
 let portToUse = parseInt(process.env.PORT ?? "3000", 10) || 3000;
 if (USE_HTTPS) {
-  portToUse = 443;
+  portToUse = 8443;
   // PRODUCCIÓN - HTTPS
   const key = fs.readFileSync(path.resolve(__dirname, "../certs/key.pem"));
   const cert = fs.readFileSync(path.resolve(__dirname, "../certs/cert.pem"));
