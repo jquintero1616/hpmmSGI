@@ -50,9 +50,12 @@ RUN apk add --no-cache dos2unix && \
   dos2unix ./certs/cert.pem ./certs/key.pem
 
 
-# Forzar UTF-8 en todo el entorno
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
+
+# Forzar UTF-8 y locales correctos en todo el entorno
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
 
 # Cambiar al usuario no-root
 USER nodejs
@@ -60,9 +63,10 @@ USER nodejs
 # Exponer el puerto
 EXPOSE 3000 443
 
-# Healthcheck
+
+# Healthcheck simplificado para evitar problemas de encoding
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD curl -k -f https://127.0.0.1:443/health || exit 1
 
 # Usar dumb-init para manejar señales
 ENTRYPOINT ["dumb-init", "--"]
