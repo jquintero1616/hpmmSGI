@@ -50,7 +50,7 @@ services:
     container_name: hpmm-backend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+  - "8443:8443"
     environment:
       # Node
       NODE_ENV: production
@@ -86,8 +86,8 @@ services:
       context: ./hpmm-iu
       dockerfile: Dockerfile
       args:
-  VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:3000}
-  VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.cfra2.com:3000/api}
+  VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:8443}
+  VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.cfra2.com:8443/api}
     container_name: hpmm-frontend
     restart: unless-stopped
     ports:
