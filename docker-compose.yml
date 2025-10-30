@@ -92,7 +92,7 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"    # HTTP (redirige a HTTPS)
-      - "443:443"  # HTTPS
+  - "443:8443"  # HTTPS
     depends_on:
       - backend
     networks:

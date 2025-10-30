@@ -13,14 +13,14 @@
       "essential": true,
       "portMappings": [
         {
-          "containerPort": 443,
+          "containerPort": 8443,
           "protocol": "tcp"
         }
       ],
       "environment": [
         { "name": "PSQL_DB_DATABASE", "value": "hpmm_sgi" },
         { "name": "PSQL_DB_HOST", "value": "hpmm-sgi-postgres.chyiw8yqwzr6.us-east-2.rds.amazonaws.com" },
-        { "name": "PORT", "value": "443" },
+  { "name": "PORT", "value": "8443" },
         { "name": "PSQL_DB_SCHEMA", "value": "mi_esquema" },
         { "name": "PSQL_DB_NAME", "value": "hpmm_sgi" },
         { "name": "NODE_ENV", "value": "production" },
@@ -44,7 +44,7 @@
         }
       },
     "healthCheck": {
-  "command": ["CMD-SHELL", "curl -k -f https://127.0.0.1:443/health || exit 1"],
+  "command": ["CMD-SHELL", "curl -k -f https://127.0.0.1:8443/health || exit 1"],
         "interval": 30,
         "timeout": 5,
         "retries": 3,
