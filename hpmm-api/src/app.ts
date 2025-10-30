@@ -23,12 +23,18 @@ const FRONTEND_ORIGINS = process.env.CORS_ORIGIN
     ];
 
 const corsOptions: CorsOptions = {
-  origin: FRONTEND_ORIGINS, 
+  origin: function(origin, callback) {
+    // Permitir solo origins explícitos
+    if (!origin) return callback(null, false); // bloquear requests sin origin
+    if (FRONTEND_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"), false);
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  // Incluir Authorization y headers comunes solicitados en preflight
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-  // Si quieres que el navegador lea headers específicos de respuesta
   exposedHeaders: ["Authorization"],
   optionsSuccessStatus: 200,
 };
