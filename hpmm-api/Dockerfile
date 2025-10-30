@@ -50,7 +50,7 @@ COPY --chown=nodejs:nodejs certs ./certs
 USER nodejs
 
 # Exponer el puerto
-EXPOSE 3000
+EXPOSE 3000 443
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \

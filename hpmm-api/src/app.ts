@@ -15,10 +15,11 @@ import cookieParser from "cookie-parser";
 const FRONTEND_ORIGINS = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : [
-      "https://localhost:5173",  // HTTPS desarrollo
-      "http://localhost:5173",   // HTTP desarrollo
-      "https://localhost:443",   // HTTPS producción
-      "https://localhost"        // HTTPS producción (sin puerto)
+  "https://cfra2.com", // Producción
+  "https://api.cfra2.com", // API Producción
+  "https://web.cfra2.com", // Frontend Producción
+      "https://localhost:5173",  // Desarrollo
+      "http://localhost:5173"   // Desarrollo
     ];
 
 const corsOptions: CorsOptions = {
