@@ -14,7 +14,7 @@
       "portMappings": [
         {
           "containerPort": 8443,
-          "hostPort": 443,
+          "hostPort": 8443,
           "protocol": "tcp"
         }
       ],

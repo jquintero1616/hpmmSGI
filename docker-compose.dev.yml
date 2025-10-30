@@ -66,7 +66,8 @@ services:
       PSQL_DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      SESSION_SECRET: ${SESSION_SECRET}
+  SESSION_SECRET: ${SESSION_SECRET}
+  CORS_ORIGIN: "https://web.cfra2.com,https://api.cfra2.com"
     depends_on:
       redis:
         condition: service_healthy
@@ -87,14 +88,14 @@ services:
       context: ./hpmm-iu
       dockerfile: Dockerfile.dev  # Dockerfile especial para desarrollo
       args:
-  VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:3000}
+          VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:8443}
     container_name: hpmm-frontend-dev
     restart: unless-stopped
     ports:
       - "5173:5173"  # Puerto de Vite dev server
     environment:
-  VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:3000}
-  VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.cfra2.com:3000/api}
+        VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:8443}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.cfra2.com:8443/api}
     depends_on:
       - backend
     networks:
