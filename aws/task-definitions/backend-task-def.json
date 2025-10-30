@@ -46,7 +46,11 @@
         },
         {
           "name": "CORS_ORIGIN",
-          "value": "*"
+          "value": "https://cfra2.com,https://api.cfra2.com,https://web.cfra2.com"
+        },
+        {
+          "name": "USE_HTTPS",
+          "value": "true"
         },
         {
           "name": "PSQL_DB_HOST",
