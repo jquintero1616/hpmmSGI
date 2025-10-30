@@ -36,7 +36,7 @@ if ($backendContainer) {
     
     $backendContainer.environment = @(
         @{ name = "NODE_ENV"; value = "production" },
-        @{ name = "PORT"; value = "3000" },
+    @{ name = "PORT"; value = "8443" },
         @{ name = "REDIS_URL"; value = $RedisUrl },
         @{ name = "DB_HOST"; value = $DbHost },
         @{ name = "DB_PORT"; value = "5432" },
@@ -50,7 +50,7 @@ if ($backendContainer) {
     
     Write-Host "   Variables configuradas:" -ForegroundColor Green
     Write-Host "     - NODE_ENV: production" -ForegroundColor Gray
-    Write-Host "     - PORT: 3000" -ForegroundColor Gray
+    Write-Host "     - PORT: 8443" -ForegroundColor Gray
     Write-Host "     - REDIS_URL: $RedisUrl" -ForegroundColor Gray
     Write-Host "     - DB_HOST: $DbHost" -ForegroundColor Gray
     Write-Host "     - DB_NAME: hpmm_sgi" -ForegroundColor Gray
@@ -121,7 +121,7 @@ if ($registerResult.taskDefinition) {
             Write-Host "`nNueva IP publica: $PUBLIC_IP" -ForegroundColor Cyan
             Write-Host "`nPrueba tu aplicacion:" -ForegroundColor Yellow
             Write-Host "  Frontend: http://$PUBLIC_IP" -ForegroundColor White
-            Write-Host "  Backend:  http://$PUBLIC_IP:3000/health" -ForegroundColor White
+            Write-Host "  Backend:  https://$PUBLIC_IP:8443/health" -ForegroundColor White
             
             Write-Host "`nVerifica los logs:" -ForegroundColor Yellow
             Write-Host "  aws logs tail /ecs/mi-task-definition --region us-east-2 --follow" -ForegroundColor Gray
