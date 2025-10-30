@@ -13,69 +13,26 @@
       "essential": true,
       "portMappings": [
         {
-          "containerPort": 3000,
-          "protocol": "tcp"
-        },
-        {
           "containerPort": 443,
           "protocol": "tcp"
         }
       ],
-      "secrets": [
-        {
-          "name": "REDIS_URL",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_URL::"
-        },
-        {
-          "name": "PSQL_DB_USER",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:username::"
-        },
-        {
-          "name": "PSQL_DB_PASSWORD",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:password::"
-        },
-        {
-          "name": "SESSION_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/session-secret-SZ848a:SESSION_SECRET::"
-        }
-      ],
       "environment": [
-        {
-          "name": "NODE_ENV",
-          "value": "production"
-        },
-        {
-          "name": "PORT",
-          "value": "3000"
-        },
-        {
-          "name": "CORS_ORIGIN",
-          "value": "https://cfra2.com,https://api.cfra2.com,https://web.cfra2.com"
-        },
-        {
-          "name": "USE_HTTPS",
-          "value": "true"
-        },
-        {
-          "name": "PSQL_DB_HOST",
-          "value": "hpmm-sgi-postgres.chyiw8yqwzr6.us-east-2.rds.amazonaws.com"
-        },
-        {
-          "name": "PSQL_DB_PORT",
-          "value": "5432"
-        },
-        {
-          "name": "PSQL_DB_NAME",
-          "value": "hpmm_sgi"
-        },
-        {
-          "name": "PSQL_DB_DATABASE",
-          "value": "hpmm_sgi"
-        },
-        {
-          "name": "PSQL_DB_SCHEMA",
-          "value": "mi_esquema"
-        }
+        { "name": "PSQL_DB_DATABASE", "value": "hpmm_sgi" },
+        { "name": "PSQL_DB_HOST", "value": "hpmm-sgi-postgres.chyiw8yqwzr6.us-east-2.rds.amazonaws.com" },
+        { "name": "PORT", "value": "443" },
+        { "name": "PSQL_DB_SCHEMA", "value": "mi_esquema" },
+        { "name": "PSQL_DB_NAME", "value": "hpmm_sgi" },
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "CORS_ORIGIN", "value": "*" },
+        { "name": "PSQL_DB_PORT", "value": "5432" },
+        { "name": "USE_HTTPS", "value": "true" }
+      ],
+      "secrets": [
+        { "name": "REDIS_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/redis/credentials-SZ6Ray:REDIS_URL::" },
+        { "name": "PSQL_DB_USER", "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:username::" },
+        { "name": "PSQL_DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:rds!db-c124b581-0b2b-4095-90cd-1a2f03401dd6-6Ls6Nu:password::" },
+        { "name": "SESSION_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:861455913678:secret:hpmm-sgi/session-secret-SZ848a:SESSION_SECRET::" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
