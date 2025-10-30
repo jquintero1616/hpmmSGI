@@ -20,7 +20,7 @@
       "environment": [
         {
           "name": "VITE_API_URL",
-          "value": "https://api.cfra2.com:3000"
+          "value": "http://api.cfra2.com:3000"
         }
       ],
       "logConfiguration": {
