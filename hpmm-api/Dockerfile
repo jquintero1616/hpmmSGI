@@ -43,8 +43,11 @@ COPY --from=builder --chown=nodejs:nodejs /app/src/knexfile.ts ./src/knexfile.ts
 # Copiar archivos necesarios
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 
-# Copiar certificados SSL si existen
+
+# Copiar certificados SSL y convertir a formato Unix (LF)
 COPY --chown=nodejs:nodejs certs ./certs
+RUN apk add --no-cache dos2unix && \
+  dos2unix ./certs/cert.pem ./certs/key.pem
 
 # Cambiar al usuario no-root
 USER nodejs
