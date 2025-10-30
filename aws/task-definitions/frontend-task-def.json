@@ -9,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "frontend-sgi",
-      "image": "IMAGE_NAME",
+  "image": "861455913678.dkr.ecr.us-east-2.amazonaws.com/hpmm-sgi-repo:frontend-latest",
       "essential": true,
       "portMappings": [
         {
@@ -20,7 +20,7 @@
       "environment": [
         {
           "name": "VITE_API_URL",
-          "value": "http://BACKEND_IP:3000"
+          "value": "https://api.cfra2.com:3000"
         }
       ],
       "logConfiguration": {
