@@ -217,6 +217,10 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       accessor: "tipo_solicitud",
     },
     {
+      header: "Ingresado por",
+      accessor: (row) => row.nombre_empleado_sf || "N/A",
+    },
+    {
       header: "RFID",
       accessor: (row) => row.rfid || "N/A",
     },
@@ -368,6 +372,10 @@ const cargarProductosParaSalida = (id_shopping : string) => {
         </div>
       ),
       editable: false, 
+    },
+    {
+      header: "Registrado por",
+      accessor: (row) => row.nombre_empleado_sf || "N/A",
     },
   ];
 

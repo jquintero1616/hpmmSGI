@@ -92,6 +92,14 @@ const HomePage: React.FC = () => {
     return allowed ? allowed.includes(path) : false;
   };
 
+  // Función para verificar si el usuario tiene acceso a alguna card de una sección
+  const hasAccessToSection = (
+    menuKey: keyof typeof subMenuVisibility,
+    paths: string[]
+  ) => {
+    return paths.some(path => canViewCard(menuKey, path));
+  };
+
   // Filtrar datos según el rol
   const requisicionesUsuario =
     roleName === "Administrador" || roleName === "Super Admin"
@@ -266,8 +274,8 @@ const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* ================== SECCIÓN KARDEX - SOLO ROLES ESPECÍFICOS ================== */}
-        {puedeVerInventario && (
+        {/* ================== SECCIÓN KARDEX - SOLO SI TIENE ACCESO A ALGUNA CARD ================== */}
+        {hasAccessToSection("kardex", ["/KardexPendiente", "/kardex"]) && (
           <div className="mb-10">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Kardex</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -293,30 +301,32 @@ const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* ================== SECCIÓN REQUISICIONES - TODOS LOS ROLES ================== */}
-        <div className="mb-10">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Requisiciones</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {canViewCard("requisiciones", "/requisicionPendiente") && (
-              <DashboardCard
-                title="Requisiciones"
-                subtitle="Pendientes"
-                value={requisicionesUsuario?.length || 0}
-                icon={<ClipboardDocumentListIcon className="w-5 h-5 text-indigo-600" />}
-                onClick={() => navigate("/requisicionPendiente")}
-              />
-            )}
-            {canViewCard("requisiciones", "/requisicionSeguimiento") && (
-              <DashboardCard
-                title="Solicitud de Requisición"
-                subtitle="En Espera"
-                value={solicitudesUsuario?.length || 0}
-                icon={<ShoppingCartIcon className="w-5 h-5 text-green-600" />}
-                onClick={() => navigate("/requisicionSeguimiento")}
-              />
-            )}
+        {/* ================== SECCIÓN REQUISICIONES - SOLO SI TIENE ACCESO A ALGUNA CARD ================== */}
+        {hasAccessToSection("requisiciones", ["/requisicionPendiente", "/requisicionSeguimiento"]) && (
+          <div className="mb-10">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Requisiciones</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {canViewCard("requisiciones", "/requisicionPendiente") && (
+                <DashboardCard
+                  title="Requisiciones"
+                  subtitle="Pendientes"
+                  value={requisicionesUsuario?.length || 0}
+                  icon={<ClipboardDocumentListIcon className="w-5 h-5 text-indigo-600" />}
+                  onClick={() => navigate("/requisicionPendiente")}
+                />
+              )}
+              {canViewCard("requisiciones", "/requisicionSeguimiento") && (
+                <DashboardCard
+                  title="Solicitud de Requisición"
+                  subtitle="En Espera"
+                  value={solicitudesUsuario?.length || 0}
+                  icon={<ShoppingCartIcon className="w-5 h-5 text-green-600" />}
+                  onClick={() => navigate("/requisicionSeguimiento")}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Enlace al historial de notificaciones */}
         <div className="mt-8 text-center">

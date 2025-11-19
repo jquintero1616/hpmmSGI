@@ -48,6 +48,7 @@ export interface KardexDetail {
   id_units_x_pacts?: string;
   id_shopping?: string;
   name: string;               // nombre del empleado
+  nombre_empleado_sf: string; // nombre del empleado que registró en el sistema
   fecha_movimiento: Date;
   tipo_movimiento: "Entrada" | "Salida";
   tipo_solicitud: "Requisicion" | "Pacto";

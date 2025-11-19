@@ -25,17 +25,19 @@ export const createNotiModel = async (
 
 export async function updateNotiModel(
     id_noti: string,
-    mensaje: string,
-    tipo: string,
-    estado: boolean
+    notiData: Partial<NewNoti>
 ): Promise<NewNoti | null> {
     const updated_at = new Date();
+    
+    // Si se marca como leída y no tiene fecha de lectura, agregarla
+    if (notiData.tipo === "Leido" && !notiData.leido_at) {
+        notiData.leido_at = new Date();
+    }
+    
     const [updatedNoti] = await knexTableName()
         .where({ id_noti })
         .update({
-            mensaje,
-            tipo,
-            estado,
+            ...notiData,
             updated_at,
         })
         .returning("*");

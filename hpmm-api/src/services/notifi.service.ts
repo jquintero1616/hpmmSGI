@@ -34,19 +34,10 @@ export const createNotiService = async (data: NewNoti) => {
 
 export const updateNotiService = async (
   id_noti: string,
-  data: {
-    mensaje: string;
-    tipo?: "Pendiente" | "Enviado" | "Leido" | "RecordarMasTarde";
-    estado: boolean;
-  }
+  data: Partial<NewNoti>
 ): Promise<NewNoti> => {
   try {
-    const updatedNoti = await notiModel.updateNotiModel(
-      id_noti,
-      data.mensaje!,
-      data.tipo!,
-      data.estado!
-    );
+    const updatedNoti = await notiModel.updateNotiModel(id_noti, data);
     if (!updatedNoti) {
         throw new Error(`Notificación con id_notifications ${id_noti} no encontrada`);
     }
