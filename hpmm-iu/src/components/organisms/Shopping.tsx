@@ -141,8 +141,10 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       editable: true,
       editType: "select",
       editOptions: [
-      { label: "Compra Directa", value: "Compra Directa" },
-        { label: "Licitación", value: "Licitación" },
+      { label: "Compra menor", value: "Compra menor" },
+      { label: "Compra por catálogo electrónico", value: "Compra por catálogo electrónico" },
+      { label: "Compra por Fondos recuperados", value: "Compra por Fondos recuperados " },
+        
       ],
     },
     {
@@ -212,20 +214,24 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { header: "Precio Unitario", editable: true, accessor: "precio_unitario" },
     {
       header: "Incluye ISV (15%)",
-      accessor: "ISV",
+      accessor: (row) => String(row.ISV) === "true" ? "Sí" : "No",
       editable: true,
       editType: "select",
+      editField: "ISV",
       editOptions: [
-        { label: "Sí", value: true },
-        { label: "No", value: false },
+        { label: "Sí", value: "true" },
+        { label: "No", value: "false" },
       ],
     },
     {
       header: "Total de Compra",
-      accessor: (row) =>
-        row.cantidad_comprada
-          ? row.cantidad_comprada * row.precio_unitario * (row.ISV ? 1.15 : 1)
-          : 0,
+      accessor: (row) => {
+        const cantidad = Number(row.cantidad_comprada) || 0;
+        const precio = Number(row.precio_unitario) || 0;
+        const isvIncluido = String(row.ISV) === "true";
+        const total = cantidad * precio * (isvIncluido ? 1.15 : 1);
+        return total.toFixed(2);
+      },
     },
   ];
 
@@ -299,6 +305,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         type: "text",
         required: true,
         disabled: (values) => !values.id_scompra,
+        colSpan: 2,
       },
     ],
     [vendedor, scompras, shopping] // Agregar shopping como dependencia
@@ -351,10 +358,16 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
     // ISV: no validar
 
+    // Convertir ISV de string a booleano si viene como string
+    const processedValues = { ...newValues };
+    if (processedValues.ISV !== undefined) {
+      processedValues.ISV = String(processedValues.ISV) === "true";
+    }
+
     setDataListForm((prev) =>
       prev.map((item) =>
         item.id_shopping === rowKey
-          ? { ...item, ...newValues }
+          ? { ...item, ...processedValues }
           : item
       )
     );
@@ -625,11 +638,18 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-lefth">Lista de Compras</h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Compras
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Controla las órdenes de compra y adquisiciones
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => {
             setOpenModal(true);
             setItemToEdit(null);
@@ -648,19 +668,23 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         rowKey={(row) => row.id_shopping}
         actions={[
           {
-            header: "Editar",
+            header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar compra",
             onClick: (row) => openEdit(row.id_shopping),
           },
           {
-            header: "Eliminar",
+            header: "Acciones",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar compra",
             onClick: (row) => openDelete(row.id_shopping),
           },
         ]}
         // Filas inactivas with opacidad y tachado
         rowClassName={(row) =>
-          row.estado === false ? "opacity-40 line-through" : ""
+          row.estado === false ? "opacity-100 " : ""
         }
       />
 
@@ -673,6 +697,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         ) : itemToEditList ? (
           // FORMULARIO DE EDICIÓN DE LA LISTA TEMPORAL
           <GenericForm<Partial<ShoppingInterface>>
+            columns={2}
             fullScreen={true}
             initialValues={itemToEditList}
             fields={shoppingFields.map((f) =>
@@ -710,6 +735,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         ) : (
           // FORMULARIO DE AGREGAR NUEVO
           <GenericForm<Partial<ShoppingInterface>>
+            columns={2}
             fullScreen={true}
             initialValues={
               itemToEdit
@@ -746,7 +772,7 @@ const Shopping: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           rowKey={(row) => row.id_shopping}
           onEditRow={handleEditRow}
           rowClassName={(row) =>
-            row.estado === false ? "opacity-40 line-through" : ""
+            row.estado === false ? "opacity-100s " : ""
           }
         />
         <div className="mt-4 flex justify-end gap-2">

@@ -19,6 +19,7 @@ import {
   ChartPieIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  GiftIcon,
 } from "@heroicons/react/24/solid";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../hooks/use.Auth";
@@ -190,7 +191,7 @@ const SubMenu: React.FC<SubMenuProps> = ({
         bg: "bg-green-50",
       };
     }
-    if (path.includes("/suppliers") || path.includes("/vendedor")) {
+    if (path.includes("/suppliers") || path.includes("/vendedor") || path.includes("/donantes")) {
       return {
         icon: "text-cyan-500",
         active: "text-cyan-600",
@@ -293,7 +294,7 @@ export function Sidebar() {
   const location = useLocation();
   const [{ open, collapsed }, dispatch] = useReducer(sidebarReducer, {
     open: 0,
-    collapsed: false,
+    collapsed: true,
   });
 
   const navigate = useNavigate();
@@ -398,6 +399,7 @@ export function Sidebar() {
           icon: BuildingStorefrontIcon,
         },
         { label: "Vendedores", path: "/vendedor", icon: IdentificationIcon },
+        { label: "Donantes", path: "/donantes", icon: GiftIcon },
       ],
       usersRoles: [
         { label: "Usuarios", path: "/users", icon: UserGroupIcon },
@@ -493,10 +495,10 @@ export function Sidebar() {
 
   return (
     <div
-      className={`${containerWidth} h-screen bg-gradient-to-b from-slate-50 to-white border-r border-gray-200/50 transition-all duration-300 shadow-lg flex flex-col overflow-hidden`}
+      className={`${containerWidth} h-screen bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 transition-all duration-300 flex flex-col overflow-hidden`}
     >
       {/* Header del sidebar */}
-      <div className="p-2 border-b border-gray-200/50 bg-white/80 backdrop-blur-sm">
+      <div className="p-2 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className={`flex ${collapsed ? "justify-center" : "justify-end"}`}>
           <button
             onClick={toggleCollapsed}

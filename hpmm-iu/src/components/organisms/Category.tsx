@@ -5,6 +5,7 @@ import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
+import { ToastContainer, toast } from "react-toastify";
 
 const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
@@ -213,8 +214,24 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   return (
     <div>
-      <h1>Lista de Categorías</h1>
-      <Button onClick={() => setCreateOpen(true)}>+ Nueva Categoría</Button>
+      <ToastContainer />
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Categorías
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Organiza y clasifica los productos por categorías
+          </p>
+        </div>
+        <Button
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
+          onClick={() => setCreateOpen(true)}
+        >
+          + Nueva Categoría
+        </Button>
+      </div>
 
       <GenericTable
         columns={categoryColumns}
@@ -224,12 +241,16 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           {
             header: "Editar",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar categoría",
             onClick: (row) =>
               row?.id_category && openEdit(row.id_category),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar categoría",
             onClick: (row) =>
               row?.id_category && openDelete(row.id_category),
           },

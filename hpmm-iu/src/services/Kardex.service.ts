@@ -49,7 +49,8 @@ export const PostCreateKardexService = async (
           {
             id_kardex: kardexs.id_kardex,
             id_product: kardexs.id_product,
-            id_shopping: kardexs.id_shopping,
+            id_shopping: kardexs.id_shopping || null, // Puede ser null para donaciones
+            id_donante: kardexs.id_donante || null, // ID del donante para donaciones
             anio_creacion: kardexs.anio_creacion,
             tipo_movimiento: kardexs.tipo_movimiento,
             fecha_movimiento: kardexs.fecha_movimiento,
@@ -109,6 +110,61 @@ export const DeleteKardexService = async (id_kardex: string, axiosPrivate: Axios
         throw error;
     }
 }
+
+// ===================== DONACIONES =====================
+
+// Obtener solo donaciones del Kardex
+export const GetDonacionesKardexService = async (
+    axiosPrivate: AxiosInstance
+): Promise<KardexDetail[] | null> => {
+    try {
+        const response = await axiosPrivate.get(`/kardex/donaciones/detail`);
+        return response.data.data;
+    } catch (error) {
+        console.error("Error al obtener las donaciones del kardex:", error);
+        return null;
+    }
+};
+
+// Crear donación directamente en Kardex
+export const PostCreateDonacionKardexService = async (
+    donacion: kardexInterface,
+    axiosPrivate: AxiosInstance
+): Promise<kardexInterface> => {
+    try {
+        const response = await axiosPrivate.post<kardexInterface>(
+            `/kardex/donaciones`,
+            {
+                id_product: donacion.id_product,
+                id_donante: donacion.id_donante,
+                anio_creacion: donacion.anio_creacion || new Date().getFullYear().toString(),
+                tipo_movimiento: donacion.tipo_movimiento,
+                fecha_movimiento: donacion.fecha_movimiento,
+                numero_factura: donacion.numero_factura || "",
+                cantidad: donacion.cantidad,
+                precio_unitario: donacion.precio_unitario || 0,
+                tipo_solicitud: "Donacion",
+                requisicion_numero: donacion.requisicion_numero || "DON-" + Date.now(),
+                tipo: donacion.tipo || "Pendiente",
+                observacion: donacion.observacion,
+                descripcion: donacion.descripcion,
+                fecha_vencimiento: donacion.fecha_vencimiento,
+                numero_lote: donacion.numero_lote,
+                estado: donacion.estado ?? true,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error al crear la donación:", error);
+        throw error;
+    }
+};
+
 
 
 

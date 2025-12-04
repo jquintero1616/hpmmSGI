@@ -405,13 +405,18 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-left">
-        Lista de Pactos a Unidades
-      </h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Detalle de Pactos
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Asignación de pactos a unidades organizativas
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nuevo detalle de pacto
@@ -425,11 +430,15 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar detalle de pacto",
             onClick: (row) => openEdit(row.id_units_x_pacts),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar detalle de pacto",
             onClick: (row) => openDelete(row.id_units_x_pacts),
           },
         ]}
@@ -513,11 +522,15 @@ const DetallePactos: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             {
               header: "Acciones",
               label: "Editar",
+              actionType: "editar" as const,
+              tooltip: "Editar detalle de la lista",
               onClick: (row) => setItemToEditList(row),
             },
             {
               header: "Eliminar",
               label: "Eliminar",
+              actionType: "eliminar" as const,
+              tooltip: "Eliminar detalle de la lista",
               onClick: (row) => deleteItemList(row.id_units_x_pacts),
             },
           ]}

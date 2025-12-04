@@ -235,12 +235,16 @@ const ProductRequisition: React.FC<{ status?: string }> = ({ status = "Todo" }) 
           {
             header: "Editar",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar producto requisición",
             onClick: (row) =>
               row?.id_requisi_x_product && openEdit(row.id_requisi_x_product),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar producto requisición",
             onClick: (row) =>
               row?.id_requisi_x_product && openDelete(row.id_requisi_x_product),
           },

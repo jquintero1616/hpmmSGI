@@ -6,6 +6,7 @@ export interface Requisi {
   estado?: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado";
   employee_name: string;
   descripcion: string;
+  motivo?: string;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -26,6 +27,7 @@ export interface RequisiDetail {
   unit_name?: string;
   
   descripcion: string;
+  motivo?: string;
   cantidad: number;
   fecha: Date;
   estado?: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado";

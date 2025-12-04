@@ -99,6 +99,7 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         value: s.id_supplier,
       })),
       required: true,
+      colSpan: 2,
     },
     {
       name: "nombre_contacto",
@@ -134,6 +135,7 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         { label: "Inactivo", value: false },
       ],
       required: true,
+      colSpan: 2,
     },
   ];
 
@@ -278,11 +280,18 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Vendedores</h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Vendedores
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra los vendedores asociados a proveedores
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nuevo vendedor
@@ -295,13 +304,17 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         rowKey={(row) => row.id_vendedor}
         actions={[
           {
-            header: "Editar",
+            header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar vendedor",
             onClick: (row) => openEdit(row.id_vendedor),
           },
           {
-            header: "Eliminar",
+            header: "Acciones",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar vendedor",
             onClick: (row) => openDelete(row.id_vendedor),
           },
         ]}
@@ -314,6 +327,7 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
           <GenericForm<Partial<vendedorInterface>>
+            columns={2}
             initialValues={{
               id_supplier: itemToEdit.id_supplier , 
               nombre_contacto: itemToEdit.nombre_contacto,
@@ -346,6 +360,7 @@ const Vendedor: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<vendedorInterface>>
+          columns={2}
           initialValues={{
             id_supplier: "",
             nombre_contacto: "",

@@ -7,99 +7,122 @@ interface PdfReportLayoutProps<T> {
   data: T[];
   rowKey: (row: T) => string | number;
   title?: string;
+  subtitle?: string;
   date?: string;
   children?: React.ReactNode;
+  orientation?: "landscape" | "portrait";
+  showSummary?: boolean;
+  summaryData?: { label: string; value: string | number }[];
 }
 
-const PdfReportLayout = <T extends Record<string, any>>({
+const PdfReportLayout = <T extends Record<string, unknown>>({
   columns,
   data,
   rowKey,
-  title = "Reporte Kardex",
+  title = "Reporte",
+  subtitle,
   date,
   children,
+  orientation = "landscape",
+  showSummary = false,
+  summaryData = [],
 }: PdfReportLayoutProps<T>) => {
+  const isLandscape = orientation === "landscape";
+  const width = isLandscape ? "1056px" : "816px";
+  const height = isLandscape ? "816px" : "1056px";
+
   return (
     <div
-      className="bg-white mx-auto my-2 p-2 rounded-2xl shadow border border-gray-200 flex flex-col"
+      className="bg-white mx-auto flex flex-col"
       style={{
-        minHeight: 700, // Puedes ajustar este valor según tu preferencia
-        width: "1056px",
-        maxWidth: "1056px",
-        height: "816px", // Fuerza altura para PDF A4 horizontal
+        width,
+        maxWidth: width,
+        minHeight: height,
+        fontFamily: "Arial, sans-serif",
       }}
     >
       {/* Encabezado */}
-      <div className="flex flex-row items-start justify-between w-full mb-1">
-        {/* Logo */}
-        <div className="flex-shrink-0 flex items-center justify-center w-1/5 min-w-[120px]">
-          <img src={logoHpmm} alt="Logo HPMM" className="h-14 w-auto" />
-        </div>
-        {/* Títulos */}
-        <div className="flex flex-col justify-center items-center w-3/5 px-1">
-          <h1 className="text-lg font-bold" style={{ color: "#800080", lineHeight: "1.1" }}>
-            Hospital Psiquiátrico Mario Mendoza
-          </h1>
-          <h2 className="text-base font-semibold mt-0 mb-0">{title}</h2>
-        </div>
-        {/* Dirección y fecha */}
-        <div className="flex flex-col items-end text-[10px] text-gray-700 w-1/5 min-w-[120px] max-w-[180px] break-words">
-          <div className="w-full">
-            <b>Dirección:</b> Colonia Miramontes, Calle de la Salud, contiguo a
-            la Facultad de Ciencias Médicas Tegucigalpa, Honduras
-            <br />
-            <b>Teléfono:</b> 2239-7128
+      <div className="px-8 pt-6 pb-4">
+        <div className="flex items-center justify-between border-b-2 border-black pb-4">
+          {/* Logo e institución */}
+          <div className="flex items-center gap-4">
+            <img src={logoHpmm} alt="Logo" className="h-14 w-auto" />
+            <div>
+              <h1 className="text-sm font-bold text-black uppercase tracking-wide">
+                Hospital Psiquiátrico Mario Mendoza
+              </h1>
+              <p className="text-[10px] text-gray-700">
+                Tegucigalpa, M.D.C., Honduras
+              </p>
+            </div>
           </div>
-          <div className="mt-1 w-full">
-            <b>Fecha:</b> {date || new Date().toLocaleDateString("es-HN")}
+
+          {/* Fecha y hora */}
+          <div className="text-right text-[10px] text-black">
+            <p><span className="font-semibold">Fecha:</span> {date || new Date().toLocaleDateString("es-HN")}</p>
+            <p><span className="font-semibold">Hora:</span> {new Date().toLocaleTimeString("es-HN", { hour: "2-digit", minute: "2-digit" })}</p>
           </div>
+        </div>
+
+        {/* Título del reporte */}
+        <div className="text-center mt-4">
+          <h2 className="text-base font-bold text-black uppercase">{title}</h2>
+          {subtitle && <p className="text-[10px] text-gray-600 mt-1">{subtitle}</p>}
         </div>
       </div>
 
-      <hr className="border-t border-gray-300 my-1" />
-
-      {/* Contenido principal */}
-      <div className="flex-1 flex flex-col">
-        <div className="mb-1 overflow-x-auto bg-white rounded-lg shadow-sm p-1">
-          <GenericReportTable
-            columns={columns}
-            data={data}
-            rowKey={rowKey}
-            fontSizeClass="text-[8.5px]"
-            headerFontSizeClass="text-[9px]"
-          />
+      {/* Resumen opcional */}
+      {showSummary && summaryData.length > 0 && (
+        <div className="px-8 pb-2">
+          <div className="flex gap-6 text-[10px]">
+            {summaryData.map((item, idx) => (
+              <div key={idx}>
+                <span className="font-semibold">{item.label}:</span> {item.value}
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Tabla */}
+      <div className="flex-1 px-8 py-2 overflow-hidden">
+        <GenericReportTable
+          columns={columns}
+          data={data}
+          rowKey={rowKey}
+          fontSizeClass="text-[9px]"
+          headerFontSizeClass="text-[9px]"
+        />
         {children}
       </div>
 
-      {/* Firmas al fondo */}
-      <div className="grid grid-cols-3 gap-10 mt-6 mb-2">
-        <div className="flex flex-col items-center">
-          <div className="border-b border-gray-400 w-56 mb-1 mx-auto" />
-          <span className="w-56 text-center font-bold text-black text-sm">
-            Lic. Kenny Guzmán
-          </span>
-          <span className="w-56 text-center text-black text-xs">
-            Sub director de gestión de recursos
-          </span>
+      {/* Firmas */}
+      <div className="px-8 pb-6 mt-auto">
+        <div className="border-t border-black pt-6">
+          <div className="grid grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="border-b border-black w-40 mx-auto mb-1" />
+              <p className="text-[10px] font-semibold">Lic. Kenny Guzmán</p>
+              <p className="text-[8px] text-gray-600">Sub Director de Gestión de Recursos</p>
+            </div>
+            <div className="text-center">
+              <div className="border-b border-black w-40 mx-auto mb-1" />
+              <p className="text-[10px] font-semibold">Dr. Mario Francisco Aguilar</p>
+              <p className="text-[8px] text-gray-600">Director Ejecutivo</p>
+            </div>
+            <div className="text-center">
+              <div className="border-b border-black w-40 mx-auto mb-1" />
+              <p className="text-[10px] font-semibold">Lic. Giselle Gómez</p>
+              <p className="text-[8px] text-gray-600">Jefe de Logística y Suministros</p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col items-center">
-          <div className="border-b border-gray-400 w-56 mb-1 mx-auto" />
-          <span className="w-56 text-center font-bold text-black text-sm">
-            Dr. Mario Francisco Aguilar
-          </span>
-          <span className="w-56 text-center text-black text-xs">
-            Director ejecutivo
-          </span>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="border-b border-gray-400 w-56 mb-1 mx-auto" />
-          <span className="w-56 text-center font-bold text-black text-sm">
-            Lic. Giselle Gomez
-          </span>
-          <span className="w-56 text-center text-black text-xs">
-            Jefe de Logistica y Suministros
-          </span>
+
+        {/* Footer */}
+        <div className="mt-4 pt-2 border-t border-gray-300 text-center">
+          <p className="text-[8px] text-gray-500">
+            Colonia Miramontes, Calle de la Salud • Tel: 2239-7128 • Tegucigalpa, Honduras
+          </p>
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ export interface kardex {
   numero_factura: string;
   cantidad: number;
   precio_unitario: number;
-  tipo_solicitud: "Requisicion" | "Pacto";
+  tipo_solicitud: "Requisicion" | "Pacto" | "Donacion";
   requisicion_numero: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
   observacion: string;
@@ -27,6 +27,9 @@ export interface kardex {
   descripcion: string;
   fecha_vencimiento: Date;
   numero_lote: string;
+  // ----- Campos para donaciones -----
+  id_donante?: string; // ID del donante (solo para tipo_solicitud = "Donacion")
+  motivo_rechazo?: string; // Motivo del rechazo (cuando tipo = "Rechazado")
   // -----
   estado: boolean;
   create_at: Date;
@@ -40,6 +43,7 @@ export interface KardexFilter {
   limit?: number;
   offset?: number;
   statuses?: ("Aprobado" | "Rechazado" | "Pendiente" | "Cancelado")[];
+  tipo_solicitud?: ("Requisicion" | "Pacto" | "Donacion")[];
 }
 
 export interface KardexDetail {
@@ -51,7 +55,7 @@ export interface KardexDetail {
   nombre_empleado_sf: string; // nombre del empleado que registró en el sistema
   fecha_movimiento: Date;
   tipo_movimiento: "Entrada" | "Salida";
-  tipo_solicitud: "Requisicion" | "Pacto";
+  tipo_solicitud: "Requisicion" | "Pacto" | "Donacion";
   numero_factura: string;
   cantidad: number;
   precio_unitario: number;
@@ -62,6 +66,11 @@ export interface KardexDetail {
   fecha_vencimiento: Date;
   numero_lote: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente"  | "Cancelado";
+  // Campos para donaciones
+  id_donante?: string;
+  nombre_donante?: string;
+  tipo_donante?: string;
+  motivo_rechazo?: string;
 }
 
 const [itemToEdit, setItemToEdit] = useState<KardexDetail | null>(null);

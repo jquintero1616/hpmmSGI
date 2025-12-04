@@ -21,6 +21,7 @@ import * as RequiXproductControllers from "../controllers/requisi.x.product.cont
 import * as DirectionControllers from "../controllers/direction.controller";
 import * as BitacoraControllers from "../controllers/bitacora.controller";
 import * as ReportControllers from "../controllers/report.controller";
+import * as DonanteControllers from "../controllers/donante.controller";
 
 import * as AuthControllers from "../controllers/auth.controller";
 
@@ -564,6 +565,21 @@ router.delete(
   KardexControllers.deleteKardexController
 );
 
+// ===================== DONACIONES EN KARDEX =====================
+router.get(
+  "/kardex/donaciones/detail",
+  authenticateSession,
+  pagination(20, 100),
+  bitacoraInterceptor(bitOpts.kardex),
+  KardexControllers.getDonacionesKardexController
+);
+router.post(
+  "/kardex/donaciones",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.kardex),
+  KardexControllers.createDonacionKardexController
+);
+
 // create router Product
 
 router.get(
@@ -714,5 +730,56 @@ router.get(
 router.put("/bitacora/:id", authenticateSession, bitacoraInterceptor(bitOpts.bitacora),BitacoraControllers.UpdateBitacoraController);
 router.delete("/bitacora/:id", authenticateSession, bitacoraInterceptor(bitOpts.bitacora),BitacoraControllers.deleteBitacoraController);
 */
+
+// ===================== DONANTES ROUTES =====================
+router.get(
+  "/donantes",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.getAllDonantesController
+);
+router.get(
+  "/donantes/activos",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.getDonantesActivosController
+);
+router.get(
+  "/donantes/buscar",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.searchDonantesController
+);
+router.get(
+  "/donantes/filtrar",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  pagination(20, 100),
+  DonanteControllers.getDonantesFilteredController
+);
+router.get(
+  "/donantes/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.getDonanteByIdController
+);
+router.post(
+  "/donantes",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.createDonanteController
+);
+router.put(
+  "/donantes/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.updateDonanteController
+);
+router.delete(
+  "/donantes/:id",
+  authenticateSession,
+  bitacoraInterceptor(bitOpts.donantes),
+  DonanteControllers.deleteDonanteController
+);
 
 export default router;

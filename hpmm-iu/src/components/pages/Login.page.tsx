@@ -55,7 +55,7 @@ const LoginPage: React.FC = () => {
       navigate("/home", { state: { showWelcome: true } });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        setError("El correo electrónico o la contraseña que has introducido no son correctos, verifica tus credenciales e inténtalo de nuevo.");
+        setError("El correo electrónico o la contraseña que has introducido no son correctos, verifica tus credenciales.");
       } else if (axios.isAxiosError(error) && error.response?.status === 400) {
         setError("Por favor, completa todos los campos requeridos.");
       } else if (axios.isAxiosError(error) && !error.response) {

@@ -16,7 +16,7 @@ export interface kardexInterface {
   precio_unitario: number;
   cantidad_recepcionada?: number; // cantidad que se ha recibido en la orden de compra
   
-  tipo_solicitud: "Requisicion" | "Pacto";
+  tipo_solicitud: "Requisicion" | "Pacto" | "Donacion";
   requisicion_numero: string;
   tipo: "Aprobado" | "Rechazado" | "Pendiente" | "Cancelado";
   observacion: string;
@@ -32,6 +32,11 @@ export interface kardexInterface {
   descripcion: string;
   fecha_vencimiento: Date;
   numero_lote: string;
+  // ----- Campos para donaciones -----
+  id_donante?: string;
+  nombre_donante?: string;
+  tipo_donante?: string;
+  motivo_rechazo?: string;
   // -----
   estado: boolean;
   created_at: Date;
@@ -74,8 +79,12 @@ export interface KardexDetail extends ShoppingInterface {
   nombre_empleado_sc: string; // nombre del empleado en el sistema de compras
   username: string; // nombre del usuario que hizo el movimiento
   tipo_movimiento: "Entrada" | "Salida";
-  tipo_solicitud: "Requisicion" | "Pacto";
+  tipo_solicitud: "Requisicion" | "Pacto" | "Donacion";
   nombre_contacto_vendedor: string; // nombre del vendedor
+  // ----- Campos para donaciones -----
+  id_donante?: string;
+  nombre_donante?: string;
+  tipo_donante?: string;
   numero_factura: string;
   cantidad: number;
   precio_unitario: number;

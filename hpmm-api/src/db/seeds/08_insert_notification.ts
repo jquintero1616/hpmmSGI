@@ -17,7 +17,7 @@ export async function seed(knex: Knex): Promise<void> {
       id_noti: "aaaaaaaa-0000-0000-0000-000000000002",
       id_user: "77777777-7777-7777-7777-777777777777", // María López
       mensaje:    "Tu reporte está listo",
-      tipo:    "Enviado",
+      tipo:    "Accionado",
       estado:  true,
     },
     {

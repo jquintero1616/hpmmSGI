@@ -30,8 +30,15 @@ const baseKardexQuery = () =>
       'k.numero_factura',
       'k.cantidad',
       'k.precio_unitario',
+      'k.total',
+      'k.isv',
+      'k.cantidad_solicitada',
+      'k.cantidad_recepcionada',
+      'k.anio_creacion',
+      'k.requisicion_numero',
       'p.nombre as nombre_producto',
       'k.descripcion',
+      'k.observacion',
       'p.stock_actual',
       'p.stock_maximo',
       'k.fecha_vencimiento',
@@ -43,6 +50,11 @@ const baseKardexQuery = () =>
       'k.created_at',
       "k.id_shopping",
       "k.rfid",
+      // Campos para donaciones
+      'k.id_donante',
+      'd.nombre as nombre_donante',
+      'd.tipo_donante',
+      'k.motivo_rechazo',
     )
     .leftJoin('units_x_pacts as pa', 'pa.id_units_x_pacts', 'k.id_units_x_pacts')
     .leftJoin('shopping as s', 's.id_shopping', 'k.id_shopping')
@@ -63,17 +75,45 @@ const baseKardexQuery = () =>
     .leftJoin('product as p', 'p.id_product', 'k.id_product')
     .leftJoin('vendedor as v', 'v.id_vendedor', 's.id_vendedor')
     .leftJoin('suppliers as sup', 'sup.id_supplier', 'v.id_supplier')
+    // Join con donantes para obtener info del donante
+    .leftJoin('donantes as d', 'd.id_donante', 'k.id_donante')
     .orderBy('p.created_at', 'desc');
     
 export const getKardexDetailsModel = async (
   opts: KardexFilter = {}
 ): Promise<KardexDetail[]> => {
-  const { limit, offset, statuses } = opts;
+  const { limit, offset, statuses, tipo_solicitud } = opts;
   const q = baseKardexQuery();
 
   if (statuses && statuses.length > 0) {
     q.whereIn("k.tipo", statuses);
   }
+
+  if (tipo_solicitud && tipo_solicitud.length > 0) {
+    q.whereIn("k.tipo_solicitud", tipo_solicitud);
+  }
+
+  if (limit !== undefined) {
+    q.limit(limit);
+  }
+  if (offset !== undefined) {
+    q.offset(offset);
+  }
+
+  return q;
+};
+
+// Obtener solo donaciones
+export const getDonacionesKardexModel = async (
+  opts: KardexFilter = {}
+): Promise<KardexDetail[]> => {
+  const { limit, offset, statuses } = opts;
+  const q = baseKardexQuery().where("k.tipo_solicitud", "Donacion");
+
+  if (statuses && statuses.length > 0) {
+    q.whereIn("k.tipo", statuses);
+  }
+
   if (limit !== undefined) {
     q.limit(limit);
   }
