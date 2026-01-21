@@ -121,6 +121,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       //required: true,
       disabled: true,
       defaultValue: "ca112a2a-982c-467b-80c4-65163b6ddb6f", // debe coincidir con el value de la opción
+      colSpan: 2, // Ocupa las 2 columnas
     },
     {
       name: "id_subdireccion",
@@ -310,12 +311,18 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Gestión de Empleados
-      </h2>
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Empleados
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra el personal del hospital
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nuevo empleado
@@ -330,11 +337,15 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar empleado",
             onClick: (row) => openEdit(row.id_employes),
           },
           {
-            header: "Eliminar",
+            header: "Acciones",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar empleado",
             onClick: (row) => openDelete(row.id_employes),
           },
         ]}
@@ -347,6 +358,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
           <GenericForm<Partial<EmployesInterface>>
+            columns={2}
             initialValues={{
               id_user: itemToEdit.id_user ?? "",
               id_units: itemToEdit.id_units ?? "",
@@ -382,6 +394,7 @@ const Employe: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<EmployesInterface>>
+          columns={2}
           initialValues={{
             id_user: getInitialUserId(), // <-- aquí el cambio
             id_units: "",

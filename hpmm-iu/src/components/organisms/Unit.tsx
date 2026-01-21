@@ -288,11 +288,18 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Unidades</h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Unidades
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Configura las unidades organizativas del hospital
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nueva Unidad
@@ -307,11 +314,15 @@ const Unit: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           {
             header: "Editar",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar unidad",
             onClick: (row) => row?.id_units && openEdit(row.id_units),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar unidad",
             onClick: (row) => row?.id_units && openDelete(row.id_units),
           },
         ]}

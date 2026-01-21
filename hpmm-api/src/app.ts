@@ -11,7 +11,7 @@ import Redis from "ioredis";
 import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser";
 
-// CORS origins - Soporta múltiples orígenes desde variable de entorno
+// CORS origins - Soporta múltiples orígenes desde variable de entorno y permite DNS interno (Cloud Map) e IP privada
 const FRONTEND_ORIGINS = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : [
@@ -22,12 +22,20 @@ const FRONTEND_ORIGINS = process.env.CORS_ORIGIN
       "http://localhost:5173"   // Desarrollo
     ];
 
+// Regex para permitir DNS internos (*.local, *.namespace) y rangos de IP privadas
+const INTERNAL_DNS_REGEX = /^(https?:\/\/)?([\w-]+\.)*(local|hpmm-almacen-namespace)(:\d+)?$/;
+const PRIVATE_IP_REGEX = /^(https?:\/\/)?(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/;
+
 const corsOptions: CorsOptions = {
   origin: function(origin, callback) {
     console.log('[CORS DEBUG] Origin recibido:', origin);
     // Permitir sin origin (curl, Postman, health checks)
     if (!origin) return callback(null, true);
-    if (FRONTEND_ORIGINS.includes(origin)) {
+    if (
+      FRONTEND_ORIGINS.includes(origin) ||
+      INTERNAL_DNS_REGEX.test(origin) ||
+      PRIVATE_IP_REGEX.test(origin)
+    ) {
       return callback(null, true);
     } else {
       console.log('[CORS DEBUG] Origin NO permitido:', origin);
@@ -63,28 +71,37 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configuración de Redis (soporta tanto local como Upstash)
-const redisClient = process.env.REDIS_URL 
-  ? new Redis(process.env.REDIS_URL)
-  : new Redis({
-      host: process.env.REDIS_HOST || "127.0.0.1",
-      port: parseInt(process.env.REDIS_PORT || "6379", 10),
-      password: process.env.REDIS_PASSWORD,
-    });
+// Configuración de Redis (opcional en desarrollo)
+let redisClient: Redis | null = null;
+let RedisStoreConstructor: any = undefined;
 
-redisClient.on("error", (err) => {
-  console.error("Redis connection error:", err);
-});
+const SKIP_REDIS = process.env.SKIP_REDIS === 'true' || process.env.NODE_ENV === 'development';
 
-redisClient.on("connect", () => {
-  console.log("Connected to Redis successfully");
-});
+if (!SKIP_REDIS) {
+  redisClient = process.env.REDIS_URL 
+    ? new Redis(process.env.REDIS_URL)
+    : new Redis({
+        host: process.env.REDIS_HOST || "127.0.0.1",
+        port: parseInt(process.env.REDIS_PORT || "6379", 10),
+        password: process.env.REDIS_PASSWORD,
+      });
 
-// 2) Configuramos connect-redis como store de express-session
-const RedisStoreConstructor = new RedisStore({
-      client: redisClient,
-      prefix: "sess:"
-    });
+  redisClient.on("error", (err) => {
+    console.error("Redis connection error:", err);
+  });
+
+  redisClient.on("connect", () => {
+    console.log("✅ Connected to Redis successfully");
+  });
+
+  RedisStoreConstructor = new RedisStore({
+    client: redisClient,
+    prefix: "sess:"
+  });
+  console.log("🔴 Redis store configured");
+} else {
+  console.log("⚠️  Redis desactivado - usando sesiones en memoria (desarrollo solo)");
+}
 
 app.use(
   session({

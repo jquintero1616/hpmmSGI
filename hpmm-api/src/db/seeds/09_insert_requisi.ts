@@ -8,6 +8,7 @@ export async function seed(knex: Knex): Promise<void> {
       id_employes: "11111111-aaaa-bbbb-cccc-111111111111", 
       fecha:       "2025-05-10",
       descripcion: "Descripción de la requisición 1",
+      motivo:      "Motivo de la requisición 1",
       estado:      "Pendiente",
     },
     {
@@ -15,6 +16,7 @@ export async function seed(knex: Knex): Promise<void> {
       id_employes: "22222222-bbbb-cccc-dddd-222222222222", 
       fecha:       "2025-05-11",
       descripcion: "Descripción de la requisición 2",
+      motivo:      "Motivo de la requisición 2",
       estado:      "Aprobado",
     },
     {
@@ -22,6 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
       id_employes: "33333333-cccc-dddd-eeee-333333333333", 
       fecha:       "2025-05-12",
       descripcion: "Descripción de la requisición 3",
+      motivo:      "Motivo de la requisición 3",
       estado:      "Rechazado", 
     },
     {
@@ -29,6 +32,7 @@ export async function seed(knex: Knex): Promise<void> {
       id_employes: "33333333-cccc-dddd-eeee-333333333333", 
       fecha:       "2025-05-12",
       descripcion: "Descripción de la requisición 4",
+      motivo:      "Motivo de la requisición 4",
       estado:      "Cancelado", 
     },
   ]);

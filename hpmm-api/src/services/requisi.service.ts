@@ -46,6 +46,7 @@ export const updateRequisiService = async (
     fecha: Date;
     estado?: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado";
     descripcion?: string;
+    motivo?: string;
   }
 ): Promise<Requisi | null> => {
   // intentamos actualizar; si no existe devolvemos null
@@ -53,7 +54,8 @@ export const updateRequisiService = async (
     id_requisi,
     data.fecha!,
     data.estado!,
-    data.descripcion!
+    data.descripcion!,
+    data.motivo!
   );
 
   // si no hubo fila, lanzamos error de requisición

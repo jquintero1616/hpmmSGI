@@ -18,13 +18,8 @@ export default function Layout() {
         </aside>
         
         {/* Main content que se adapta al ancho del sidebar */}
-        <main
-          className="flex-1 overflow-auto bg-gray-50 transition-all duration-300"
-          style={{ marginLeft: "0" }}
-        >
-          <div className="p-4 min-h-full">
-            <Outlet />
-          </div>
+        <main className="flex-1 overflow-auto bg-gray-50">
+          <Outlet />
         </main>
       </div>
       

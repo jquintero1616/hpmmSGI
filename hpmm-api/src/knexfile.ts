@@ -22,13 +22,13 @@ const config: { [key: string]: Knex.Config } = {
     migrations: {
       //  Nombre y carpeta de tus migraciones
       tableName: "knex_migrations",
-      directory: "/app/dist/db/migrations",
+      directory: "./db/migrations",
       //  Le decimos a Knex QUE la tabla knex_migrations viva en "mi_esquema"
       schemaName: esquema,
     },
 
     seeds: {
-      directory: "/app/dist/db/seeds",
+      directory: "./db/seeds",
     },
   },
 
@@ -46,7 +46,7 @@ const config: { [key: string]: Knex.Config } = {
     searchPath: [esquema, "public"],
     migrations: {
       tableName: "knex_migrations",
-      directory: "/app/dist/db/migrations",
+      directory: "./db/migrations",
       schemaName: esquema,
     },
     seeds: {

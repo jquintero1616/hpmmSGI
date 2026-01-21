@@ -27,6 +27,7 @@ import { subMenuVisibility } from "../config/permissions";
 import SeguimientoTramiteOrganism from "../components/organisms/SeguimientoTramiteOrganism";
 import DasboardGraficos from "../components/molecules/DasboardGraficos";
 import HistorialNotificaciones from "../components/pages/HistorialNotificaciones";
+import Donantes from "../components/organisms/Donante";
 
 
 // Utilidad para obtener roles permitidos para una ruta específica
@@ -205,6 +206,15 @@ export const routes = [
           </GenericPage>
         ),
         valid: { roles: getRolesForPath("providers", "/vendedor") },
+      },
+      {
+        path: "donantes",
+        element: (
+          <GenericPage title="Gestión de Donantes">
+            <Donantes status={"Todo"} />
+          </GenericPage>
+        ),
+        valid: { roles: getRolesForPath("providers", "/donantes") },
       },
       {
         path: "subdireccion",

@@ -13,6 +13,7 @@ const baseRequisiQuery = () => {
       "r.fecha",
       "r.estado",
       "r.descripcion",
+      "r.motivo",
       "r.created_at",
       "r.updated_at",
       "e.name             as employee_name",
@@ -71,7 +72,8 @@ export async function updateRequisiModel(
   id_requisi: string,
   fecha: Date,
   estado: string,
-  descripcion: string
+  descripcion: string,
+  motivo: string
 ): Promise<Requisi | null> {
   const updated_at = new Date();
   const [updatedRequisi] = await knexTableName()
@@ -79,6 +81,7 @@ export async function updateRequisiModel(
       fecha,
       estado,
       descripcion,
+      motivo,
       updated_at,
     })
     .where({ id_requisi })

@@ -289,9 +289,17 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Gestión de Solicitudes de Compras
-      </h1>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Solicitudes de Compra
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Gestiona las solicitudes de adquisición
+          </p>
+        </div>
+      </div>
 
       <GenericTable
         columns={solicitudComprasColumns}
@@ -301,23 +309,31 @@ const SolicitudCompras: React.FC<{ status?: string }> = ({
           {
             header: "Acciones",
             label: "Ver",
+            actionType: "ver" as const,
+            tooltip: "Ver detalle de solicitud",
             onClick: (row) => openDetail(row.id_scompra),
           },
           {
             header: "Acciones",
             label: "Re-Activar",
+            actionType: "reactivar" as const,
+            tooltip: "Re-activar solicitud cancelada",
             onClick: (row) => openEdit(row.id_scompra),
             disabled: (row) => row.estado !== "Cancelado",
           },
           {
             header: "Acciones",
             label: "Comprado",
+            actionType: "aprobar" as const,
+            tooltip: "Marcar como comprado",
             onClick: (row) => handleQuickEstado(row, "Comprado"),
             disabled: (row) => row.estado === "Comprado",
           },
           {
             header: "Acciones",
             label: "Cancelado",
+            actionType: "cancelar" as const,
+            tooltip: "Cancelar solicitud",
             onClick: (row) => handleQuickEstado(row, "Cancelado"),
             disabled: (row) => row.estado === "Cancelado",
           },

@@ -14,8 +14,6 @@ import Select from "../atoms/Inputs/Select";
 import { useCategory } from "../../hooks/use.Category";
 import { ToastContainer, toast } from "react-toastify";
 
-type StockFilter = "Todas" | "Bajas" | "Excedidas" | "Normales";
-
 const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
     products,
@@ -33,7 +31,6 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<ProductDetail[]>([]);
   const [dataListForm, setDataListForm] = useState<any[]>([]);
-  const [stockFilter, setStockFilter] = useState<StockFilter>("Todas");
 
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isEditOpen, setEditOpen] = useState(false);
@@ -51,7 +48,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       GetSubcategoriesContext(),
       GetKardexContext(),
     ]).finally(() => setLoading(false));
-  }, []);
+  },  []);
 
   // 2) Calcula stock solo con movimientos "Aprobado"
   const computeStock = (productId: string): number => {
@@ -63,7 +60,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       }, 0);
   };
 
-  // 3) Refiltra cuando cambian datos, estado o filtro de stock
+  // 3) Refiltra cuando cambian datos o estado
   useEffect(() => {
     let data = ProductDetail.map((d) => ({
       ...d,
@@ -75,24 +72,8 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       data = data.filter((d) => d.estado === (status === "Activo"));
     }
 
-    // filtro por stock
-    if (stockFilter === "Bajas") {
-      data = data.filter(
-        (d) => d.stock_maximo > 0 && d.stock_actual / d.stock_maximo < 0.3 // menos del 30%, incluye 0
-      );
-    } else if (stockFilter === "Excedidas") {
-      data = data.filter((d) => d.stock_actual > d.stock_maximo);
-    } else if (stockFilter === "Normales") {
-      data = data.filter(
-        (d) =>
-          d.stock_maximo > 0 &&
-          d.stock_actual / d.stock_maximo >= 0.3 && // desde 30%
-          d.stock_actual <= d.stock_maximo // hasta el máximo
-      );
-    }
-
     setFilteredData(data);
-  }, [ProductDetail, kardex, status, stockFilter]);
+  }, [ProductDetail, kardex, status]); 
 
   // Función para formatear el nombre con números en negrita
   const formatProductName = (name: string) => {
@@ -115,6 +96,11 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Columnas
   const productColumns: Column<ProductDetail>[] = [
     {
+      header: "Código Objeto",
+      accessor: "codigo_objeto",
+      
+    },
+    {
       header: "Nombre",
       accessor: (row) => formatProductName(row.nombre),
     },
@@ -128,20 +114,32 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         const max = row.stock_maximo;
         const exceeded = actual > max;
         const noExist = actual <= 0;
+        const inStock = actual > 0 && actual <= max;
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <span
-              className={exceeded ? "text-green-600 font-semibold" : undefined}
+              className={
+                noExist
+                  ? "text-red-600 font-semibold"
+                  : exceeded
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-700 dark:text-gray-300"
+              }
             >
               {actual}
             </span>
+            {inStock && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                EN STOCK
+              </span>
+            )}
             {exceeded && (
-              <span className="ml-2 px-1 text-xs font-medium bg-green-100 text-green-800 rounded">
-                MAX
+              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">
+                EXCEDE MÁX
               </span>
             )}
             {noExist && (
-              <span className="ml-2 px-1 text-xs font-medium bg-red-100 text-red-800 rounded">
+              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
                 SIN STOCK
               </span>
             )}
@@ -158,7 +156,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
     },
-    
+
     {
       header: "Fecha Actualización",
       accessor: (row) =>
@@ -167,6 +165,12 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   ];
 
   const productFormListColumns: Column<ProductDetail>[] = [
+
+    {
+      header: "Código Objeto",
+      accessor: "codigo_objeto",
+
+    },
     {
       header: "Categoria",
       accessor: (row) =>
@@ -190,20 +194,32 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         const max = row.stock_maximo;
         const exceeded = actual > max;
         const noExist = actual <= 0;
+        const inStock = actual > 0 && actual <= max;
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <span
-              className={exceeded ? "text-green-600 font-semibold" : undefined}
+              className={
+                noExist
+                  ? "text-red-600 font-semibold"
+                  : exceeded
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-700 dark:text-gray-300"
+              }
             >
               {actual}
             </span>
+            {inStock && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                EN STOCK
+              </span>
+            )}
             {exceeded && (
-              <span className="ml-2 px-1 text-xs font-medium bg-green-100 text-green-800 rounded">
-                MAX
+              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">
+                EXCEDE MÁX
               </span>
             )}
             {noExist && (
-              <span className="ml-2 px-1 text-xs font-medium bg-red-100 text-red-800 rounded">
+              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
                 SIN STOCK
               </span>
             )}
@@ -216,11 +232,25 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Campos del formulario
   const productFieldsNoEstado: FieldConfig[] = [
     {
+      name: "codigo_objeto",
+      label: "Código Objeto",
+      type: "text",
+      required: true,
+      colSpan: 2,
+    },
+    {
+      name: "nombre",
+      label: "Nombre Producto",
+      type: "text",
+      required: true,
+      colSpan: 2,
+    },
+    {
       name: "id_category",
       label: "Categoría",
       type: "select",
       options: category.map((c) => ({
-        label: c.name, // <-- Cambia aquí
+        label: c.name,
         value: c.id_category,
       })),
       // NO required
@@ -235,10 +265,19 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       })),
       // NO required
     },
-    { name: "nombre", label: "Nombre Producto", type: "text", required: true },
-    { name: "stock_actual", label: "Stock Actual", type: "number", required: true },
-    { name: "stock_maximo", label: "Stock Máximo", type: "number", required: true },
-    
+
+    {
+      name: "stock_actual",
+      label: "Stock Actual",
+      type: "number",
+      required: true,
+    },
+    {
+      name: "stock_maximo",
+      label: "Stock Máximo",
+      type: "number",
+      required: true,
+    },
   ];
 
   // Modales y CRUD
@@ -331,7 +370,9 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const handleAddItem = (item: any) => {
     // Validar duplicados
     if (isDuplicateInList(item)) {
-      toast.error("Ya existe un producto con ese nombre, categoría y subcategoría en la lista.");
+      toast.error(
+        "Ya existe un producto con ese nombre, categoría y subcategoría en la lista."
+      );
       return;
     }
 
@@ -365,36 +406,24 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Productos</h2>
       <ToastContainer />
-      {/* Controles: Nuevo + Filtro de stock */}
-      <div className="flex flex-wrap items-center justify-between mb-4">
-        <div className="flex items-center">
-          <label htmlFor="stockFilter" className="mr-2 font-medium">
-            Filtro de stock:
-          </label>
-          <Select
-            name="stockFilter"
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value as StockFilter)}
-            options={[
-              { label: "Todas", value: "Todas" },
-              { label: "Bajas existencias", value: "Bajas" },
-              { label: "Excedidas", value: "Excedidas" },
-              { label: "Stock normales", value: "Normales" },
-            ]}
-            placeholder="Todas"
-            className="w-48"
-          />
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Productos
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra el inventario de productos del hospital
+          </p>
         </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nuevo producto
         </Button>
       </div>
-
 
       {filteredData.length > 0 ? (
         <GenericTable
@@ -405,11 +434,15 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             {
               header: "Acciones",
               label: "Editar",
+              actionType: "editar" as const,
+              tooltip: "Editar producto",
               onClick: (row) => openEdit(row.id_product),
             },
             {
               header: "Eliminar",
               label: "Eliminar",
+              actionType: "eliminar" as const,
+              tooltip: "Eliminar producto",
               onClick: (row) => openDelete(row.id_product),
             },
           ]}
@@ -426,12 +459,14 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             : "Agregar producto a la lista"}
         </h2>
         <GenericForm
+          columns={2}
           initialValues={
             itemToEditList
               ? itemToEditList
               : {
                   id_category: selectedCategory,
                   id_subcategory: selectedSubcategory,
+                  codigo_objeto: "",
                   nombre: "",
                   stock_actual: 0,
                   stock_maximo: 0,
@@ -496,11 +531,15 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             {
               header: "Acciones",
               label: "Editar",
+              actionType: "editar" as const,
+              tooltip: "Editar producto de la lista",
               onClick: (row) => setItemToEditList(row),
             },
             {
               header: "Eliminar",
               label: "Eliminar",
+              actionType: "eliminar" as const,
+              tooltip: "Eliminar producto de la lista",
               onClick: (row) => deleteItemList(row.nombre),
             },
           ]}
@@ -529,10 +568,11 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <GenericModal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
           <GenericForm
+            columns={2}
             initialValues={{
               id_subcategory: itemToEdit.id_subcategory,
               nombre: itemToEdit.nombre,
-
+              codigo_objeto: itemToEdit.codigo_objeto,
               stock_actual: itemToEdit.stock_actual,
               stock_maximo: itemToEdit.stock_maximo,
             }}

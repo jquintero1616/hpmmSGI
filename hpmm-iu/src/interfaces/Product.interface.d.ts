@@ -4,6 +4,7 @@ export interface ProductInterface {
   subcategory_name: string;
   id_category: string;
   category_name: string;
+  codigo_objeto: string;
   nombre: string;
   descripcion: string;
   stock_actual: number;
@@ -21,6 +22,7 @@ export interface ProductDetail {
   id_category: string;
   subcategory_name: string;
   category_name: string;
+  codigo_objeto: string;
   nombre: string;
   descripcion: string;
   stock_actual: number;

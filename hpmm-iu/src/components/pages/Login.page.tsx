@@ -7,6 +7,7 @@ import LoginFormProps from "../organisms/Login";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Logo from "../../assets/hpmm2.png";
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +44,7 @@ const LoginPage: React.FC = () => {
     }
 
     if (!emailToUse || !password) {
-      setError("Por favor, ingresa tu correo y contraseña.");
+      setError("Por favor, ingresa tu correo electronico y contraseña.");
       return;
     }
 
@@ -54,9 +55,13 @@ const LoginPage: React.FC = () => {
       navigate("/home", { state: { showWelcome: true } });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        setError("Tus credenciales son incorrectas.");
+        setError("El correo electrónico o la contraseña que has introducido no son correctos, verifica tus credenciales.");
+      } else if (axios.isAxiosError(error) && error.response?.status === 400) {
+        setError("Por favor, completa todos los campos requeridos.");
+      } else if (axios.isAxiosError(error) && !error.response) {
+        setError("No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.");
       } else {
-        setError("Ocurrió un error al iniciar sesión.");
+        setError("Ocurrió un error inesperado al iniciar sesión. Por favor, inténtalo de nuevo más tarde.");
       }
     } finally {
       setLoading(false);
@@ -73,7 +78,7 @@ const LoginPage: React.FC = () => {
         <div className="w-full max-w-md mx-auto p-6">
           <div className="text-center mb-8">
             <img src={Logo} alt="Logo" className="mx-auto mb-6 w-40 h-30 object-contain" />
-            <p className="text-gray-600 text-sm">Inicia sesión</p>
+          
           </div>
 
           <LoginForm

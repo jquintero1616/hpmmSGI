@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from 'react';
 
 export interface InputProps {
+  id?: string; // NUEVO
   name: string;
   type?: string;
   value: string;
@@ -10,11 +11,13 @@ export interface InputProps {
   className?: string;
   error?: string;
   "aria-invalid"?: boolean;
+  "aria-describedby"?: string; // NUEVO
   disabled?: boolean;
   defaultValue?: string; 
 }
 
 const Input: React.FC<InputProps> = ({
+  id,
   name,
   type = 'text',
   value,
@@ -24,6 +27,7 @@ const Input: React.FC<InputProps> = ({
   className = '',
   error,
   "aria-invalid": ariaInvalid = false,
+  "aria-describedby": ariaDescribedby, // NUEVO
   disabled = false,
   defaultValue, 
   ...rest
@@ -32,7 +36,7 @@ const Input: React.FC<InputProps> = ({
     <div className="mb-5">
       <div className="relative">
         <input
-          id={name}
+          id={id || name}
           name={name}
           type={type}
           value={value}
@@ -43,7 +47,7 @@ const Input: React.FC<InputProps> = ({
             error ? "border-red-500 pr-10" : ""
           }`}
           aria-invalid={ariaInvalid}
-          aria-describedby={error ? `${name}-error` : undefined}
+          aria-describedby={ariaDescribedby || (error ? `${name}-error` : undefined)}
           inputMode={type === "tel" ? "tel" : undefined}
           pattern={type === "tel" ? "^[0-9+\\-()\\s]{7,}$" : undefined}
           disabled={disabled}

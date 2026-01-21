@@ -1,4 +1,3 @@
-import { Users } from "./user.interface";
 import { Pacts } from "./pacts.interface";
 import { Kardex, KardexDetail } from "./kardex.interface";
 import { Product } from "./product.interface";
@@ -19,6 +18,7 @@ import { Scompras } from "./SolicitudCompras.inteface";
 import { DetallePactos } from "./DetallePactos.interface";
 import { Report} from "./Report.interface";
 import { Notificacion } from "./Notifaciones.interface";
+import { DonanteInterface } from "./donante.interface";
 
 
 export interface AuthContextType {
@@ -228,6 +228,18 @@ export interface NotificacionContextType {
   PostNotificacionContext: (noti: Notificacion) => Promise<Notificacion>;
   PutNotificacionContext: (id_noti: string, noti: Notificacion) => Promise<void>;
   DeleteNotificacionContext: (id_noti: string) => Promise<void>;
+}
+
+export interface DonanteContextType {
+  donantes: DonanteInterface[];
+  donantesActivos: DonanteInterface[];
+  GetDonantesContext: () => Promise<DonanteInterface[] | null>;
+  GetDonantesActivosContext: () => Promise<DonanteInterface[] | null>;
+  GetDonanteByIdContext: (id_donante: string) => Promise<DonanteInterface | undefined>;
+  SearchDonantesContext: (nombre: string) => Promise<DonanteInterface[] | null>;
+  PostCreateDonanteContext: (donante: DonanteInterface) => Promise<void>;
+  PutUpdateDonanteContext: (id_donante: string, donante: DonanteInterface) => Promise<void>;
+  DeleteDonanteContext: (id_donante: string) => Promise<void>;
 }
 
 export interface ProviderProps {

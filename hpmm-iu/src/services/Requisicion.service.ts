@@ -52,6 +52,7 @@ export const PostRequisicionService = async (
       id_employes: requisicion.id_employes,
       fecha: requisicion.fecha,
       descripcion: requisicion.descripcion,
+      motivo: requisicion.motivo,
       estado: requisicion.estado,
     },
     { headers: { "Content-Type": "application/json" } }
@@ -72,6 +73,7 @@ export const PutRequisicionService = async (
         id_employes: requisicion.id_employes,
         fecha: requisicion.fecha,
         descripcion: requisicion.descripcion,
+        motivo: requisicion.motivo,
         estado: requisicion.estado,
       },
       {

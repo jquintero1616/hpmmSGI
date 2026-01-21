@@ -11,16 +11,78 @@ import GenericTable, { Column } from "../../components/molecules/GenericTable";
 import { useProducts } from "../../hooks/use.Product";
 import { useShopping } from "../../hooks/use.Shopping";
 import { useDetallePactos } from "../../hooks/use.DetallePactos";
+import { useDonante } from "../../hooks/use.Donante";
 import { ToastContainer, toast } from "react-toastify";
 import { formattedDate } from "../../helpers/formatData";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { useVendedor } from "../../hooks/use.vendedor";
-import RFIDScannerModal from "../molecules/RFIDScannerModal";
 import { AuthContext } from "../../contexts/Auth.context";
 import { useLocation } from "react-router-dom";
 import { useRequisicion } from "../../hooks/use.Requisicion"; 
 
 type KardexRow = KardexDetail & Partial<ShoppingInterface>;
+
+// Interfaz para datos agrupados (vista maestro-detalle)
+interface KardexGrouped {
+  groupKey: string;
+  nombre_empleado: string;
+  tipo_movimiento: "Entrada" | "Salida";
+  tipo_solicitud: string;
+  fecha_movimiento: string;
+  numero_factura: string;
+  cantidad_productos: number;
+  total_cantidad: number;
+  total_monto: number;
+  estado: string;
+  items: KardexRow[];
+}
+
+// Función para agrupar datos del kardex
+const agruparKardexPendientes = (data: KardexRow[]): KardexGrouped[] => {
+  const grupos: Record<string, KardexGrouped> = {};
+
+  data.forEach((item) => {
+    // Crear clave única por: empleado + tipo_movimiento + factura + fecha
+    const fecha = item.fecha_movimiento 
+      ? new Date(item.fecha_movimiento).toLocaleDateString("es-HN")
+      : "Sin fecha";
+    const groupKey = `${item.id_empleado_sf || "unknown"}-${item.tipo_movimiento}-${item.numero_factura || "sin-factura"}-${fecha}`;
+
+    if (!grupos[groupKey]) {
+      grupos[groupKey] = {
+        groupKey,
+        nombre_empleado: item.nombre_empleado_sf || "Desconocido",
+        tipo_movimiento: item.tipo_movimiento as "Entrada" | "Salida",
+        tipo_solicitud: item.tipo_solicitud || "N/A",
+        fecha_movimiento: fecha,
+        numero_factura: item.numero_factura || "N/A",
+        cantidad_productos: 0,
+        total_cantidad: 0,
+        total_monto: 0,
+        estado: item.tipo || "Pendiente",
+        items: [],
+      };
+    }
+
+    grupos[groupKey].items.push(item);
+    grupos[groupKey].cantidad_productos += 1;
+    grupos[groupKey].total_cantidad += Number(item.cantidad) || 0;
+    
+    // Calcular monto con ISV
+    const precio = Number(item.precio_unitario) || 0;
+    const cantidad = Number(item.cantidad_recepcionada ?? item.cantidad) || 0;
+    const subtotal = precio * cantidad;
+    const total = (item.ISV || item.isv) ? subtotal * 1.15 : subtotal;
+    grupos[groupKey].total_monto += total;
+  });
+
+  // Ordenar por fecha (más recientes primero)
+  return Object.values(grupos).sort((a, b) => {
+    const fechaA = new Date(a.items[0]?.fecha_movimiento || 0).getTime();
+    const fechaB = new Date(b.items[0]?.fecha_movimiento || 0).getTime();
+    return fechaB - fechaA;
+  });
+};
 
 const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const {
@@ -32,10 +94,11 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     DeleteKardexContext,
   } = useKardex();
   const { shopping, GetShoppingContext, PutShoppingContext } = useShopping();
-  const { GetProductsContext } = useProducts();
+  const { products, GetProductsContext } = useProducts();
   const { detallePactos, GetDetallePactosContext } = useDetallePactos();
   const { scompras } = useSolicitudCompras();
   const { vendedor } = useVendedor();
+  const { donantes, GetDonantesContext } = useDonante();
   const location = useLocation();
   const { PutUpdateRequisicionContext } = useRequisicion(); 
 
@@ -67,8 +130,12 @@ const Kardex: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // NUEVOS ESTADOS para la lista temporal en el modal de creación
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
-  const [rfidScanRow, setRfidScanRow] = useState<string | null>(null); 
+  //const [rfidScanRow, setRfidScanRow] = useState<string | null>(null); 
   const [isSalida, setIsSalida] = useState(false); 
+
+  // ESTADOS para vista agrupada en KardexPendiente
+  const [selectedGroup, setSelectedGroup] = useState<KardexGrouped | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   useEffect(() => {
     handleTableContent(kardex);
@@ -129,6 +196,65 @@ const cargarProductosParaSalida = (id_shopping : string) => {
     tipo_movimiento: "Salida",
   }));
 };
+
+// Función para cargar productos de DONACIÓN para salida
+const cargarDonacionesParaSalida = (id_kardex: string) => {
+  // Buscar la donación específica aprobada
+  const donacionAprobada = kardex.find(
+    (item) =>
+      item.id_kardex === id_kardex &&
+      item.tipo === "Aprobado" &&
+      item.tipo_movimiento === "Entrada" &&
+      item.tipo_solicitud === "Donacion"
+  );
+
+  if (!donacionAprobada) return [];
+
+  // Verificar que NO tenga salida registrada
+  const tieneSalida = kardex.some(
+    (salida) =>
+      salida.tipo === "Aprobado" &&
+      salida.tipo_movimiento === "Salida" &&
+      salida.tipo_solicitud === "Donacion" &&
+      salida.id_product === donacionAprobada.id_product &&
+      salida.id_donante === donacionAprobada.id_donante
+  );
+
+  if (tieneSalida) return [];
+
+  // Formatear para la tabla
+  return [{
+    ...donacionAprobada,
+    id_kardex: undefined, // Limpiar para crear nuevo registro
+    tipo_movimiento: "Salida",
+    tipo: "Pendiente",
+    fecha_movimiento: formattedDate(),
+  }];
+};
+
+// Obtener donaciones aprobadas disponibles para salida
+const donacionesDisponiblesParaSalida = kardex.filter((entrada) => {
+  // Solo donaciones aprobadas de entrada
+  if (
+    entrada.tipo !== "Aprobado" ||
+    entrada.tipo_movimiento !== "Entrada" ||
+    entrada.tipo_solicitud !== "Donacion"
+  ) {
+    return false;
+  }
+
+  // Verificar que NO exista una salida para esta donación
+  const tieneSalida = kardex.some(
+    (salida) =>
+      salida.tipo === "Aprobado" &&
+      salida.tipo_movimiento === "Salida" &&
+      salida.tipo_solicitud === "Donacion" &&
+      salida.id_product === entrada.id_product &&
+      salida.id_donante === entrada.id_donante
+  );
+
+  return !tieneSalida;
+});
 
   // 3. CONFIGURACIONES
   const kardexColumns: Column<KardexRow>[] = [
@@ -217,9 +343,24 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       accessor: "tipo_solicitud",
     },
     {
-      header: "RFID",
-      accessor: (row) => row.rfid || "N/A",
+      header: "Donante",
+      accessor: (row) => {
+        if (row.tipo_solicitud === "Donacion") {
+          const donante = donantes.find((d) => d.id_donante === row.id_donante);
+          return donante ? donante.nombre : row.nombre_donante || "N/A";
+        }
+        return "-";
+      },
     },
+    {
+      header: "Ingresado por",
+      accessor: (row) => row.nombre_empleado_sf || "N/A",
+    },
+    // RFID desactivado temporalmente
+    // {
+    //   header: "RFID",
+    //   accessor: (row) => row.rfid || "N/A",
+    // },
     {
       header: "cantidad",
       accessor: "cantidad",
@@ -340,34 +481,39 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       accessor: "tipo_movimiento",
       editable: false,
     },
+    // RFID desactivado temporalmente
+    // {
+    //   header: "RFID",
+    //   accessor: (row) => (
+    //     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    //       <input
+    //         type="text"
+    //         value={row.rfid || ""}
+    //         readOnly
+    //         style={{ width: 120 }}
+    //       />
+    //       <button
+    //         type="button"
+    //         title="Escanear RFID"
+    //         onClick={() => setRfidScanRow(row.id_shopping)}
+    //         style={{
+    //           background: "#1976d2",
+    //           color: "#fff",
+    //           border: "none",
+    //           borderRadius: 4,
+    //           padding: "2px 8px",
+    //           cursor: "pointer",
+    //         }}
+    //       >
+    //         📡
+    //       </button>
+    //     </div>
+    //   ),
+    //   editable: false, 
+    // },
     {
-      header: "RFID",
-      accessor: (row) => (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="text"
-            value={row.rfid || ""}
-            readOnly
-            style={{ width: 120 }}
-          />
-          <button
-            type="button"
-            title="Escanear RFID"
-            onClick={() => setRfidScanRow(row.id_shopping)}
-            style={{
-              background: "#1976d2",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              padding: "2px 8px",
-              cursor: "pointer",
-            }}
-          >
-            📡
-          </button>
-        </div>
-      ),
-      editable: false, 
+      header: "Registrado por",
+      accessor: (row) => row.nombre_empleado_sf || "N/A",
     },
   ];
 
@@ -376,8 +522,82 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       name: "tipo_solicitud",
       label: "Solicitud",
       type: "select",
-      options: [{ label: "Requisicion", value: "Requisicion" }],
+      options: [
+        { label: "Requisicion", value: "Requisicion" },
+        { label: "Donación", value: "Donacion" },
+      ],
       required: true,
+      colSpan: 2, // Ocupa las 2 columnas
+    },
+    {
+      name: "id_donante",
+      label: "Donante",
+      type: "select",
+      options: donantes
+        .filter((d) => d.estado === true)
+        .map((d) => ({
+          label: `${d.nombre} (${d.tipo_donante})`,
+          value: d.id_donante,
+        })),
+      required: true,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && !isSalida,
+    },
+    {
+      name: "id_product",
+      label: "Producto",
+      type: "searchable-select",
+      options: products
+        .filter((p) => p.estado === true)
+        .map((p) => ({
+          label: p.nombre || p.nombre_producto,
+          value: p.id_product,
+          searchTerms: p.numero_lote || "",
+        })),
+      required: true,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && !isSalida,
+    },
+    {
+      name: "cantidad",
+      label: "Cantidad",
+      type: "number",
+      required: true,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && !isSalida,
+    },
+    {
+      name: "precio_unitario",
+      label: "Precio Unitario (Estimado)",
+      type: "number",
+      required: false,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && !isSalida,
+    },
+    {
+      name: "numero_factura",
+      label: "Número de Factura/Documento",
+      type: "text",
+      required: false,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && !isSalida,
+      colSpan: 2, // Ocupa las 2 columnas
+    },
+    {
+      name: "observacion",
+      label: "Observación",
+      type: "textarea",
+      required: false,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && !isSalida,
+      colSpan: 2, // Ocupa las 2 columnas
+    },
+    // Campo para seleccionar donación en SALIDA
+    {
+      name: "id_kardex_donacion",
+      label: "Seleccionar Donación",
+      type: "select",
+      options: donacionesDisponiblesParaSalida.map((d) => ({
+        label: `${d.nombre_producto || "Producto"} - ${d.nombre_donante || "Donante"} (Cant: ${d.cantidad})`,
+        value: d.id_kardex,
+      })),
+      required: true,
+      showIf: (values) => values.tipo_solicitud === "Donacion" && isSalida,
+      colSpan: 2,
     },
     {
       name: "id_scompra",
@@ -487,6 +707,7 @@ const cargarProductosParaSalida = (id_shopping : string) => {
       GetProductsContext(),
       GetShoppingContext(),
       GetDetallePactosContext(),
+      GetDonantesContext(),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -680,7 +901,8 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
 
     setDataListForm((prev) =>
       prev.map((item) => {
-        if (item.id_shopping === rowKey) {
+        const itemKey = item.id_shopping || item.id_temp || item.id_product;
+        if (itemKey === rowKey) {
           // Validación: cantidad_recepcionada no puede ser mayor a cantidad
           if (
             newValues.cantidad_recepcionada !== undefined &&
@@ -714,9 +936,61 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
   };
 
   const handleFormChange = async (values: any, prevValues?: any) => {
+    // Manejar cambio en requisición
     if (values.id_scompra && values.id_scompra !== prevValues?.id_scompra) {
       const productos = await cargarProductosDeCompra(values.id_scompra);
       setDataListForm(productos);
+    }
+
+    // Manejar SALIDA de donación - cuando se selecciona una donación existente
+    if (isSalida && values.tipo_solicitud === "Donacion" && values.id_kardex_donacion && values.id_kardex_donacion !== prevValues?.id_kardex_donacion) {
+      const productosSalida = cargarDonacionesParaSalida(values.id_kardex_donacion);
+      if (productosSalida.length === 0) {
+        toast.error("Esta donación ya tiene una salida registrada o no está disponible.");
+      }
+      setDataListForm(productosSalida);
+      return; // Salir para no ejecutar la lógica de entrada de donación
+    }
+    
+    // Manejar ENTRADA de donación - cargar producto cuando se selecciona
+    if (!isSalida && values.tipo_solicitud === "Donacion" && values.id_product && values.id_donante) {
+      const productoSeleccionado = products.find((p) => p.id_product === values.id_product);
+      const donanteSeleccionado = donantes.find((d) => d.id_donante === values.id_donante);
+      
+      if (productoSeleccionado && donanteSeleccionado) {
+        const donacionItem = {
+          id_temp: crypto.randomUUID(),
+          id_shopping: null, // Las donaciones no tienen id_shopping
+          id_product: values.id_product,
+          id_donante: values.id_donante,
+          nombre_producto: productoSeleccionado.nombre || productoSeleccionado.nombre_producto,
+          nombre_donante: donanteSeleccionado.nombre,
+          tipo_donante: donanteSeleccionado.tipo_donante,
+          cantidad: Number(values.cantidad) || 0,
+          cantidad_recepcionada: Number(values.cantidad) || 0,
+          precio_unitario: Number(values.precio_unitario) || 0,
+          numero_factura: values.numero_factura || "",
+          observacion: values.observacion || "",
+          descripcion: values.descripcion || "Donación recibida",
+          fecha_vencimiento: values.fecha_vencimiento || formattedDate(), // Fecha actual si no se proporciona
+          numero_lote: values.numero_lote || "N/A",
+          tipo_movimiento: isSalida ? "Salida" : "Entrada",
+          fecha_movimiento: formattedDate(),
+          tipo: "Pendiente",
+          tipo_solicitud: "Donacion",
+          requisicion_numero: `DON-${Date.now()}`,
+          anio_creacion: new Date().getFullYear(),
+          id_empleado_sf: idEmployes,
+          isv: 0,
+          total: 0,
+          estado: true,
+        };
+        
+        // Solo agregar si tiene los campos requeridos
+        if (values.cantidad && Number(values.cantidad) > 0) {
+          setDataListForm([donacionItem]);
+        }
+      }
     }
   }; 
 
@@ -734,6 +1008,9 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
       }
 
       for (const item of dataListForm) {
+        // Verificar si es una donación
+        const esDonacion = item.tipo_solicitud === "Donacion";
+        
         const existeEnShopping = item.id_shopping
           ? kardex.some((s) => s.id_shopping === item.id_shopping)
           : false;
@@ -747,21 +1024,28 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           cantidad: Number(item.cantidad) || 0,
           tipo: "Pendiente",
           isv: item.isv ? 0.15 : 0,
-          id_empleado_sf: item.id_empleado_sf || idEmployes, // <- PRESERVAR el ID del empleado que hizo la solicitud
+          id_empleado_sf: item.id_empleado_sf || idEmployes,
         };
 
         if (existeEnKardex && existeEnShopping && !isSalida) {
           await PutUpdateKardexContext(item.id_kardex, itemConCantidad);
         } else {
           await PostCreateKardexContext(itemConCantidad);
-          await PutShoppingContext(item.id_shopping, {
-            estado: false,
-          });
+          // Solo actualizar shopping si NO es una donación
+          if (!esDonacion && item.id_shopping) {
+            await PutShoppingContext(item.id_shopping, {
+              estado: false,
+            });
+          }
         }
       }
 
-      toast.success("Solicitud de función agregada correctamente ");
-      await GetShoppingContext()
+      const mensaje = dataListForm.some(item => item.tipo_solicitud === "Donacion")
+        ? "Donación registrada correctamente"
+        : "Solicitud de función agregada correctamente";
+      
+      toast.success(mensaje);
+      await GetShoppingContext();
       setDataListForm([]);
       setOpenModal(false);
       setItemToEditList(null);
@@ -901,12 +1185,16 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
                 {
                   header: "Acciones",
                   label: "Aprobar",
+                  actionType: "aprobar" as const,
+                  tooltip: "Aprobar movimiento",
                   onClick: (row: KardexDetail) =>
                     changeKardexStatus(row, "Aprobado"),
                 },
                 {
                   header: "Acciones",
                   label: "Rechazar",
+                  actionType: "rechazar" as const,
+                  tooltip: "Rechazar movimiento",
                   onClick: (row: KardexDetail) => openDelete(row.id_kardex),
                 },
               ]
@@ -915,6 +1203,8 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           {
             header: "Acciones",
             label: "Cancelar",
+            actionType: "cancelar" as const,
+            tooltip: "Cancelar movimiento",
             onClick: (row: KardexDetail) =>
               row.id_empleado_sf === idEmployes
                 ? changeKardexStatus(row, "Cancelado")
@@ -925,6 +1215,8 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           {
             header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar movimiento",
             onClick: (row: KardexDetail) =>
               row.id_empleado_sf === idEmployes
                 ? openEdit(row.id_kardex)
@@ -941,6 +1233,8 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           {
             header: "Acciones",
             label: "Ver",
+            actionType: "ver" as const,
+            tooltip: "Ver detalles",
             onClick: (row: KardexDetail) => openView(row.id_kardex),
           },
         ];
@@ -949,6 +1243,8 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           {
             header: "Acciones",
             label: "Recuperar",
+            actionType: "reactivar" as const,
+            tooltip: "Recuperar movimiento",
             onClick: (row: KardexDetail) =>
               changeKardexStatus(row, "Pendiente"),
           }
@@ -958,11 +1254,15 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           {
             header: "Acciones",
             label: "Ver",
+            actionType: "ver" as const,
+            tooltip: "Ver detalles",
             onClick: (row: KardexDetail) => openEdit(row.id_kardex),
           },
           {
             header: "Acciones",
             label: "Recuperar",
+            actionType: "reactivar" as const,
+            tooltip: "Recuperar movimiento",
             onClick: (row: KardexDetail) =>
               changeKardexStatus(row, "Pendiente"),
           },
@@ -1119,6 +1419,7 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
         ) : (
           <GenericForm
             fullScreen={true}
+            columns={2}
             initialValues={
               itemToEdit
                 ? itemToEdit
@@ -1149,12 +1450,13 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
           editable={!isReadOnly}
           columns={kardexListColumns}
           data={dataListForm}
-          rowKey={(row) => row.id_shopping}
+          rowKey={(row) => row.id_shopping || row.id_temp || row.id_product}
           onEditRow={handleEditRow}
           rowClassName={(row) =>
             row.estado === false ? "opacity" : ""
           }
         />
+        {/* RFID Scanner desactivado temporalmente
         {!isReadOnly ? (
           <RFIDScannerModal
             isOpen={!!rfidScanRow}
@@ -1171,7 +1473,8 @@ const { entradasSync, salidasSync }: { entradasSync: (KardexRow | null)[]; salid
             }}
           />
         ) : null}
-        {/* MODAL DE ESCANEO RFID */}
+        */}
+        
 
         <div className="mt-4 flex justify-end gap-2">
           {!isReadOnly ? (

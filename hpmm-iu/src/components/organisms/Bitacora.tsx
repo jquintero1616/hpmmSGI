@@ -58,7 +58,7 @@ const Bitacora: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     GetBitacorasContext().finally(() => setLoading(false));
-  }, []);
+  }, [GetBitacorasContext]);
 
   const closeAll = () => {
     setDetailOpen(false);
@@ -101,9 +101,15 @@ const Bitacora: React.FC = () => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-left text-hpmm-azul-oscuro">
-        Auditoria de sistema
-      </h1>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Bitácora del Sistema
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+          Registro de actividades y cambios en el sistema
+        </p>
+      </div>
 
       <GenericTable
         columns={bitacoraColumns}

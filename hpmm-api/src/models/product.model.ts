@@ -9,6 +9,7 @@ export const baseProductQuery = () => {
       "p.id_product        as id_product",
       "p.id_subcategory    as id_subcategory",
       "s.id_category       as id_category",
+      "p.codigo_objeto     as codigo_objeto",
       "p.nombre            as nombre",
       "p.created_at        as created_at",
       "p.updated_at        as updated_at", 
@@ -68,8 +69,8 @@ export const createProductModel = async (
 export async function updateProductModel (
     id_product: string,
     id_subcategory : string,
+    codigo_objeto: string,
     nombre: string,
-
     stock_actual: number,
     stock_maximo: number,
 
@@ -81,10 +82,9 @@ export async function updateProductModel (
     .update({
         nombre,
         id_subcategory,
-
+        codigo_objeto,
         stock_actual,
         stock_maximo,
-
         estado,
         updated_at,
     })

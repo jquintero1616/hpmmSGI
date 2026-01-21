@@ -67,13 +67,15 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       label: "Nombre completo",
       type: "text",
       required: true,
+      colSpan: 2,
     },
     {
       name: "email",
       label: "Correo Electrónico",
       type: "email",
       pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
-      disabled: false
+      disabled: false,
+      colSpan: 2,
     },
     {
       name: "password",
@@ -97,6 +99,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         { label: "Inactivo", value: false },
       ],
       required: true,
+      colSpan: 2,
     },
   ];
 
@@ -282,11 +285,18 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Usuarios</h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Usuarios
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra los usuarios y credenciales del sistema
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nuevo usuario
@@ -299,13 +309,17 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         rowKey={(row) => row.id_user}
         actions={[
           {
-            header: "Editar",
+            header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar usuario",
             onClick: (row) => openEdit(row.id_user),
           },
           {
-            header: "Eliminar",
+            header: "Acciones",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar usuario",
             onClick: (row) => openDelete(row.id_user),
           },
         ]}
@@ -319,6 +333,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
           <GenericForm<Partial<userInterface>>
+            columns={2}
             initialValues={{
               id_rol: itemToEdit.id_rol,
               username: itemToEdit.username,
@@ -351,6 +366,7 @@ const User: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<userInterface>>
+          columns={2}
           initialValues={{
             id_rol: "",
             username: "",

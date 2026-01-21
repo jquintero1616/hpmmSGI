@@ -171,4 +171,11 @@ export const bitOpts: Record<string, BitacoraOptions> = {
     modulo: "Bitacora",
     fields: ["nombre","estado"],
   },
+  donantes: {
+    tabla: "donantes",
+    idColumn: "id_donante",
+    idParam: "id",
+    modulo: "Donantes",
+    fields: ["nombre", "tipo_donante", "numero_contacto", "correo", "direccion", "rtn", "notas", "estado"],
+  },
 };

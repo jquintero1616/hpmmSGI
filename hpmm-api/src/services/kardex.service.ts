@@ -66,3 +66,15 @@ export const getKardexDetailsService = async (
     throw error;
   }
 };
+
+// Obtener solo donaciones del kardex
+export const getDonacionesKardexService = async (
+  filter: KardexFilter
+): Promise<KardexDetail[]> => {
+  try {
+    return await KardexModel.getDonacionesKardexModel(filter);
+  } catch (error) {
+    logger.error("Error fetching donaciones kardex", error);
+    throw error;
+  }
+};

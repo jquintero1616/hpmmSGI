@@ -63,8 +63,9 @@ export const createRequisiController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const data: Requisi = req.body;
     const requisi = await RequisiService.createRequiService(data);
+    
     res.status(201).json({
-      msg: `Requisicion creada correctamente con id_requisi}`,
+      msg: `Requisicion creada correctamente con id_requisi`,
       requisi,
     });
   }
@@ -74,6 +75,7 @@ export const UpdateRequisiController = asyncWrapper(
   async (req: Request, res: Response): Promise<void> => {
     const id_requisi = (req.params.id || "").trim();
     const payload = req.body;
+    
     const updatedRequisi = await RequisiService.updateRequisiService(
       id_requisi,
       payload

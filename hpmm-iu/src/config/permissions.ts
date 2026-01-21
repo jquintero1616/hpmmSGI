@@ -29,10 +29,10 @@ export const subMenuVisibility = {
     "Jefe de Logistica": ["/products", "/category", "/subcategory", "/stock-critico"],
   },
   providers: {
-    Administrador: ["/suppliers", "/vendedor"],
-    "Jefe Almacen": ["/suppliers", "/vendedor"],
-    "Super Admin": ["/suppliers", "/vendedor"],
-    "Jefe de Logistica": ["/suppliers", "/vendedor"],
+    Administrador: ["/suppliers", "/vendedor", "/donantes"],
+    "Jefe Almacen": ["/suppliers", "/vendedor", "/donantes"],
+    "Super Admin": ["/suppliers", "/vendedor", "/donantes"],
+    "Jefe de Logistica": ["/suppliers", "/vendedor", "/donantes"],
   },
   
   usersRoles: {

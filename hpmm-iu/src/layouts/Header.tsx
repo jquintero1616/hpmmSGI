@@ -6,6 +6,18 @@ import LogoUrl from "../assets/logoBlancoHPMM.png";
 import UsuarioIcon from "../assets/usuario.svg";
 import Notificacion from "../components/organisms/Notificacion";
 import NotificacionesToasty from "../components/molecules/NotificacionesToasty";
+import { 
+  Package, 
+  ClipboardList, 
+  FileText, 
+  Bell, 
+  ChevronDown, 
+  User, 
+  LogOut, 
+  X, 
+  Shield, 
+  CheckCircle 
+} from "lucide-react";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +28,13 @@ const Header: React.FC = () => {
   const [pendientesCount, setPendientesCount] = useState(0);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLButtonElement>(null);
+
+  // Accesos directos a módulos
+  const quickAccess = [
+    { name: 'Productos', path: '/products', icon: Package },
+    { name: 'Kardex', path: '/kardex', icon: ClipboardList },
+    { name: 'Requisiciones', path: '/requisicionPendiente', icon: FileText },
+  ];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -61,13 +80,13 @@ const Header: React.FC = () => {
       case "Super Admin":
         return "Super Admin";
       case "Jefe Almacén":
-        return "J.Alm.";
+        return "Jefe de Almacén";
       case "Técnico Almacén":
-        return "Téc.Alm.";
+        return "Técnico Almacén";
       case "Administrador":
-        return "Adm.";
+        return "Administrador";
       case "Jefe Logística":
-        return "J.Log.";
+        return "Jefe de Logística";
       case "Usuario":
         return "Usuario";
 
@@ -88,57 +107,61 @@ const Header: React.FC = () => {
       
       <header className="bg-gradient-to-r from-purple-600 via-purple-700 to-blue-800 shadow-lg sticky top-0 z-30">
         <div className="flex items-center justify-between py-3 px-4 sm:py-4 sm:px-6 lg:px-8">
-          {/* Logo responsive minimalista */}
+          {/* Logo + Nombre del sistema */}
           <div
             className="flex items-center gap-3 sm:gap-4 cursor-pointer group min-w-0"
             onClick={() => navigate("/home")}
+            title="Ir al inicio"
           >
-            {/* Logo directo sin contenedores extras */}
+            {/* Logo */}
             <img
               src={LogoUrl}
               alt="Logo HPMM"
-              className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-contain drop-shadow-md group-hover:drop-shadow-lg group-hover:scale-110 transition-all duration-300 filter brightness-100 group-hover:brightness-110 scale-125 -my-2"
+              className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-contain drop-shadow-md group-hover:drop-shadow-lg group-hover:scale-105 transition-all duration-300 filter brightness-100 group-hover:brightness-110 scale-125 -my-2"
             />
-
-            <div className="flex flex-col">
-              <h1 className="text-sm sm:text-base lg:text-lg font-bold text-white tracking-tight select-none group-hover:text-white/90 transition-all duration-200 truncate leading-tight">
-                <span className="hidden sm:inline">
-                  Sistema de Gestión de Inventario
-                </span>
-                <span className="sm:hidden">HPMM</span>
-              </h1>
-              <span className="hidden lg:block text-xs text-white/70 font-medium">
-                Hospital Psiaquiatrico Mario Mendoza
+            
+            {/* Nombre del sistema - visible en tablets y desktop */}
+            <div className="hidden sm:flex flex-col">
+              <span className="text-white font-bold text-lg lg:text-xl tracking-tight leading-tight">
+                Sistema de Gestión de Inventario
+              </span>
+              <span className="text-white/70 text-xs lg:text-sm font-medium">
+                Hospital Psiquiatrico Mario Mendoza
               </span>
             </div>
           </div>
 
           {/* Menú derecho responsive */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Notificaciones - siempre visible */}
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* Accesos directos - visible solo en desktop */}
+            <div className="hidden lg:flex items-center gap-1">
+              {quickAccess.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 group"
+                  title={item.name}
+                >
+                  <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              ))}
+            </div>
+
+            {/* Separador */}
+            <div className="hidden lg:block w-px h-6 bg-white/20"></div>
+
+            {/* Notificaciones */}
             <div className="relative">
               <button
                 ref={notificationRef}
-                className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 group"
+                className="relative p-2.5 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group"
                 title="Notificaciones"
                 onClick={() => setNotificationOpen(!notificationOpen)}
               >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                {/* Indicador de notificación - solo cuando hay notificaciones */}
+                <Bell className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+                {/* Badge de notificaciones */}
                 {pendientesCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-[20px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-purple-700 shadow-lg animate-pulse">
                     {pendientesCount > 99 ? '99+' : pendientesCount}
                   </span>
                 )}
@@ -152,10 +175,13 @@ const Header: React.FC = () => {
               />
             </div>
 
-            {/* Perfil de usuario responsive */}
+            {/* Separador vertical */}
+            <div className="hidden sm:block w-px h-8 bg-white/20 mx-1"></div>
+
+            {/* Perfil de usuario */}
             <div className="relative" ref={userMenuRef}>
               <button
-                className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-white/10 rounded-lg px-2 py-1 transition-all duration-200"
+                className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:bg-white/10 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 transition-all duration-200 border border-transparent hover:border-white/20"
                 onClick={() => setUserMenuOpen((open) => !open)}
               >
                 {/* Info usuario - solo visible en pantallas medianas+ */}
@@ -163,7 +189,7 @@ const Header: React.FC = () => {
                   <span className="text-sm font-semibold text-white truncate max-w-[120px] lg:max-w-none">
                     {username}
                   </span>
-                  <span className="text-xs text-white/80 font-medium bg-white/20 px-2 py-0.5 rounded-full truncate max-w-[100px] lg:max-w-none backdrop-blur-sm">
+                  <span className="text-xs text-white/70 font-medium">
                     {getRoleAbbrev(roleName || "Usuario")}
                   </span>
                 </div>
@@ -173,91 +199,62 @@ const Header: React.FC = () => {
                   <img
                     src={UsuarioIcon}
                     alt={username}
-                    className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full object-cover border-2 border-white/30 shadow-lg hover:shadow-xl hover:border-white/50 transition-all duration-200 bg-white p-1"
+                    className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl object-cover border-2 border-white/30 shadow-lg hover:shadow-xl hover:border-white/50 transition-all duration-200 bg-white p-1"
                   />
-                  {/* Indicador de estado online */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5 bg-green-400 border-2 border-white rounded-full shadow-sm"></div>
+                  {/* Indicador online */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-purple-700 rounded-full shadow-sm"></div>
                 </div>
 
-                {/* Chevron - oculto en móvil muy pequeño */}
-                <svg
-                  className={`hidden sm:block w-3 h-3 sm:w-4 sm:h-4 text-white/80 transform transition-transform duration-300 ${
+                {/* Chevron */}
+                <ChevronDown 
+                  className={`hidden sm:block w-4 h-4 text-white/70 transform transition-transform duration-300 ${
                     userMenuOpen ? "rotate-180" : "rotate-0"
                   }`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                />
               </button>
 
-              {/* Menú desplegable optimizado */}
+              {/* Menú desplegable mejorado */}
               {userMenuOpen && (
-                <div className="absolute top-[110%] right-0 w-[180px] sm:w-[200px] bg-white border border-gray-100 rounded-xl shadow-xl z-50 py-2 animate-fade-in backdrop-blur-sm">
-                  {/* Mi perfil - ahora abre modal */}
-                  <button
-                    className="flex items-center gap-2 sm:gap-3 w-full px-3 sm:px-4 py-2 sm:py-2.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition-all duration-200 text-xs sm:text-sm group"
-                    onClick={openProfileModal}
-                  >
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors duration-200 flex-shrink-0">
-                      <svg
-                        className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="font-medium truncate">Mi perfil</span>
-                  </button>
+                <div className="absolute top-[calc(100%+8px)] right-0 w-56 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Header del menú con info del usuario */}
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    
+                  </div>
 
-                  {/* Separador */}
-                  <div className="border-t border-gray-100 my-2 mx-2"></div>
+                  {/* Opciones */}
+                  <div className="py-1">
+                    {/* Mi perfil */}
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 text-sm group"
+                      onClick={openProfileModal}
+                    >
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors duration-200">
+                        <User className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <span className="font-medium">Mi perfil</span>
+                    </button>
 
-                  {/* Cerrar sesión */}
-                  <button
-                    className="flex items-center gap-2 sm:gap-3 w-full px-3 sm:px-4 py-2 sm:py-2.5 text-red-600 hover:bg-red-50 transition-all duration-200 text-xs sm:text-sm group"
-                    onClick={() => {
-                      logout();
-                      setUserMenuOpen(false);
-                      toast.success(
-                        "Sesión cerrada correctamente. ¡Hasta pronto!",
-                        {
-                          position: "top-right",
-                          autoClose: 3000,
-                        }
-                      );
-                    }}
-                  >
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors duration-200 flex-shrink-0">
-                      <svg
-                        className="w-3 h-3 sm:w-4 sm:h-4 text-red-600"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 11-6 0v-1"
-                        />
-                      </svg>
-                    </div>
-                    <span className="font-medium truncate">Cerrar sesión</span>
-                  </button>
+                    {/* Cerrar sesión */}
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-red-600 hover:bg-red-50 transition-all duration-200 text-sm group"
+                      onClick={() => {
+                        logout();
+                        setUserMenuOpen(false);
+                        toast.success(
+                          "Sesión cerrada correctamente. ¡Hasta pronto!",
+                          {
+                            position: "top-right",
+                            autoClose: 3000,
+                          }
+                        );
+                      }}
+                    >
+                      <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors duration-200">
+                        <LogOut className="w-4 h-4 text-red-600" />
+                      </div>
+                      <span className="font-medium">Cerrar sesión</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -276,19 +273,7 @@ const Header: React.FC = () => {
                 onClick={() => setProfileModalOpen(false)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
               >
-                <svg
-                  className="w-5 h-5 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
@@ -316,19 +301,7 @@ const Header: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-purple-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
+                    <User className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-800">Usuario</p>
@@ -338,19 +311,7 @@ const Header: React.FC = () => {
 
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-purple-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
+                    <Shield className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-800">Rol</p>
@@ -362,19 +323,7 @@ const Header: React.FC = () => {
 
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-800">Estado</p>

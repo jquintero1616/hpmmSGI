@@ -223,11 +223,18 @@ const Subdireccion: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Lista de Subdirecciones</h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Subdirecciones
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra las subdirecciones del hospital
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nueva subdirección
@@ -242,11 +249,15 @@ const Subdireccion: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           {
             header: "Editar",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar subdirección",
             onClick: (row) => openEdit(row.id_subdireccion),
           },
           {
             header: "Eliminar",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar subdirección",
             onClick: (row) => openDelete(row.id_subdireccion),
           },
         ]}

@@ -86,7 +86,8 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     { name: "nombre", 
       label: "Nombre proveedor",
       type: "text",
-      required: true
+      required: true,
+      colSpan: 2,
     },
     {
       name: "numero_contacto",
@@ -282,13 +283,18 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Gestión de Proveedores
-      </h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Proveedores
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra los proveedores del hospital
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nuevo proveedor
@@ -301,13 +307,17 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         rowKey={(row) => row?.id_supplier || ""}
         actions={[
           {
-            header: "Editar",
+            header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar proveedor",
             onClick: (row) => openEdit(row.id_supplier),
           },
           {
-            header: "Eliminar",
+            header: "Acciones",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar proveedor",
             onClick: (row) => openDelete(row.id_supplier),
           },
         ]}
@@ -319,6 +329,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <GenericForm<Partial<suppliersInterface>>
+          columns={2}
           initialValues={{
             nombre: "",
             numero_contacto: "",
@@ -352,6 +363,7 @@ const Suppliers: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
           <GenericForm<Partial<suppliersInterface>>
+            columns={2}
             initialValues={{
               nombre: itemToEdit.nombre ?? "",
               numero_contacto: itemToEdit.numero_contacto ?? "",

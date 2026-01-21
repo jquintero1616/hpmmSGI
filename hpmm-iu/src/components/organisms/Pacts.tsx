@@ -182,17 +182,25 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">Gestión de Pactos</h1>
-      {(roleName === "Jefe Almacén" || roleName === "Super Admin") && (
-        <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Pactos
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Administra los pactos y convenios institucionales
+          </p>
+        </div>
+        {(roleName === "Jefe Almacén" || roleName === "Super Admin") && (
           <Button
-            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+            className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
             onClick={() => setCreateOpen(true)}
           >
             + Nuevo pacto
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       <GenericTable
         columns={pactColumns}
@@ -202,11 +210,15 @@ const Pacts: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Editar",
+            actionType: "editar" as const,
+            tooltip: "Editar pacto",
             onClick: (row) => openEdit(row.id_pacts),
           },
           {
             header: "",
             label: "Eliminar",
+            actionType: "eliminar" as const,
+            tooltip: "Eliminar pacto",
             onClick: (row) => openDelete(row.id_pacts),
           },
         ]}

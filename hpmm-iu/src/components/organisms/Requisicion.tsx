@@ -7,7 +7,7 @@ import {
 import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
-import GenericTable, { Column } from "../molecules/GenericTable";
+import GenericTable, { Column, Action } from "../molecules/GenericTable";
 import DataSheet from "../molecules/DataSheet";
 
 import { ToastContainer, toast } from "react-toastify";
@@ -19,7 +19,7 @@ import { useEmploye } from "../../hooks/use.Employe";
 import { useProducts } from "../../hooks/use.Product";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
 import { useAuth } from "../../hooks/use.Auth"; // Asegúrate de tener este hook
-import { useNotificacion } from "../../hooks/use.Notificacion"; // Agregamos el hook de notificaciones
+import { useNotificacion } from "../../hooks/use.Notificacion";
 import { formattedDate } from "../../helpers/formatData";
 import {
   createNotificationData,
@@ -61,6 +61,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
 
+  // ESTADO PARA MODAL DE RECHAZO
+  const [isRejectOpen, setRejectOpen] = useState(false);
+  const [itemToReject, setItemToReject] = useState<RequisiDetail | null>(null);
+  const [motivoRechazo, setMotivoRechazo] = useState("");
+
   // Obtén userId y roleName del contexto de autenticación
   const { roleName, idEmployes } = useAuth();
 
@@ -90,6 +95,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         row.fecha ? new Date(row.fecha).toLocaleDateString() : "",
     },
     { header: "Descripción", accessor: "descripcion" },
+    { header: "Motivo", accessor: "motivo" },
 
     { header: "Estado", accessor: "estado" },
   ];
@@ -109,14 +115,19 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     {
       name: "id_product",
       label: "Producto",
-      type: "select",
+      type: "searchable-select",
       options: products
         .filter((p) => p.id_product)
-        .map((p) => ({
-          label: p.nombre || p.product_name || "Sin nombre",
-          value: p.id_product,
-        })),
+        .map((p) => {
+          const codigo = p.codigo_objeto || "";
+          const nombre = p.nombre || p.product_name || "Sin nombre";
+          return {
+            label: codigo ? `${codigo} - ${nombre}` : nombre,
+            value: p.id_product,
+          };
+        }),
       required: true,
+      placeholder: "Buscar por código o nombre...",
     },
     {
       name: "id_employes",
@@ -129,7 +140,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           value: e.id_employes,
         })),
       required: true,
-      // defaultValue NO sirve si initialValues lo pisa, por eso corregimos initialValues abajo
+      // defaultValue NO sirve si initialValue, por eso corregimos initialValues abajo
       defaultValue: idEmployes || "",
       disabled: roleName !== "Administrador" && roleName !== "Super Admin",
     },
@@ -150,6 +161,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       label: "Descripción",
       type: "textarea",
       required: false,
+      colSpan: 2,
     },
     {
       name: "estado",
@@ -181,7 +193,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       // Filtrar duplicados manteniendo solo el primero
       filtrados = filtrados.filter(
         (item, index, self) =>
-          index === self.findIndex((t) => t.id_requisi === item.id_requisi)
+          index === self.findIndex((t) => t.id_requisi === item.id_requisi),
       );
     }
 
@@ -194,7 +206,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     const ordenados = filtrados.sort(
       (a, b) =>
         new Date(b.created_at || 0).getTime() -
-        new Date(a.created_at || 0).getTime()
+        new Date(a.created_at || 0).getTime(),
     );
 
     setFilteredData(ordenados);
@@ -205,8 +217,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     setEditOpen(false);
     setCreateOpen(false);
     setDeleteOpen(false);
+    setRejectOpen(false);
     setItemToEdit(null);
     setItemToDelete(null);
+    setItemToReject(null);
+    setMotivoRechazo("");
   };
 
   const openEdit = (id_requisi: string) => {
@@ -229,6 +244,24 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const closeDetail = () => {
     setItemToView(null);
     setDetailOpen(false);
+  };
+
+  // Abrir modal de rechazo
+  const openReject = (row: RequisiDetail) => {
+    setItemToReject(row);
+    setMotivoRechazo("");
+    setRejectOpen(true);
+  };
+
+  // Confirmar rechazo con motivo
+  const handleConfirmReject = async () => {
+    if (!itemToReject) return;
+    if (!motivoRechazo.trim()) {
+      toast.error("Debes ingresar un motivo para el rechazo");
+      return;
+    }
+    await changeRequisicionStatus(itemToReject, "Rechazado", motivoRechazo);
+    closeAll();
   };
 
   // 7. HANDLERS DE CRUD
@@ -284,7 +317,10 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     const effectiveIdEmployes = item.id_employes || idEmployes;
 
     let fechaISO = "";
-    if (typeof item.fecha === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.fecha)) {
+    if (
+      typeof item.fecha === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(item.fecha)
+    ) {
       const [year, month, day] = item.fecha.split("-");
       const localDate = new Date(Number(year), Number(month) - 1, Number(day));
       fechaISO = localDate.toISOString();
@@ -294,15 +330,19 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       fechaISO = new Date().toISOString();
     }
 
-    const newItem = { ...item, fecha: fechaISO, id_employes: effectiveIdEmployes };
+    const newItem = {
+      ...item,
+      fecha: fechaISO,
+      id_employes: effectiveIdEmployes,
+    };
 
     if (itemToEditList) {
       setDataListForm((prev) =>
         prev.map((p) =>
           p.id_requisi === itemToEditList.id_requisi
             ? { ...newItem, id_requisi: itemToEditList.id_requisi }
-            : p
-        )
+            : p,
+        ),
       );
       setItemToEditList(null);
     } else {
@@ -336,17 +376,30 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             cantidad: item.cantidad,
           });
 
-          const producto = products.find((p) => p.id_product === item.id_product);
-          const empleado = employes.find((e) => e.id_employes === item.id_employes);
+          const producto = products.find(
+            (p) => p.id_product === item.id_product,
+          );
+          const empleado = employes.find(
+            (e) => e.id_employes === item.id_employes,
+          );
 
-            const datosNotificacion = {
-              producto: producto?.nombre || producto?.product_name || 'Producto desconocido',
-              cantidad: item.cantidad,
-              solicitante: empleado?.name || empleado?.employee_name || 'Usuario desconocido',
-            };
+          const datosNotificacion = {
+            producto:
+              producto?.nombre ||
+              producto?.product_name ||
+              "Producto desconocido",
+            cantidad: item.cantidad,
+            solicitante:
+              empleado?.name ||
+              empleado?.employee_name ||
+              "Usuario desconocido",
+          };
 
-          await notificarAdministradores('requisicion_pendiente', datosNotificacion);
-        })
+          await notificarAdministradores(
+            "requisicion_pendiente",
+            datosNotificacion,
+          );
+        }),
       );
 
       await GetRequisicionesContext();
@@ -362,9 +415,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // Funciones para crear notificaciones
   const crearNotificacion = async (
-    tipoEvento: CreateNotificationParams['tipo_evento'],
+    tipoEvento: CreateNotificationParams["tipo_evento"],
     destinatarioId: string,
-    datosRequisicion: any
+    datosRequisicion: any,
   ) => {
     try {
       const mensaje = getNotificationMessage(tipoEvento, datosRequisicion);
@@ -383,43 +436,58 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
 
   // Función para notificar a todos los administradores
   const notificarAdministradores = async (
-    tipoEvento: CreateNotificationParams['tipo_evento'],
-    datosRequisicion: any
+    tipoEvento: CreateNotificationParams["tipo_evento"],
+    datosRequisicion: any,
   ) => {
     try {
       // Filtrar empleados que sean administradores
       const administradores = employes.filter(
-        (emp) => emp.role_name === "Administrador" || emp.role_name === "Super Admin"
+        (emp) =>
+          emp.role_name === "Administrador" || emp.role_name === "Super Admin",
       );
 
       // Crear notificación para cada administrador
       for (const admin of administradores) {
-        if (admin.id_user) { // Usar id_user en lugar de id_employes
+        if (admin.id_user) {
+          // Usar id_user en lugar de id_employes
           await crearNotificacion(tipoEvento, admin.id_user, datosRequisicion);
         }
       }
     } catch (error) {
-      console.error( "Error al notificar administradores:", error);
+      console.error("Error al notificar administradores:", error);
     }
   };
 
   // Handlers específicos para cambiar estado
-  const changeRequisicionStatus = async (row: RequisiDetail, newStatus: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado") => {
+  const changeRequisicionStatus = async (
+    row: RequisiDetail,
+    newStatus: "Pendiente" | "Aprobado" | "Rechazado" | "Cancelado",
+    motivo?: string,
+  ) => {
     const item = requisitions.find((r) => r.id_requisi === row.id_requisi);
     if (item) {
       setSaving(true);
       try {
+        // Si vuelve a Pendiente, limpiar el motivo
+        const nuevoMotivo =
+          newStatus === "Pendiente" ? "" : motivo || item.motivo || "";
+
         await PutUpdateRequisicionContext(item.id_requisi, {
           ...item,
           estado: newStatus,
+          motivo: nuevoMotivo,
         });
 
         // Obtener datos adicionales para la notificación
         const producto = products.find((p) => p.id_product === row.id_product);
         const datosNotificacion = {
-          producto: producto?.nombre || producto?.product_name || 'Producto desconocido',
+          producto:
+            producto?.nombre ||
+            producto?.product_name ||
+            "Producto desconocido",
           cantidad: row.cantidad,
           solicitante: row.employee_name,
+          motivo: motivo || "",
         };
 
         if (newStatus === "Aprobado") {
@@ -431,22 +499,32 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           // Notificar al solicitante que su requisición fue aprobada
           if (row.id_employes) {
             // Buscar el empleado para obtener su id_user
-            const empleadoSolicitante = employes.find(emp => emp.id_employes === row.id_employes);
+            const empleadoSolicitante = employes.find(
+              (emp) => emp.id_employes === row.id_employes,
+            );
             if (empleadoSolicitante?.id_user) {
-              await crearNotificacion('requisicion_aprobada', empleadoSolicitante.id_user, datosNotificacion);
+              await crearNotificacion(
+                "requisicion_aprobada",
+                empleadoSolicitante.id_user,
+                datosNotificacion,
+              );
             }
           }
 
-          toast.success(
-            "La requisición ha sido APROBADA"
-          );
+          toast.success("La requisición ha sido APROBADA");
         } else if (newStatus === "Rechazado") {
           // Notificar al solicitante que su requisición fue rechazada
           if (row.id_employes) {
             // Buscar el empleado para obtener su id_user
-            const empleadoSolicitante = employes.find(emp => emp.id_employes === row.id_employes);
+            const empleadoSolicitante = employes.find(
+              (emp) => emp.id_employes === row.id_employes,
+            );
             if (empleadoSolicitante?.id_user) {
-              await crearNotificacion('requisicion_rechazada', empleadoSolicitante.id_user, datosNotificacion);
+              await crearNotificacion(
+                "requisicion_rechazada",
+                empleadoSolicitante.id_user,
+                datosNotificacion,
+              );
             }
           }
           toast.success(`Estado cambiado a ${newStatus}`);
@@ -454,9 +532,15 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           // Notificar al solicitante que su requisición fue cancelada
           if (row.id_employes) {
             // Buscar el empleado para obtener su id_user
-            const empleadoSolicitante = employes.find(emp => emp.id_employes === row.id_employes);
+            const empleadoSolicitante = employes.find(
+              (emp) => emp.id_employes === row.id_employes,
+            );
             if (empleadoSolicitante?.id_user) {
-              await crearNotificacion('requisicion_cancelada', empleadoSolicitante.id_user, datosNotificacion);
+              await crearNotificacion(
+                "requisicion_cancelada",
+                empleadoSolicitante.id_user,
+                datosNotificacion,
+              );
             }
           }
           toast.success(`Estado cambiado a ${newStatus}`);
@@ -474,40 +558,47 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   };
 
   // Configuración de acciones por estado
-  const getActionsForStatus = (status: string) => {
-    const baseActions = [
+  const getActionsForStatus = (status: string): Action<RequisiDetail>[] => {
+    const baseActions: Action<RequisiDetail>[] = [
       {
         header: "Acciones",
         label: "Ver",
+        actionType: "ver",
+        tooltip: "Ver detalle de requisición",
         onClick: (row: RequisiDetail) => openDetail(row),
       },
     ];
 
     switch (status) {
-      case "Pendiente":
-        const pendienteActions = [...baseActions];
+      case "Pendiente": {
+        const pendienteActions: Action<RequisiDetail>[] = [...baseActions];
 
-        // Solo Administrador y Super Admin pueden aprobar/rechazar
         if (roleName === "Administrador" || roleName === "Super Admin") {
           pendienteActions.push(
             {
               header: "Acciones",
               label: "Aprobar",
-              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Aprobado"),
+              actionType: "aprobar",
+              tooltip: "Aprobar requisición",
+              onClick: (row: RequisiDetail) =>
+                changeRequisicionStatus(row, "Aprobado"),
             },
             {
               header: "Acciones",
               label: "Rechazar",
-              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
-            }
+              actionType: "rechazar",
+              tooltip: "Rechazar requisición",
+              onClick: (row: RequisiDetail) => openReject(row),
+            },
           );
         }
 
-        // Agregar acciones específicas para el solicitante
         pendienteActions.push(
           {
             header: "Acciones",
             label: "Editar",
+            actionType: "editar",
+            tooltip: "Editar requisición",
             onClick: (row: RequisiDetail) => {
               if (row.id_employes === idEmployes) {
                 openEdit(row.id_requisi);
@@ -517,66 +608,83 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           {
             header: "Acciones",
             label: "Cancelar",
+            actionType: "cancelar",
+            tooltip: "Cancelar requisición",
             onClick: (row: RequisiDetail) => {
               if (row.id_employes === idEmployes) {
                 changeRequisicionStatus(row, "Cancelado");
               }
             },
-          }
+          },
         );
 
         return pendienteActions;
+      }
 
-      case "Aprobado":
-        const aprobadoActions = [...baseActions];
+      case "Aprobado": {
+        const aprobadoActions: Action<RequisiDetail>[] = [...baseActions];
 
-        // Solo Administrador y Super Admin pueden rechazar o cancelar aprobadas
         if (roleName === "Administrador" || roleName === "Super Admin") {
           aprobadoActions.push(
             {
               header: "Acciones",
               label: "Rechazar",
-              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Rechazado"),
+              actionType: "rechazar",
+              tooltip: "Rechazar requisición aprobada",
+              onClick: (row: RequisiDetail) => openReject(row),
             },
             {
               header: "Acciones",
               label: "Cancelar",
-              onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Cancelado"),
-            }
+              actionType: "cancelar",
+              tooltip: "Cancelar requisición aprobada",
+              onClick: (row: RequisiDetail) =>
+                changeRequisicionStatus(row, "Cancelado"),
+            },
           );
         }
 
         return aprobadoActions;
+      }
 
-      case "Rechazado":
-        const rechazadoActions = [...baseActions];
+      case "Rechazado": {
+        const rechazadoActions: Action<RequisiDetail>[] = [...baseActions];
 
-        // Solo Administrador y Super Admin pueden recuperar rechazadas
         if (roleName === "Administrador" || roleName === "Super Admin") {
           rechazadoActions.push({
             header: "Acciones",
             label: "Recuperar",
-            onClick: (row: RequisiDetail) => changeRequisicionStatus(row, "Pendiente"),
+            actionType: "reactivar",
+            tooltip: "Recuperar requisición rechazada",
+            onClick: (row: RequisiDetail) =>
+              changeRequisicionStatus(row, "Pendiente"),
           });
         }
 
         return rechazadoActions;
+      }
 
-      case "Cancelado":
-        const canceladoActions = [...baseActions];
+      case "Cancelado": {
+        const canceladoActions: Action<RequisiDetail>[] = [...baseActions];
 
-        // Solo el solicitante o administradores pueden recuperar canceladas
         canceladoActions.push({
           header: "Acciones",
           label: "Recuperar",
+          actionType: "reactivar",
+          tooltip: "Recuperar requisición cancelada",
           onClick: (row: RequisiDetail) => {
-            if (row.id_employes === idEmployes || roleName === "Administrador" || roleName === "Super Admin") {
+            if (
+              row.id_employes === idEmployes ||
+              roleName === "Administrador" ||
+              roleName === "Super Admin"
+            ) {
               changeRequisicionStatus(row, "Pendiente");
             }
           },
         });
 
         return canceladoActions;
+      }
 
       default:
         return baseActions;
@@ -586,8 +694,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 8. EFFECTS
   useEffect(() => {
     setLoading(true);
-    Promise.all([GetRequisicionesContext(), GetEmployeContext(), GetProductsContext()])
-      .finally(() => setLoading(false));
+    Promise.all([
+      GetRequisicionesContext(),
+      GetEmployeContext(),
+      GetProductsContext(),
+    ]).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -612,13 +723,18 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   return (
     <div>
       <ToastContainer />
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Gestión de Requisiciones
-      </h1>
-
-      <div className="flex justify-end mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Gestión de Requisiciones
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Controla las solicitudes de productos
+          </p>
+        </div>
         <Button
-          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded"
+          className="bg-hpmm-azul-claro hover:bg-hpmm-azul-oscuro text-white font-bold py-2 px-4 rounded-lg"
           onClick={() => setCreateOpen(true)}
         >
           + Nueva Requisición
@@ -631,7 +747,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         rowKey={(row) => row.id_requisi}
         actions={getActionsForStatus(status)}
         rowClassName={(row) =>
-          row.estado === "Rechazado" ? "opacity-40 line-through" : ""
+          row.estado === "Rechazado"
+            ? "bg-red-50 border-l-4 border-red-400 text-red-700"
+            : ""
         }
       />
 
@@ -639,6 +757,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
           <GenericForm<Partial<RequisiInterface>>
+            columns={2}
             initialValues={{
               id_product: itemToEdit.id_product ?? "",
               id_employes: itemToEdit.id_employes ?? "",
@@ -676,6 +795,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             : "Agregar requisición a la lista"}
         </h2>
         <GenericForm<Partial<RequisiDetail>>
+          columns={2}
           initialValues={
             itemToEditList
               ? itemToEditList
@@ -693,7 +813,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                 }
           }
           fields={requisicionFields.map((f) =>
-            f.name === "estado" ? { ...f, disabled: true } : f
+            f.name === "estado" ? { ...f, disabled: true } : f,
           )}
           onSubmit={handleAddItem}
           onCancel={() => {
@@ -779,7 +899,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               >
                 {saving ? (
                   <span>
-                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    <span className="animate-spin inline-block mr-2"></span>
                     Eliminando...
                   </span>
                 ) : (
@@ -824,8 +944,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                 {
                   label: "Fecha de Solicitud",
                   value: new Date(itemToView.fecha).toLocaleDateString(),
-                },  
+                },
                 { label: "Descripción", value: itemToView.descripcion || "" },
+                ...(itemToView.motivo
+                  ? [{ label: "Motivo", value: itemToView.motivo }]
+                  : []),
               ]}
               columns={1}
             />
@@ -833,10 +956,83 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             <div className="mt-6 text-right">
               <button
                 onClick={closeDetail}
-                className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                className="px-5 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100  "
               >
                 Cerrar
               </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Rechazar */}
+      <Modal isOpen={isRejectOpen} onClose={closeAll}>
+        {itemToReject && (
+          <div className="max-w-md mx-auto">
+            <h3 className="text-xl font-semibold mb-4 text-center">
+              Rechazar Requisición
+            </h3>
+            <div className="mb-4 space-y-2">
+              <p className="text-sm">
+                <span className="font-medium text-gray-700">Producto:</span>{" "}
+                <span className="text-gray-900">
+                  {itemToReject.product_name}
+                </span>
+              </p>
+              <p className="text-sm">
+                <span className="font-medium text-gray-700">Unidad:</span>{" "}
+                <span className="text-gray-900">
+                  {itemToReject.unit_name || "Sin unidad"}
+                </span>
+              </p>
+              <p className="text-sm">
+                <span className="font-medium text-gray-700">Solicitante:</span>{" "}
+                <span className="text-gray-900">
+                  {itemToReject.employee_name}
+                </span>
+              </p>
+              <p className="text-sm">
+                <span className="font-medium text-gray-700">Cantidad:</span>{" "}
+                <span className="text-gray-900">{itemToReject.cantidad}</span>
+              </p>
+            </div>
+            <p className="text-gray-600 mb-4 text-center">
+              ¿Estás seguro de rechazar esta requisición?
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo del rechazo <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={motivoRechazo}
+                onChange={(e) => setMotivoRechazo(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                rows={4}
+                placeholder="Ingrese el motivo del rechazo..."
+              />
+            </div>
+            <div className="flex justify-center gap-3">
+              <Button
+                onClick={handleConfirmReject}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                disabled={saving || !motivoRechazo.trim()}
+              >
+                {saving ? (
+                  <span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
+                    Rechazando...
+                  </span>
+                ) : (
+                  "Confirmar Rechazo"
+                )}
+              </Button>
+              <Button
+                onClick={closeAll}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+                disabled={saving}
+              >
+                Cancelar
+              </Button>
             </div>
           </div>
         )}

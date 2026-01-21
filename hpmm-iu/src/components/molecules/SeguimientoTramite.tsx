@@ -3,38 +3,12 @@ import { RequisicionContext } from "../../contexts/Requisicion.contex";
 import { SolicitudComprasContext } from "../../contexts/SolicitudCompras.context";
 import { ShoppingContext } from "../../contexts/Shopping.context";
 import { KardexContext } from "../../contexts/Kardex.context";
+import { FileText, ShoppingCart, CreditCard, PackageCheck, PackageMinus, Check, X } from "lucide-react";
 
 interface Props {
   id_requisicion: string;
   size?: "md" | "xl";
 }
-
-const estadosColores: Record<string, string> = {
-  espera: "#e0e0e0",
-  aprobado: "#4caf50",
-  comprado: "#2196f3",
-  rechazado: "#f44336",
-  cancelado: "#f44336",
-  kardex: "#ff9800",
-};
-
-const getEstadoColor = (estado: string) => {
-  switch (estado.toLowerCase()) {
-    case "aprobado":
-    case "aceptado":
-      return estadosColores.aprobado;
-    case "comprado":
-      return estadosColores.comprado;
-    case "rechazado":
-      return estadosColores.rechazado;
-    case "cancelado":
-      return estadosColores.cancelado;
-    case "kardex":
-      return estadosColores.kardex;
-    default:
-      return estadosColores.espera;
-  }
-};
 
 export const SeguimientoTramite: React.FC<Props> = ({
   id_requisicion,
@@ -50,7 +24,6 @@ export const SeguimientoTramite: React.FC<Props> = ({
     const scompra = scompras.find((s) => s.id_requisi === id_requisicion);
     const shop = shopping.find((s) => s.id_scompra === scompra?.id_scompra);
 
-    // Separar ingreso (Entrada) y salida (Salida) en kardex
     const kardexEntrada = kardex.find(
       (k) => k.id_shopping === shop?.id_shopping && k.tipo_movimiento === "Entrada"
     );
@@ -60,150 +33,103 @@ export const SeguimientoTramite: React.FC<Props> = ({
 
     return [
       {
-        label: "Solicitud de Compra",
-        estado: req?.estado || "espera",
+        label: "Solicitud",
+        icon: FileText,
+        estado: req?.estado || "pendiente",
       },
       {
-        label: "Aprobación de Compra",
+        label: "Aprobación",
+        icon: ShoppingCart,
         estado: scompra?.estado || "pendiente",
       },
       {
         label: "Compra",
-        estado: shop?.shopping_order_id ? "comprado" : "espera",
+        icon: CreditCard,
+        estado: shop?.shopping_order_id ? "comprado" : "pendiente",
       },
       {
-        label: "Ingreso a Kardex",
-        estado: kardexEntrada ? "kardex" : "espera",
+        label: "Entrada",
+        icon: PackageCheck,
+        estado: kardexEntrada ? "completado" : "pendiente",
       },
       {
-        label: "Salida de Kardex",
-        estado: kardexSalida ? "kardex" : "espera",
+        label: "Salida",
+        icon: PackageMinus,
+        estado: kardexSalida ? "completado" : "pendiente",
       },
     ];
   }, [requisitions, scompras, shopping, kardex, id_requisicion]);
 
-  // Tamaño de las esferas
-  const sphereSize = size === "xl" ? 80 : 50;
-  const fontSize = size === "xl" ? 20 : 14;
-  const lineHeight = size === "xl" ? 8 : 6;
+  const getStatus = (estado: string) => {
+    const lower = estado.toLowerCase();
+    if (["aprobado", "aceptado", "comprado", "kardex", "completado"].includes(lower)) {
+      return "completed";
+    }
+    if (["rechazado", "cancelado"].includes(lower)) {
+      return "rejected";
+    }
+    return "pending";
+  };
+
+  const iconSize = size === "xl" ? "w-5 h-5" : "w-4 h-4";
+  const circleSize = size === "xl" ? "w-12 h-12" : "w-10 h-10";
 
   return (
-    <div style={{ 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "center",
-      padding: "30px 0",
-      position: "relative"
-    }}>
+    <div className="flex items-center justify-center py-4">
       {estados.map((item, idx) => {
-        const estadoColor = getEstadoColor(item.estado);
-        const isActive = item.estado !== "espera" && item.estado !== "pendiente";
-        const isCompleted = ["aprobado", "aceptado", "comprado", "kardex"].includes(item.estado.toLowerCase());
-        const isRejected = ["rechazado", "cancelado"].includes(item.estado.toLowerCase());
+        const status = getStatus(item.estado);
+        const Icon = item.icon;
         
-        // Sistema simple: Verde si completado, Rojo si rechazado, Gris si pendiente
-        const circleColor = isCompleted ? "#22c55e" : isRejected ? "#ef4444" : "#9ca3af";
+        const bgColor = status === "completed" 
+          ? "bg-green-500" 
+          : status === "rejected" 
+            ? "bg-red-500" 
+            : "bg-gray-200";
         
+        const textColor = status === "completed" 
+          ? "text-white" 
+          : status === "rejected" 
+            ? "text-white" 
+            : "text-gray-400";
+
+        const lineColor = status === "completed" 
+          ? "bg-green-500" 
+          : status === "rejected" 
+            ? "bg-red-500" 
+            : "bg-gray-200";
+
+        const labelColor = status === "completed" 
+          ? "text-green-700" 
+          : status === "rejected" 
+            ? "text-red-700" 
+            : "text-gray-500";
+
         return (
           <React.Fragment key={item.label}>
-            <div style={{ 
-              display: "flex", 
-              flexDirection: "column", 
-              alignItems: "center",
-              position: "relative",
-              zIndex: 2,
-              margin: "0 10px"
-            }}>
-              {/* Esfera principal */}
+            <div className="flex flex-col items-center">
+              {/* Círculo con icono */}
               <div
-                style={{
-                  width: sphereSize,
-                  height: sphereSize,
-                  borderRadius: "50%",
-                  backgroundColor: estadoColor,
-                  border: `4px solid ${estadoColor}`,
-                  boxShadow: `0 6px 20px ${estadoColor}40`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  fontSize,
-                  transition: "all 0.3s ease",
-                  position: "relative"
-                }}
+                className={`${circleSize} ${bgColor} rounded-full flex items-center justify-center transition-all duration-300`}
                 title={`${item.label}: ${item.estado}`}
               >
-                {/* Icono según el estado */}
-                {isCompleted && (
-                  <span style={{ fontSize: fontSize }}>✓</span>
-                )}
-                {isRejected && (
-                  <span style={{ fontSize: fontSize }}>✗</span>
-                )}
-                {!isActive && (
-                  <span style={{ fontSize: fontSize * 0.8 }}>{idx + 1}</span>
+                {status === "completed" ? (
+                  <Check className={`${iconSize} ${textColor}`} />
+                ) : status === "rejected" ? (
+                  <X className={`${iconSize} ${textColor}`} />
+                ) : (
+                  <Icon className={`${iconSize} ${textColor}`} />
                 )}
               </div>
               
               {/* Label */}
-              <div style={{ 
-                marginTop: 15, 
-                fontSize: size === "xl" ? 16 : 13, 
-                fontWeight: 600,
-                color: "#374151",
-                textAlign: "center",
-                maxWidth: "120px",
-                lineHeight: "1.2"
-              }}>
+              <span className={`mt-2 text-xs font-medium ${labelColor} text-center`}>
                 {item.label}
-              </div>
-              
-              {/* Estado actual con badge */}
-              <div style={{
-                marginTop: 8,
-                padding: "4px 12px",
-                borderRadius: "20px",
-                fontSize: size === "xl" ? 12 : 10,
-                fontWeight: 500,
-                textTransform: "capitalize",
-                backgroundColor: `${estadoColor}20`,
-                color: estadoColor,
-                border: `1px solid ${estadoColor}40`
-              }}>
-                {item.estado}
-              </div>
+              </span>
             </div>
             
             {/* Línea conectora */}
             {idx < estados.length - 1 && (
-              <div style={{ display: "flex", alignItems: "center", flex: 1, minWidth: size === "xl" ? 80 : 60 }}>
-                <div
-                  style={{
-                    width: "100%",
-                    height: lineHeight,
-                    backgroundColor: estados[idx + 1].estado !== "espera" && estados[idx + 1].estado !== "pendiente"
-                      ? "#22c55e" 
-                      : "#d1d5db",
-                    borderRadius: lineHeight / 2,
-                    transition: "all 0.3s ease",
-                    position: "relative"
-                  }}
-                >
-                  {/* Puntos decorativos en la línea */}
-                  <div style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    backgroundColor: "#fff",
-                    opacity: estados[idx + 1].estado !== "espera" && estados[idx + 1].estado !== "pendiente" ? 1 : 0.3
-                  }} />
-                </div>
-              </div>
+              <div className={`flex-1 h-0.5 ${lineColor} mx-2 min-w-[40px] sm:min-w-[60px]`} />
             )}
           </React.Fragment>
         );
