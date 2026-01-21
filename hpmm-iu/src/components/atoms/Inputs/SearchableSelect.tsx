@@ -74,16 +74,16 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="mb-5 relative" ref={containerRef}>
       <div
         className={`
-          flex items-center w-full h-9 border rounded-md bg-white
-          ${disabled ? "bg-gray-100 cursor-not-allowed" : "cursor-pointer"}
-          ${ariaInvalid ? "border-red-500" : "border-gray-300"}
-          ${isOpen ? "ring-2 ring-purple-600" : ""}
+          flex items-center w-full h-9 px-4 border border-gray-300 rounded-md bg-white
+          transition-all duration-200
+          focus-within:outline-none focus-within:ring-2 focus-within:ring-purple-600 focus-within:border-transparent
+          ${disabled ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "cursor-pointer hover:border-purple-400"}
           ${className}
         `}
-        onClick={() => !disabled && setIsOpen(true)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <input
           ref={inputRef}
@@ -94,10 +94,11 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
           onBlur={(e) => setTimeout(() => onBlur?.(e), 150)}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 h-full px-3 outline-none bg-transparent text-sm"
+          className="flex-1 h-full outline-none bg-transparent text-sm"
           aria-invalid={ariaInvalid}
           aria-describedby={ariaDescribedby}
           autoComplete="off"
+          onClick={(e) => e.stopPropagation()}
         />
         
         {value && !disabled && (
@@ -108,7 +109,13 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
           </button>
         )}
         
-        <span className="px-2 text-gray-400">
+        <span 
+          className="text-gray-400 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!disabled) setIsOpen(!isOpen);
+          }}
+        >
           <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
@@ -116,21 +123,21 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
       </div>
 
       {isOpen && !disabled && (
-        <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-auto">
+        <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-auto animate-in fade-in-0 zoom-in-95 duration-200">
           {filteredOptions.length === 0 ? (
-            <li className="px-3 py-2 text-gray-500 text-sm">Sin resultados</li>
+            <li className="px-4 py-2 text-gray-500 text-sm">Sin resultados</li>
           ) : (
             filteredOptions.map((option) => (
               <li
                 key={option.value?.toString()}
                 onClick={() => handleSelect(option)}
                 className={`
-                  px-3 py-2 text-sm cursor-pointer hover:bg-gray-100
-                  ${option.value?.toString() === value ? 'bg-purple-50 text-purple-700 font-medium' : ''}
+                  px-4 py-2 text-sm cursor-pointer transition-colors duration-150
+                  hover:bg-purple-50
+                  ${option.value?.toString() === value ? 'bg-purple-100 text-purple-700 font-medium' : ''}
                 `}
               >
                 {option.label}
-                {option.searchTerms && <span className="ml-2 text-xs text-gray-400">({option.searchTerms})</span>}
               </li>
             ))
           )}

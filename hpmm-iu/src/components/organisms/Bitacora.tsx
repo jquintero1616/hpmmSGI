@@ -58,7 +58,7 @@ const Bitacora: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     GetBitacorasContext().finally(() => setLoading(false));
-  }, []);
+  }, [GetBitacorasContext]);
 
   const closeAll = () => {
     setDetailOpen(false);

@@ -73,17 +73,16 @@ export const updateProductController = asyncWrapper(
     const {
       nombre,
       id_subcategory,
-
+      codigo_objeto,
       stock_actual,
       stock_maximo,
-
       estado,
     } = req.body;
     const updatedProduct = await ProductService.updateProductService(
       id_product,
       id_subcategory,
+      codigo_objeto,
       nombre,
-      
       stock_actual,
       stock_maximo,
       estado

@@ -30,8 +30,8 @@ export const createProductService = async (data: NewProduct) => {
 export const updateProductService = async (
   id_product: string,
   id_subcategory: string,
+  codigo_objeto: string,
   nombre: string,
-
   stock_actual: number,
   stock_maximo: number,
 
@@ -40,11 +40,10 @@ export const updateProductService = async (
   const updatedProduct = await ProductModel.updateProductModel(
     id_product,
     id_subcategory,
+    codigo_objeto,
     nombre,
-
     stock_actual,
     stock_maximo,
-
     estado
   );
   return updatedProduct;

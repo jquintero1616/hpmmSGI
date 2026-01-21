@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useRequisicion } from "../../hooks/use.Requisicion";
 import { useAuth } from "../../hooks/use.Auth";
 import { SeguimientoTramite } from "../molecules/SeguimientoTramite";
+import SearchableSelect from "../atoms/Inputs/SearchableSelect";
 
 const SeguimientoTramiteOrganism: React.FC = () => {
   const { requisiDetail } = useRequisicion();
@@ -14,6 +15,13 @@ const SeguimientoTramiteOrganism: React.FC = () => {
   const userRequisitions = isAdmin ? requisiDetail : requisiDetail.filter(
     (req) => req.id_employes === idEmployes
   );
+
+  // Convertir requisiciones a opciones para el SearchableSelect
+  const requisicionOptions = userRequisitions.map((req) => ({
+    label: `R-${req.id_requisi.split("-")[0].toUpperCase()} | ${req.product_name || "Sin producto"}${req.descripcion ? ` - ${req.descripcion}` : ""}`,
+    value: req.id_requisi,
+    searchTerms: `${req.id_requisi} ${req.product_name || ""} ${req.descripcion || ""}`,
+  }));
 
   return (
     <div className="max-w-6xl mx-auto mt-8 p-8 bg-white rounded-lg shadow-lg">
@@ -30,18 +38,13 @@ const SeguimientoTramiteOrganism: React.FC = () => {
       <label className="block mb-2 font-semibold text-gray-700">
         Selecciona una requisición para ver su estado detallado:{" "}
       </label>
-      <select
-        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+      <SearchableSelect
+        name="requisicion"
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}
-      >
-        <option value=""> Selecciona un ID de requisición </option>
-        {userRequisitions.map((req) => (
-          <option key={req.id_requisi} value={req.id_requisi}>
-            R-{req.id_requisi.split("-")[0].toUpperCase()} | {req.product_name || "Sin producto"} {req.descripcion ? `- ${req.descripcion}` : ""}
-          </option>
-        ))}
-      </select>
+        options={requisicionOptions}
+        placeholder="Buscar requisición por ID, producto o descripción..."
+      />
 
       {selectedId && (
         <div className="flex justify-center mt-8">

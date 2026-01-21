@@ -5,7 +5,7 @@ import Button from "../atoms/Buttons/Button";
 import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column } from "../molecules/GenericTable";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer} from "react-toastify";
 
 const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const {
@@ -28,7 +28,7 @@ const Category: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // 1) Columnas de la tabla
   const categoryColumns: Column<CategoryInterface>[] = [
     { header: "Nombre", accessor: "name" },
-    { header: "Objeto de Gasto", accessor: "descripcion" },
+    { header: "Descripcion", accessor: "descripcion" },
     { header: "Estado", accessor: (row) => (row.estado ? "Activo" : "Inactivo") },
     {
       header: "Fecha Creación",

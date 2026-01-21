@@ -48,7 +48,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       GetSubcategoriesContext(),
       GetKardexContext(),
     ]).finally(() => setLoading(false));
-  }, []);
+  },  []);
 
   // 2) Calcula stock solo con movimientos "Aprobado"
   const computeStock = (productId: string): number => {
@@ -73,7 +73,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
     }
 
     setFilteredData(data);
-  }, [ProductDetail, kardex, status]);
+  }, [ProductDetail, kardex, status]); 
 
   // Función para formatear el nombre con números en negrita
   const formatProductName = (name: string) => {
@@ -96,6 +96,11 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Columnas
   const productColumns: Column<ProductDetail>[] = [
     {
+      header: "Código Objeto",
+      accessor: "codigo_objeto",
+      
+    },
+    {
       header: "Nombre",
       accessor: (row) => formatProductName(row.nombre),
     },
@@ -117,8 +122,8 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
                 noExist
                   ? "text-red-600 font-semibold"
                   : exceeded
-                  ? "text-blue-600 font-semibold"
-                  : "text-gray-700 dark:text-gray-300"
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-700 dark:text-gray-300"
               }
             >
               {actual}
@@ -151,7 +156,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       header: "Estado",
       accessor: (row) => (row.estado ? "Activo" : "Inactivo"),
     },
-    
+
     {
       header: "Fecha Actualización",
       accessor: (row) =>
@@ -160,6 +165,12 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   ];
 
   const productFormListColumns: Column<ProductDetail>[] = [
+
+    {
+      header: "Código Objeto",
+      accessor: "codigo_objeto",
+
+    },
     {
       header: "Categoria",
       accessor: (row) =>
@@ -191,8 +202,8 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
                 noExist
                   ? "text-red-600 font-semibold"
                   : exceeded
-                  ? "text-blue-600 font-semibold"
-                  : "text-gray-700 dark:text-gray-300"
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-700 dark:text-gray-300"
               }
             >
               {actual}
@@ -221,11 +232,25 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   // Campos del formulario
   const productFieldsNoEstado: FieldConfig[] = [
     {
+      name: "codigo_objeto",
+      label: "Código Objeto",
+      type: "text",
+      required: true,
+      colSpan: 2,
+    },
+    {
+      name: "nombre",
+      label: "Nombre Producto",
+      type: "text",
+      required: true,
+      colSpan: 2,
+    },
+    {
       name: "id_category",
       label: "Categoría",
       type: "select",
       options: category.map((c) => ({
-        label: c.name, // <-- Cambia aquí
+        label: c.name,
         value: c.id_category,
       })),
       // NO required
@@ -240,10 +265,19 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
       })),
       // NO required
     },
-    { name: "nombre", label: "Nombre Producto", type: "text", required: true, colSpan: 2 },
-    { name: "stock_actual", label: "Stock Actual", type: "number", required: true },
-    { name: "stock_maximo", label: "Stock Máximo", type: "number", required: true },
-    
+
+    {
+      name: "stock_actual",
+      label: "Stock Actual",
+      type: "number",
+      required: true,
+    },
+    {
+      name: "stock_maximo",
+      label: "Stock Máximo",
+      type: "number",
+      required: true,
+    },
   ];
 
   // Modales y CRUD
@@ -336,7 +370,9 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
   const handleAddItem = (item: any) => {
     // Validar duplicados
     if (isDuplicateInList(item)) {
-      toast.error("Ya existe un producto con ese nombre, categoría y subcategoría en la lista.");
+      toast.error(
+        "Ya existe un producto con ese nombre, categoría y subcategoría en la lista."
+      );
       return;
     }
 
@@ -389,7 +425,6 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
         </Button>
       </div>
 
-
       {filteredData.length > 0 ? (
         <GenericTable
           columns={productColumns}
@@ -431,6 +466,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
               : {
                   id_category: selectedCategory,
                   id_subcategory: selectedSubcategory,
+                  codigo_objeto: "",
                   nombre: "",
                   stock_actual: 0,
                   stock_maximo: 0,
@@ -536,7 +572,7 @@ const Products: React.FC<{ status?: string }> = ({ status = "Todo" }) => {
             initialValues={{
               id_subcategory: itemToEdit.id_subcategory,
               nombre: itemToEdit.nombre,
-
+              codigo_objeto: itemToEdit.codigo_objeto,
               stock_actual: itemToEdit.stock_actual,
               stock_maximo: itemToEdit.stock_maximo,
             }}

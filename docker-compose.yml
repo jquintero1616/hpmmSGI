@@ -50,10 +50,10 @@ services:
     container_name: hpmm-backend
     restart: unless-stopped
     ports:
-  - "8443:8443"
+      - "3000:3000"
     environment:
       # Node
-      NODE_ENV: production
+      NODE_ENV: development
       
       # PostgreSQL - Ahora usa el contenedor
       PSQL_DB_USER: ${PSQL_DB_USER}
@@ -86,13 +86,13 @@ services:
       context: ./hpmm-iu
       dockerfile: Dockerfile
       args:
-  VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:8443}
-  VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.cfra2.com:8443/api}
+        VITE_API_URL: ${VITE_API_URL:-https://api.cfra2.com:8443}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.cfra2.com:8443/api}
     container_name: hpmm-frontend
     restart: unless-stopped
     ports:
       - "80:80"    # HTTP (redirige a HTTPS)
-  - "443:8443"  # HTTPS
+      - "443:443"  # HTTPS
     depends_on:
       - backend
     networks:

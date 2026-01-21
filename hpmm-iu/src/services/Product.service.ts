@@ -52,6 +52,7 @@ export const PostCreateProductService = async (
       `product`,
       {
         id_subcategory: product.id_subcategory,
+        codigo_objeto: product.codigo_objeto,
         nombre: product.nombre,
         stock_actual: product.stock_actual,
         stock_maximo: product.stock_maximo,
@@ -77,6 +78,7 @@ export const PutUpdateProductService = async (
     {
       id_product: product.id_product,
       id_subcategory: product.id_subcategory,
+      codigo_objeto: product.codigo_objeto,
       nombre: product.nombre,
       descripcion: product.descripcion,
       stock_actual: product.stock_actual,

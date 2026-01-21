@@ -2,6 +2,7 @@ export interface product {
   id_product: string;
   id_subcategory: string;
   nombre: string;
+  codigo_objeto?: string;
   stock_actual: number;
   stock_maximo: number;
   estado: boolean;
@@ -23,6 +24,7 @@ export interface productDetail {
   id_subcategory: string;
   id_category: string;
   subcategory_name: string;
+  codigo_objeto?: string;
   category_name: string;
   nombre: string;
   stock_actual: number;

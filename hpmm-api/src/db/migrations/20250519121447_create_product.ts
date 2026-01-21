@@ -6,6 +6,7 @@ export async function up(knex: Knex): Promise<void> {
     
     table.uuid("id_product").primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid("id_subcategory").notNullable();
+    table.string("codigo_objeto").notNullable();
     table.string("nombre").notNullable();
     table.integer("stock_actual").notNullable();
     table.integer("stock_maximo").notNullable();
