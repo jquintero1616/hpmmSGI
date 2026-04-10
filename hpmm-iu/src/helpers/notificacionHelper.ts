@@ -217,20 +217,20 @@ export const obtenerColorPrioridad = (prioridad: string): string => {
 export const obtenerConfigToast = (prioridad: string) => {
   const configs: Record<string, any> = {
     baja: {
-      autoClose: 3000,
-      icon: "ℹ️",
+      autoClose: 4000,
+      type: "default" as const,
     },
     media: {
-      autoClose: 5000,
-      icon: "📢",
+      autoClose: 6000,
+      type: "default" as const,
     },
     alta: {
-      autoClose: 7000,
-      icon: "⚠️",
+      autoClose: 8000,
+      type: "default" as const,
     },
     urgente: {
-      autoClose: false, // No se cierra automáticamente
-      icon: "🚨",
+      autoClose: false,
+      type: "default" as const,
     },
   };
   return configs[prioridad] || configs.media;

@@ -5,8 +5,21 @@ interface DashboardCardProps {
   subtitle: string;
   value: number | string;
   icon?: React.ReactNode;
-  onClick?: () => void; // Nuevo prop
+  onClick?: () => void;
+  colorVariant?: string;
+  trend?: string;
 }
+
+const colorMap: Record<string, string> = {
+  green: "from-green-400 to-green-200",
+  yellow: "from-yellow-400 to-yellow-200",
+  red: "from-red-400 to-red-200",
+  orange: "from-orange-400 to-orange-200",
+  indigo: "from-indigo-400 to-indigo-200",
+  purple: "from-purple-400 to-purple-200",
+  blue: "from-blue-400 to-blue-200",
+  gray: "from-gray-400 to-gray-200",
+};
 
 const DashboardCard: React.FC<DashboardCardProps> = ({
   title,
@@ -14,7 +27,12 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   value,
   icon,
   onClick,
+  colorVariant,
 }) => {
+  const gradient = colorVariant && colorMap[colorVariant]
+    ? colorMap[colorVariant]
+    : "from-gray-300 to-gray-100";
+
   return (
     <div
       className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 group cursor-pointer`}
@@ -48,7 +66,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
         </div>
         
         {/* Indicador visual sutil */}
-        <div className="w-2 h-8 bg-gradient-to-t from-gray-300 to-gray-100 rounded-full group-hover:from-gray-400 group-hover:to-gray-200 transition-all duration-300"></div>
+        <div className={`w-2 h-8 bg-gradient-to-t ${gradient} rounded-full group-hover:opacity-80 transition-all duration-300`}></div>
       </div>
     </div>
   );

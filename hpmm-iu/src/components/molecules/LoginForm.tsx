@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect, useState } from "react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 import Input from "../atoms/Inputs/Input";
 import Button from "../atoms/Buttons/Button";
-import ErrorMessage from "./ErrorMessage";
 
 export interface LoginFormProps {
   email: string;
@@ -18,12 +18,11 @@ export interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({
   email,
   password,
-  error,
   isLoading = false,
   onEmailChange,
   onPasswordChange,
   onSubmit,
-  onForgotPassword,
+  // onForgotPassword, // Deshabilitado temporalmente
   onEmailBlur, // <-- Agregado
 }) => {
   const [remember, setRemember] = useState(false);
@@ -66,7 +65,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div className="space-y-4">
         <Input
           name="email"
-          type="email"
+          type="text"
           value={email}
           onChange={handleEmailChange}
           onBlur={onEmailBlur} // <-- Agregado
@@ -90,17 +89,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
             tabIndex={-1}
           >
             {showPassword ? (
-              // Ícono de ojo cerrado
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4.03-9-9 0-1.657.403-3.216 1.125-4.575m2.122-2.122A8.963 8.963 0 0112 3c5 0 9 4.03 9 9 0 1.657-.403 3.216-1.125 4.575m-2.122 2.122A8.963 8.963 0 0112 21c-2.21 0-4.253-.72-5.875-1.825M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-              </svg>
+              <EyeOff className="h-5 w-5" />
             ) : (
-              // Ícono de ojo abierto
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-.274.857-.687 1.664-1.212 2.393M15.54 17.44A8.963 8.963 0 0112 19c-2.21 0-4.253-.72-5.875-1.825" />
-              </svg>
+              <Eye className="h-5 w-5" />
             )}
           </button>
         </div>
@@ -130,13 +121,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
         )} */}
       </div>
 
-      {error && <ErrorMessage message={error} />}
-
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-3 bg-hpmm-morado-claro text-white hover:bg-hpmm-morado-oscuro disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 rounded-lg"
-      >
+      <div className="flex justify-center">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-2/3 py-3 bg-hpmm-morado-claro text-white hover:bg-hpmm-morado-oscuro disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 rounded-lg"
+        >
         {isLoading ? (
           <span className="flex items-center justify-center">
             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -146,9 +136,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
             Cargando.....
           </span>
         ) : (
-          "Ingresar"
+          <span className="flex items-center justify-center gap-2">
+            <LogIn className="h-5 w-5" />
+          </span>
         )}
-      </Button>
+        </Button>
+      </div>
     </form>
   );
 };

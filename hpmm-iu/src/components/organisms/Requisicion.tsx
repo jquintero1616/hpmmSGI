@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
   RequisiInterface,
   RequisiDetail,
@@ -9,10 +8,8 @@ import Modal from "../molecules/GenericModal";
 import GenericForm, { FieldConfig } from "../molecules/GenericForm";
 import GenericTable, { Column, Action } from "../molecules/GenericTable";
 import DataSheet from "../molecules/DataSheet";
-
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import { useProductRequisi } from "../../hooks/use.Product_requisi";
 import { useRequisicion } from "../../hooks/use.Requisicion";
 import { useEmploye } from "../../hooks/use.Employe";
@@ -26,7 +23,6 @@ import {
   getNotificationMessage,
   CreateNotificationParams,
 } from "../../helpers/notificacionHelper";
-
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
   const {
@@ -37,14 +33,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     PutUpdateRequisicionContext,
     DeleteRequisicionContext,
   } = useRequisicion();
-
   const { employes, GetEmployeContext } = useEmploye();
   const { products, GetProductsContext } = useProducts();
-
   const { PostCreateProductRequisitionContext } = useProductRequisi();
   const { PostCreateSolicitudCompraContext } = useSolicitudCompras();
   const { PostNotificacionContext } = useNotificacion(); // Agregamos el hook de notificaciones
-
   // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<RequisiDetail[]>([]);
@@ -56,19 +49,15 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const [saving, setSaving] = useState(false);
   const [isDetailOpen, setDetailOpen] = useState(false);
   const [itemToView, setItemToView] = useState<RequisiDetail | null>(null);
-
   // NUEVOS ESTADOS PARA LISTA DE REQUISICIONES
   const [dataListForm, setDataListForm] = useState<any[]>([]);
   const [itemToEditList, setItemToEditList] = useState<any | null>(null);
-
   // ESTADO PARA MODAL DE RECHAZO
   const [isRejectOpen, setRejectOpen] = useState(false);
   const [itemToReject, setItemToReject] = useState<RequisiDetail | null>(null);
   const [motivoRechazo, setMotivoRechazo] = useState("");
-
   // Obtén userId y roleName del contexto de autenticación
   const { roleName, idEmployes } = useAuth();
-
   // 3. FUNCIONES DE VALIDACIÓN
   const validateCreate = (values: any) => {
     const errors: any = {};
@@ -76,13 +65,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     // Por ejemplo, validar fechas o lógica de negocio
     return errors;
   };
-
   const validateEdit = (values: any) => {
     const errors: any = {};
     // Aquí puedes agregar validaciones específicas si necesitas
     return errors;
   };
-
   // 4. CONFIGURACIÓN DE COLUMNAS Y CAMPOS
   const requisicionColumns: Column<any>[] = [
     { header: "Empleado", accessor: "employee_name" },
@@ -96,10 +83,8 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     },
     { header: "Descripción", accessor: "descripcion" },
     { header: "Motivo", accessor: "motivo" },
-
     { header: "Estado", accessor: "estado" },
   ];
-
   const requisicionListColumns: Column<any>[] = [
     { header: "Empleado", accessor: "employee_name" },
     { header: "Producto", accessor: "product_name" },
@@ -176,16 +161,13 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       required: true,
     },
   ];
-
   // 5. FUNCIÓN PARA MANEJAR EL CONTENIDO DE LA TABLA
   const handleTableContent = (list: RequisiDetail[]) => {
     let filtrados = [...list];
-
     // Filtrar por usuario si no es Administrador
     if (roleName !== "Administrador" && roleName !== "Super Admin") {
       filtrados = filtrados.filter((item) => item.id_employes === idEmployes);
     }
-
     // Verificar IDs duplicados
     const ids = filtrados.map((item) => item.id_requisi);
     const uniqueIds = [...new Set(ids)];
@@ -196,22 +178,18 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           index === self.findIndex((t) => t.id_requisi === item.id_requisi),
       );
     }
-
     // Filtrar por estado
     if (status !== "Todo") {
       filtrados = filtrados.filter((item) => item.estado === status);
     }
-
     // Ordenar por fecha de creación (más recientes primero)
     const ordenados = filtrados.sort(
       (a, b) =>
         new Date(b.created_at || 0).getTime() -
         new Date(a.created_at || 0).getTime(),
     );
-
     setFilteredData(ordenados);
   };
-
   // 6. FUNCIONES DE MANEJO DE MODALES
   const closeAll = () => {
     setEditOpen(false);
@@ -223,36 +201,30 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     setItemToReject(null);
     setMotivoRechazo("");
   };
-
   const openEdit = (id_requisi: string) => {
     const item = requisitions.find((r) => r.id_requisi === id_requisi);
     setItemToEdit(item || null);
     setEditOpen(true);
   };
-
   const openDelete = (id_requisi: string) => {
     const item = requisiDetail.find((r) => r.id_requisi === id_requisi) || null;
     setItemToDelete(item);
     setDeleteOpen(true);
   };
-
   const openDetail = (row: RequisiDetail) => {
     setItemToView(row);
     setDetailOpen(true);
   };
-
   const closeDetail = () => {
     setItemToView(null);
     setDetailOpen(false);
   };
-
   // Abrir modal de rechazo
   const openReject = (row: RequisiDetail) => {
     setItemToReject(row);
     setMotivoRechazo("");
     setRejectOpen(true);
   };
-
   // Confirmar rechazo con motivo
   const handleConfirmReject = async () => {
     if (!itemToReject) return;
@@ -263,7 +235,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     await changeRequisicionStatus(itemToReject, "Rechazado", motivoRechazo);
     closeAll();
   };
-
   // 7. HANDLERS DE CRUD
   const handleConfirmDelete = async (id_requisi: string) => {
     setSaving(true);
@@ -278,22 +249,18 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       setSaving(false);
     }
   };
-
   const handleSave = async (values: any) => {
     if (!itemToEdit) return;
-
     // Validar si hay cambios
     const hasChanges =
       values.id_employes !== itemToEdit.id_employes ||
       values.fecha !== itemToEdit.fecha ||
       values.estado !== itemToEdit.estado ||
       values.cantidad !== itemToEdit.cantidad;
-
     if (!hasChanges) {
       toast.error("No se detectaron cambios para guardar.");
       return;
     }
-
     setSaving(true);
     try {
       await PutUpdateRequisicionContext(itemToEdit.id_requisi, values);
@@ -306,16 +273,13 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       setSaving(false);
     }
   };
-
   // FUNCIONES PARA AGREGAR, EDITAR Y ELIMINAR DE LA LISTA
   const deleteItemList = (id: string) => {
     setDataListForm((prev) => prev.filter((item) => item.id_requisi !== id));
   };
-
   const handleAddItem = (item: any) => {
     // Forzar id_employes si viene vacío (caso usuario no admin con campo deshabilitado)
     const effectiveIdEmployes = item.id_employes || idEmployes;
-
     let fechaISO = "";
     if (
       typeof item.fecha === "string" &&
@@ -329,13 +293,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     } else {
       fechaISO = new Date().toISOString();
     }
-
     const newItem = {
       ...item,
       fecha: fechaISO,
       id_employes: effectiveIdEmployes,
     };
-
     if (itemToEditList) {
       setDataListForm((prev) =>
         prev.map((p) =>
@@ -352,7 +314,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       ]);
     }
   };
-
   const handleCreate = async (_values: any) => {
     setSaving(true);
     try {
@@ -360,13 +321,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         toast.error("Debes agregar al menos una requisición a la lista.");
         return;
       }
-
       // Normalizar cada item antes de enviar
       const normalizados = dataListForm.map((it) => ({
         ...it,
         id_employes: it.id_employes || idEmployes,
       }));
-
       await Promise.all(
         normalizados.map(async (item) => {
           await PostCreateRequisicionContext(item);
@@ -375,14 +334,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             id_requisi: item.id_requisi,
             cantidad: item.cantidad,
           });
-
           const producto = products.find(
             (p) => p.id_product === item.id_product,
           );
           const empleado = employes.find(
             (e) => e.id_employes === item.id_employes,
           );
-
           const datosNotificacion = {
             producto:
               producto?.nombre ||
@@ -394,14 +351,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               empleado?.employee_name ||
               "Usuario desconocido",
           };
-
           await notificarAdministradores(
             "requisicion_pendiente",
             datosNotificacion,
           );
         }),
       );
-
       await GetRequisicionesContext();
       toast.success("Requisiciones creadas correctamente");
       setDataListForm([]);
@@ -412,7 +367,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       setSaving(false);
     }
   };
-
   // Funciones para crear notificaciones
   const crearNotificacion = async (
     tipoEvento: CreateNotificationParams["tipo_evento"],
@@ -421,19 +375,16 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   ) => {
     try {
       const mensaje = getNotificationMessage(tipoEvento, datosRequisicion);
-
       const notificationData = createNotificationData({
         id_user: destinatarioId,
         mensaje,
         tipo_evento: tipoEvento,
       });
-
       await PostNotificacionContext(notificationData);
     } catch (error) {
       console.error("Error al crear notificación:", error);
     }
   };
-
   // Función para notificar a todos los administradores
   const notificarAdministradores = async (
     tipoEvento: CreateNotificationParams["tipo_evento"],
@@ -445,7 +396,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         (emp) =>
           emp.role_name === "Administrador" || emp.role_name === "Super Admin",
       );
-
       // Crear notificación para cada administrador
       for (const admin of administradores) {
         if (admin.id_user) {
@@ -457,7 +407,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       console.error("Error al notificar administradores:", error);
     }
   };
-
   // Handlers específicos para cambiar estado
   const changeRequisicionStatus = async (
     row: RequisiDetail,
@@ -471,13 +420,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         // Si vuelve a Pendiente, limpiar el motivo
         const nuevoMotivo =
           newStatus === "Pendiente" ? "" : motivo || item.motivo || "";
-
         await PutUpdateRequisicionContext(item.id_requisi, {
           ...item,
           estado: newStatus,
           motivo: nuevoMotivo,
         });
-
         // Obtener datos adicionales para la notificación
         const producto = products.find((p) => p.id_product === row.id_product);
         const datosNotificacion = {
@@ -489,13 +436,11 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           solicitante: row.employee_name,
           motivo: motivo || "",
         };
-
         if (newStatus === "Aprobado") {
           await PostCreateSolicitudCompraContext({
             id_requisi: item.id_requisi,
             estado: "Pendiente",
           });
-
           // Notificar al solicitante que su requisición fue aprobada
           if (row.id_employes) {
             // Buscar el empleado para obtener su id_user
@@ -510,7 +455,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               );
             }
           }
-
           toast.success("La requisición ha sido APROBADA");
         } else if (newStatus === "Rechazado") {
           // Notificar al solicitante que su requisición fue rechazada
@@ -547,7 +491,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         } else {
           toast.success(`Estado cambiado a ${newStatus}`);
         }
-
         await GetRequisicionesContext();
       } catch (error) {
         toast.error("Error al cambiar el estado");
@@ -556,7 +499,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       }
     }
   };
-
   // Configuración de acciones por estado
   const getActionsForStatus = (status: string): Action<RequisiDetail>[] => {
     const baseActions: Action<RequisiDetail>[] = [
@@ -568,11 +510,9 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
         onClick: (row: RequisiDetail) => openDetail(row),
       },
     ];
-
     switch (status) {
       case "Pendiente": {
         const pendienteActions: Action<RequisiDetail>[] = [...baseActions];
-
         if (roleName === "Administrador" || roleName === "Super Admin") {
           pendienteActions.push(
             {
@@ -592,7 +532,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             },
           );
         }
-
         pendienteActions.push(
           {
             header: "Acciones",
@@ -617,13 +556,10 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             },
           },
         );
-
         return pendienteActions;
       }
-
       case "Aprobado": {
         const aprobadoActions: Action<RequisiDetail>[] = [...baseActions];
-
         if (roleName === "Administrador" || roleName === "Super Admin") {
           aprobadoActions.push(
             {
@@ -643,13 +579,10 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             },
           );
         }
-
         return aprobadoActions;
       }
-
       case "Rechazado": {
         const rechazadoActions: Action<RequisiDetail>[] = [...baseActions];
-
         if (roleName === "Administrador" || roleName === "Super Admin") {
           rechazadoActions.push({
             header: "Acciones",
@@ -660,13 +593,10 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               changeRequisicionStatus(row, "Pendiente"),
           });
         }
-
         return rechazadoActions;
       }
-
       case "Cancelado": {
         const canceladoActions: Action<RequisiDetail>[] = [...baseActions];
-
         canceladoActions.push({
           header: "Acciones",
           label: "Recuperar",
@@ -682,15 +612,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             }
           },
         });
-
         return canceladoActions;
       }
-
       default:
         return baseActions;
     }
   };
-
   // 8. EFFECTS
   useEffect(() => {
     setLoading(true);
@@ -700,16 +627,13 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       GetProductsContext(),
     ]).finally(() => setLoading(false));
   }, []);
-
   useEffect(() => {
     handleTableContent(requisiDetail);
   }, [status, requisiDetail]);
-
   // 9. RENDER CONDICIONAL
   if (loading) {
     return <div>Cargando requisiciones...</div>;
   }
-
   const dataListFormDisplay = dataListForm.map((item) => {
     const empleado = employes.find((e) => e.id_employes === item.id_employes);
     const producto = products.find((p) => p.id_product === item.id_product);
@@ -719,7 +643,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       product_name: producto?.nombre || producto?.product_name || "Sin nombre",
     };
   });
-
   return (
     <div>
       <ToastContainer />
@@ -740,7 +663,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           + Nueva Requisición
         </Button>
       </div>
-
       <GenericTable
         columns={requisicionColumns as Column<RequisiDetail>[]}
         data={filteredData}
@@ -752,7 +674,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             : ""
         }
       />
-
       {/* Modal Editar */}
       <Modal isOpen={isEditOpen} onClose={closeAll}>
         {itemToEdit && (
@@ -786,7 +707,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           />
         )}
       </Modal>
-
       {/* Modal Crear */}
       <Modal isOpen={isCreateOpen} onClose={closeAll}>
         <h2 className="text-xl font-bold mb-4 text-center">
@@ -812,9 +732,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
                   cantidad: "",
                 }
           }
-          fields={requisicionFields.map((f) =>
-            f.name === "estado" ? { ...f, disabled: true } : f,
-          )}
+          fields={requisicionFields.filter((field) => field.name !== "estado")}
           onSubmit={handleAddItem}
           onCancel={() => {
             setItemToEditList(null);
@@ -874,7 +792,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           </Button>
         </div>
       </Modal>
-
       {/* Modal Eliminar */}
       <Modal isOpen={isDeleteOpen} onClose={closeAll}>
         {itemToDelete && (
@@ -882,15 +799,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             <h3 className="text-xl font-semibold mb-4">
               Confirmar Eliminación
             </h3>
-
             <p>¿Seguro que deseas borrar esta requisición?</p>
-
             <GenericTable
               columns={requisicionColumns}
               data={[itemToDelete]}
               rowKey={(row) => row.id_requisi}
             />
-
             <div className="mt-4 text-right gap-2 flex justify-center">
               <Button
                 onClick={() => handleConfirmDelete(itemToDelete.id_requisi)}
@@ -899,7 +813,7 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               >
                 {saving ? (
                   <span>
-                    <span className="animate-spin inline-block mr-2"></span>
+                    <span className="animate-spin inline-block mr-2">⏳</span>
                     Eliminando...
                   </span>
                 ) : (
@@ -917,7 +831,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           </>
         )}
       </Modal>
-
       {/* Modal Detalle */}
       <Modal
         isOpen={isDetailOpen}
@@ -930,7 +843,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             <h2 className="text-center text-xl font-semibold tracking-wide mb-4">
               Detalle de la Requisición
             </h2>
-
             <DataSheet
               items={[
                 { label: "Solicitante", value: itemToView.employee_name },
@@ -952,7 +864,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
               ]}
               columns={1}
             />
-
             <div className="mt-6 text-right">
               <button
                 onClick={closeDetail}
@@ -964,7 +875,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           </div>
         )}
       </Modal>
-
       {/* Modal Rechazar */}
       <Modal isOpen={isRejectOpen} onClose={closeAll}>
         {itemToReject && (
@@ -1040,5 +950,4 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
     </div>
   );
 };
-
 export default Requisicion;

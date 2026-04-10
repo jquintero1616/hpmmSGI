@@ -224,7 +224,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-full">
       <ToastContainer position="top-right" autoClose={3000} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div className="px-6 py-6">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
@@ -236,7 +236,8 @@ const HomePage: React.FC = () => {
         {/* ================== SECCIÓN PRODUCTOS ================== */}
         {puedeVerInventario && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Productos</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Productos</h2>
+            <p className="text-xs text-gray-400 mb-4">Resumen del estado actual del inventario</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {canViewCard("inventario", "/products") && (
                 <DashboardCard
@@ -289,7 +290,8 @@ const HomePage: React.FC = () => {
         {/* ================== SECCIÓN KARDEX ================== */}
         {hasAccessToSection("kardex", ["/KardexPendiente", "/kardex"]) && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Kardex</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Kardex</h2>
+            <p className="text-xs text-gray-400 mb-4">Movimientos de entrada y salida de productos</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {canViewCard("kardex", "/KardexPendiente") && (
                 <DashboardCard
@@ -320,15 +322,16 @@ const HomePage: React.FC = () => {
         {/* ================== SECCIÓN REQUISICIONES ================== */}
         {hasAccessToSection("requisiciones", ["/requisicionPendiente", "/requisicionSeguimiento"]) && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Requisiciones</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Requisiciones</h2>
+            <p className="text-xs text-gray-400 mb-4">Solicitudes y compras en proceso</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {canViewCard("requisiciones", "/requisicionPendiente") && (
+              {canViewCard("requisiciones", "/requisicionHistorico") && (
                 <DashboardCard
                   title="Requisiciones"
                   subtitle="Total"
                   value={totalRequisiciones}
                   icon={<ClipboardDocumentListIcon className="w-5 h-5 text-gray-600" />}
-                  onClick={() => navigate("/requisicionPendiente")}
+                  onClick={() => navigate("/requisicionHistorico")}
                   colorVariant="gray"
                   trend="neutral"
                 />

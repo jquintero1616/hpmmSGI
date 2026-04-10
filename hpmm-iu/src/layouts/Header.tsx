@@ -109,7 +109,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between py-3 px-4 sm:py-4 sm:px-6 lg:px-8">
           {/* Logo + Nombre del sistema */}
           <div
-            className="flex items-center gap-3 sm:gap-4 cursor-pointer group min-w-0"
+            className="flex items-center gap-3 sm:gap-3 cursor-pointer group min-w-0"
             onClick={() => navigate("/home")}
             title="Ir al inicio"
           >
@@ -122,12 +122,7 @@ const Header: React.FC = () => {
             
             {/* Nombre del sistema - visible en tablets y desktop */}
             <div className="hidden sm:flex flex-col">
-              <span className="text-white font-bold text-lg lg:text-xl tracking-tight leading-tight">
-                Sistema de Gestión de Inventario
-              </span>
-              <span className="text-white/70 text-xs lg:text-sm font-medium">
-                Hospital Psiquiatrico Mario Mendoza
-              </span>
+              
             </div>
           </div>
 

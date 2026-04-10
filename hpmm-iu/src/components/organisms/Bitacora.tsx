@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { useBitacora } from "../../hooks/Use.Bitacora";
 import { Bitacorainterface } from "../../interfaces/Bitacora.interface";
@@ -6,6 +6,49 @@ import Modal from "../molecules/GenericModal";
 import GenericTable, { Column } from "../molecules/GenericTable";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Traducir acciones al español para el usuario
+const traducirAccion = (accion: string): string => {
+  const map: Record<string, string> = {
+    create: "Creación",
+    insert: "Creación",
+    update: "Edición",
+    delete: "Eliminación",
+    login: "Inicio de sesión",
+  };
+  return map[accion.toLowerCase()] || accion;
+};
+
+// Traducir nombres de tablas al español
+const traducirTabla = (tabla: string): string => {
+  const map: Record<string, string> = {
+    users: "Usuarios",
+    roles: "Roles",
+    product: "Productos",
+    category: "Categorías",
+    subcategory: "Subcategorías",
+    direction: "Direcciones",
+    subdireccion: "Subdirecciones",
+    employes: "Empleados",
+    suppliers: "Proveedores",
+    donantes: "Donantes",
+    vendedor: "Vendedores",
+    units: "Unidades",
+    pacts: "Pactos",
+    units_x_pacts: "Unidades por Pactos",
+    requisitions: "Requisiciones",
+    requi_x_product: "Requisición x Producto",
+    kardex: "Kardex",
+    shopping: "Compras",
+    solicitud_compras: "Solicitudes de Compra",
+    notifications: "Notificaciones",
+    reports: "Reportes",
+    bitacora: "Bitácora",
+  };
+  return map[tabla.toLowerCase()] || tabla;
+};
+
+type FiltroAccion = "todos" | "create" | "update" | "delete" | "login";
 
 const Bitacora: React.FC = () => {
   const {
@@ -18,6 +61,10 @@ const Bitacora: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isDetailOpen, setDetailOpen] = useState(false);
   const [itemToView, setItemToView] = useState<Bitacorainterface | null>(null);
+  const [filtroAccion, setFiltroAccion] = useState<FiltroAccion>("todos");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
+  const [filtroUsuario, setFiltroUsuario] = useState("");
 
   // 1) Columnas de la tabla
   const bitacoraColumns: Column<Bitacorainterface>[] = [
@@ -27,11 +74,11 @@ const Bitacora: React.FC = () => {
     },
     { 
       header: "Acción", 
-      accessor: "accion"
+      accessor: (row) => traducirAccion(row.accion)
     },
     { 
       header: "Tabla", 
-      accessor: "tabla_afectada"
+      accessor: (row) => traducirTabla(row.tabla_afectada)
     },
     { 
       header: "Módulo", 
@@ -89,10 +136,59 @@ const Bitacora: React.FC = () => {
     }
   };
 
-  // Ordenar datos por fecha más reciente
-  const sortedBitacoras = bitacoras.sort((a, b) =>
-    new Date(b.fecha_evento).getTime() - new Date(a.fecha_evento).getTime()
-  );
+  // Lista única de usuarios para el select
+  const usuarios = useMemo(() => {
+    const set = new Set(bitacoras.map((b) => b.nombre_usuario || "Sistema"));
+    return Array.from(set).sort();
+  }, [bitacoras]);
+
+  // Ordenar y filtrar
+  const datosFiltrados = useMemo(() => {
+    let datos = [...bitacoras].sort((a, b) =>
+      new Date(b.fecha_evento).getTime() - new Date(a.fecha_evento).getTime()
+    );
+
+    // Filtro por acción
+    if (filtroAccion !== "todos") {
+      datos = datos.filter((b) => {
+        const lower = b.accion.toLowerCase();
+        if (filtroAccion === "create") return lower === "create" || lower === "insert";
+        return lower === filtroAccion;
+      });
+    }
+
+    // Filtro por usuario
+    if (filtroUsuario) {
+      datos = datos.filter((b) => (b.nombre_usuario || "Sistema") === filtroUsuario);
+    }
+
+    // Filtro por fecha desde
+    if (fechaDesde) {
+      const desde = new Date(fechaDesde);
+      datos = datos.filter((b) => new Date(b.fecha_evento) >= desde);
+    }
+
+    // Filtro por fecha hasta
+    if (fechaHasta) {
+      const hasta = new Date(fechaHasta + "T23:59:59");
+      datos = datos.filter((b) => new Date(b.fecha_evento) <= hasta);
+    }
+
+    return datos;
+  }, [bitacoras, filtroAccion, filtroUsuario, fechaDesde, fechaHasta]);
+
+  // Contadores por tipo de acción
+  const resumen = useMemo(() => {
+    const r = { creaciones: 0, ediciones: 0, eliminaciones: 0, sesiones: 0 };
+    datosFiltrados.forEach((b) => {
+      const l = b.accion.toLowerCase();
+      if (l === "create" || l === "insert") r.creaciones++;
+      else if (l === "update") r.ediciones++;
+      else if (l === "delete") r.eliminaciones++;
+      else if (l === "login") r.sesiones++;
+    });
+    return r;
+  }, [datosFiltrados]);
 
   if (loading) {
     return <div className="text-center py-8">Cargando auditoría de sistema...</div>;
@@ -102,7 +198,7 @@ const Bitacora: React.FC = () => {
     <div>
       <ToastContainer />
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold text-gray-800">
           Bitácora del Sistema
         </h1>
@@ -111,9 +207,99 @@ const Bitacora: React.FC = () => {
         </p>
       </div>
 
+      {/* Mini resumen */}
+      <div className="flex flex-wrap gap-3 mb-4 text-xs text-gray-500">
+        <span>{resumen.creaciones} creaciones</span>
+        <span>·</span>
+        <span>{resumen.ediciones} ediciones</span>
+        <span>·</span>
+        <span>{resumen.eliminaciones} eliminaciones</span>
+        <span>·</span>
+        <span>{resumen.sesiones} inicios de sesión</span>
+      </div>
+
+      {/* Filtros: acción + usuario + fechas */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        {/* Filtros por acción */}
+        <div className="flex flex-wrap gap-2">
+        {([
+          { key: "todos", label: "Todos" },
+          { key: "create", label: "Creación" },
+          { key: "update", label: "Edición" },
+          { key: "delete", label: "Eliminación" },
+          { key: "login", label: "Inicio de sesión" },
+        ] as { key: FiltroAccion; label: string }[]).map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFiltroAccion(f.key)}
+            className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+              filtroAccion === f.key
+                ? "bg-hpmm-azul-claro text-white border-hpmm-azul-claro"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        </div>
+
+        <div className="h-6 w-px bg-gray-300 hidden sm:block" />
+
+        {/* Filtro por usuario */}
+        <select
+          value={filtroUsuario}
+          onChange={(e) => setFiltroUsuario(e.target.value)}
+          className="text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-600"
+        >
+          <option value="">Todos los usuarios</option>
+          {usuarios.map((u) => (
+            <option key={u} value={u}>{u}</option>
+          ))}
+        </select>
+
+        {/* Filtro por fechas */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-500">Desde:</label>
+          <input
+            type="date"
+            value={fechaDesde}
+            onChange={(e) => setFechaDesde(e.target.value)}
+            className="text-sm border border-gray-300 rounded px-2 py-1"
+          />
+          <label className="text-xs text-gray-500">Hasta:</label>
+          <input
+            type="date"
+            value={fechaHasta}
+            onChange={(e) => setFechaHasta(e.target.value)}
+            className="text-sm border border-gray-300 rounded px-2 py-1"
+          />
+        </div>
+
+        {/* Limpiar filtros */}
+        {(filtroAccion !== "todos" || filtroUsuario || fechaDesde || fechaHasta) && (
+          <button
+            onClick={() => {
+              setFiltroAccion("todos");
+              setFiltroUsuario("");
+              setFechaDesde("");
+              setFechaHasta("");
+            }}
+            className="text-xs text-gray-500 hover:text-gray-700 underline"
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
+      {datosFiltrados.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-lg">No se encontraron registros</p>
+          <p className="text-sm mt-1">Intenta con otro filtro</p>
+        </div>
+      ) : (
       <GenericTable
         columns={bitacoraColumns}
-        data={sortedBitacoras}
+        data={datosFiltrados}
         rowKey={(row) => row.id.toString()}
         actions={[
           {
@@ -122,22 +308,9 @@ const Bitacora: React.FC = () => {
             onClick: (row) => openDetail(row.id),
           },
         ]}
-        rowClassName={(row) => {
-          switch (row.accion.toLowerCase()) {
-            case "create":
-            case "insert":
-              return "bg-green-50 hover:bg-green-100";
-            case "update":
-              return "bg-blue-50 hover:bg-blue-100";
-            case "delete":
-              return "bg-red-50 hover:bg-red-100";
-            case "login":
-              return "bg-yellow-50 hover:bg-yellow-100";
-            default:
-              return "hover:bg-gray-50";
-          }
-        }}
+        rowClassName={() => "hover:bg-gray-50"}
       />
+      )}
 
       {/* Modal Detalle */}
       <Modal isOpen={isDetailOpen} onClose={closeAll}>
@@ -167,7 +340,7 @@ const Bitacora: React.FC = () => {
                     itemToView.accion.toLowerCase() === 'delete' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
-                    {itemToView.accion}
+                    {traducirAccion(itemToView.accion)}
                   </span>
                 </div>
                 
