@@ -10,7 +10,7 @@ export default defineConfig({
     allowedHosts: ['spirit-above-boc-marvel.trycloudflare.com', '.trycloudflare.com'],
     watch: { 
       usePolling: true,
-      interval: 100 
+      interval: 1000 
     },
     hmr: {
       clientPort: 5173,

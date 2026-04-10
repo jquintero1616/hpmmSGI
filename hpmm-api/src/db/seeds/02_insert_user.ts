@@ -24,8 +24,8 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       id_user: "55555555-5555-5555-5555-555555555555",
-      username: "Testing Jefa Almacen",
-      email: "testingJefaAlmacen@hpmm.com",
+      username: "Testing Jefe Almacen",
+      email: "testingJefeAlmacen@hpmm.com",
       password: "12345678",
       id_rol: "11111111-1111-1111-1111-111111111111",
       estado: true,

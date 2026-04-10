@@ -5,8 +5,10 @@ import { useAuth } from "./use.Auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.cfra2.com:8443/api";
 
+// Flag global para evitar llamar logout() múltiples veces en cascada
+let isLoggingOut = false;
+
 function useAxiosPrivate(): AxiosInstance {
-  // Ya no necesitamos el token aquí, solo logout
   const { logout } = useAuth();
   const axiosRef = useRef<AxiosInstance>();
 
@@ -21,12 +23,13 @@ function useAxiosPrivate(): AxiosInstance {
   useEffect(() => {
     const inst = axiosRef.current!;
 
-    // Response interceptor para atrapar 401 y forzar logout
+    // Response interceptor para atrapar 401 y forzar logout (una sola vez)
     const rs = inst.interceptors.response.use(
       res => res,
       err => {
-        if (err.response?.status === 401) {
-          logout();
+        if (err.response?.status === 401 && !isLoggingOut) {
+          isLoggingOut = true;
+          logout().finally(() => { isLoggingOut = false; });
         }
         return Promise.reject(err);
       }
