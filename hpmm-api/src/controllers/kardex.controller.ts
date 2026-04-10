@@ -3,6 +3,7 @@ import * as KardexService from "../services/kardex.service";
 import { asyncWrapper } from "../utils/errorHandler";
 import { KardexDetail, NewKardex } from "../types/kardex";
 import { enviarNotificacionPorRoles, enviarNotificacionAUsuario } from "../services/notificacion.helper.service";
+import { KARDEX_DESTINATARIOS } from "../config/notificacion.destinatarios";
 import db from "../db";
 
 // Obtener detalles de Kardex con filtros y paginación
@@ -91,15 +92,16 @@ export const createKardexController = asyncWrapper(
 
     data.id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
     const nombreEmpleado = req.user?.employe_name || req.user?.username || "Usuario";
+    const userId = req.user?.id_user;
 
     // Validación de datos;
 
     const kardex = await KardexService.createKardexService(data);
     
-    // Enviar notificación al Jefe de Almacén
+    // Enviar notificación a los destinatarios configurados
     if (data.tipo === "Pendiente") {
       await enviarNotificacionPorRoles(
-        ["Jefe Almacen"],
+        [...KARDEX_DESTINATARIOS.CREADO],
         {
           categoria: "kardex",
           prioridad: "media",
@@ -112,7 +114,8 @@ export const createKardexController = asyncWrapper(
           creador_nombre: nombreEmpleado,
           tipo: "Pendiente",
           estado: true,
-        }
+        },
+        userId
       );
     }
     
@@ -131,6 +134,7 @@ export const updateKardexController = asyncWrapper(
     // Auditoría
     const id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
     const nombreAprobador = req.user?.employe_name || req.user?.username || "Administrador";
+    const userId = req.user?.id_user;
 
     // Obtener el kardex actual para saber quién lo creó
     const kardexActual = await KardexService.getKardexByIdService(id_kardex);
@@ -205,9 +209,9 @@ export const updateKardexController = asyncWrapper(
         );
       }
       
-      // También notificar al Administrador
+      // También notificar a los roles configurados
       await enviarNotificacionPorRoles(
-        ["Administrador"],
+        [...KARDEX_DESTINATARIOS.APROBADO_ROLES],
         {
           categoria: "kardex",
           prioridad: "baja",
@@ -220,7 +224,8 @@ export const updateKardexController = asyncWrapper(
           creador_nombre: nombreAprobador,
           tipo: "Pendiente",
           estado: true,
-        }
+        },
+        userId
       );
     } else if (kardexEdit.tipo === "Rechazado") {
       // Notificar al técnico específico que creó el kardex
@@ -332,6 +337,7 @@ export const createDonacionKardexController = asyncWrapper(
     data.id_empleado_solicitud_f = req.user?.id_employes || "Desconocido";
     
     const nombreEmpleado = req.user?.employe_name || req.user?.username || "Usuario";
+    const userId = req.user?.id_user;
 
     // Validaciones para donación
     if (!data.id_donante) {
@@ -346,10 +352,10 @@ export const createDonacionKardexController = asyncWrapper(
 
     const kardex = await KardexService.createKardexService(data);
     
-    // Enviar notificación al Jefe de Almacén
+    // Enviar notificación a los destinatarios configurados
     if (data.tipo === "Pendiente") {
       await enviarNotificacionPorRoles(
-        ["Jefe Almacen"],
+        [...KARDEX_DESTINATARIOS.CREADO],
         {
           categoria: "kardex",
           prioridad: "media",
@@ -362,7 +368,8 @@ export const createDonacionKardexController = asyncWrapper(
           creador_nombre: nombreEmpleado,
           tipo: "Pendiente",
           estado: true,
-        }
+        },
+        userId
       );
     }
     

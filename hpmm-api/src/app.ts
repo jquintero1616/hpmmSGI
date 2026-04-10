@@ -65,8 +65,12 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// DEBUG: log de requests y origen para verificar preflight (quitar en prod si prefieres)
+// DEBUG: log de requests y origen para verificar preflight (solo rutas no frecuentes)
 app.use((req, res, next) => {
+  // Omitir logs de rutas de alta frecuencia (polling de notificaciones, etc.)
+  if (req.method === 'GET' && (req.originalUrl === '/api/noti' || req.originalUrl.startsWith('/api/auth/check'))) {
+    return next();
+  }
   console.log(`[CORS DEBUG] ${req.method} ${req.originalUrl} Origin: ${req.headers.origin}`);
   next();
 });

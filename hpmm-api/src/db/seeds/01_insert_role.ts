@@ -15,8 +15,8 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       id_rol:      "22222222-2222-2222-2222-222222222222",
-      name:        "Jefa Almacen",
-      descripcion: "Jefa del área de almacén",
+      name:        "Jefe Almacen",
+      descripcion: "Jefe del área de almacén",
       estado:      true,
     },
     {

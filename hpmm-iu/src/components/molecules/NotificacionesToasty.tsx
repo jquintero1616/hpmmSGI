@@ -43,11 +43,6 @@ const guardarMostrado = (id: string) => {
   }
 };
 
-const limpiarMostrados = (idsPendientes: string[]) => {
-  const lista = obtenerMostrados().filter((id) => idsPendientes.includes(id));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
-};
-
 const NotificacionesToasty = () => {
   const { userId } = useAuth();
   const { notificaciones, PutNotificacionContext, GetNotificacionesContext } = useNotificacion();
@@ -102,14 +97,12 @@ const NotificacionesToasty = () => {
       (n) => n.estado && n.id_user === userId && n.tipo === "Pendiente"
     );
 
-    const idsPendientes = pendientes.map((n) => n.id_noti);
     const yaMostrados = obtenerMostrados();
 
     // Primera carga: registrar las pendientes existentes sin mostrar toast
     if (!inicializado.current) {
       inicializado.current = true;
-      idsPendientes.forEach(guardarMostrado);
-      limpiarMostrados(idsPendientes);
+      pendientes.forEach((n) => guardarMostrado(n.id_noti));
       return;
     }
 
@@ -119,9 +112,6 @@ const NotificacionesToasty = () => {
         mostrarToast(noti);
       }
     });
-
-    // Limpiar IDs de notificaciones que ya no son pendientes
-    limpiarMostrados(idsPendientes);
   }, [notificaciones, userId, mostrarToast]);
 
   return null;

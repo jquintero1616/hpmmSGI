@@ -23,10 +23,12 @@ export const getUsersByRole = async (roleName: string): Promise<string[]> => {
 
 /**
  * Envía una notificación a múltiples usuarios por rol
+ * @param excludeUserId - ID del usuario a excluir (el creador de la acción)
  */
 export const enviarNotificacionPorRoles = async (
   roles: string[],
-  notificacionData: Omit<NewNoti, "id_user">
+  notificacionData: Omit<NewNoti, "id_user">,
+  excludeUserId?: string
 ): Promise<void> => {
   try {
     // Obtener todos los usuarios de los roles especificados
@@ -38,8 +40,10 @@ export const enviarNotificacionPorRoles = async (
       userIds.push(...usersDeRol);
     }
     
-    // Eliminar duplicados
-    const uniqueUserIds = [...new Set(userIds)];
+    // Eliminar duplicados y excluir al creador
+    const uniqueUserIds = [...new Set(userIds)].filter(
+      (id) => id !== excludeUserId
+    );
     
     logger.info(`Total usuarios únicos a notificar: ${uniqueUserIds.length} - IDs: ${uniqueUserIds.join(", ")}`);
     

@@ -73,7 +73,7 @@ const HomePage: React.FC = () => {
   const rolesConAccesoInventario = [
     "Almacen",
     "Jefe de Logistica",
-    "Jefa de Almacen",
+    "Jefe de Almacen",
     "Administrador",
     "Super Admin",
   ];

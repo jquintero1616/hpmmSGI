@@ -15,14 +15,8 @@ import { useRequisicion } from "../../hooks/use.Requisicion";
 import { useEmploye } from "../../hooks/use.Employe";
 import { useProducts } from "../../hooks/use.Product";
 import { useSolicitudCompras } from "../../hooks/use.SolicitudCompras";
-import { useAuth } from "../../hooks/use.Auth"; // Asegúrate de tener este hook
-import { useNotificacion } from "../../hooks/use.Notificacion";
+import { useAuth } from "../../hooks/use.Auth";
 import { formattedDate } from "../../helpers/formatData";
-import {
-  createNotificationData,
-  getNotificationMessage,
-  CreateNotificationParams,
-} from "../../helpers/notificacionHelper";
 const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   // 1. HOOKS
   const {
@@ -37,7 +31,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
   const { products, GetProductsContext } = useProducts();
   const { PostCreateProductRequisitionContext } = useProductRequisi();
   const { PostCreateSolicitudCompraContext } = useSolicitudCompras();
-  const { PostNotificacionContext } = useNotificacion(); // Agregamos el hook de notificaciones
   // 2. ESTADOS LOCALES
   const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState<RequisiDetail[]>([]);
@@ -334,27 +327,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
             id_requisi: item.id_requisi,
             cantidad: item.cantidad,
           });
-          const producto = products.find(
-            (p) => p.id_product === item.id_product,
-          );
-          const empleado = employes.find(
-            (e) => e.id_employes === item.id_employes,
-          );
-          const datosNotificacion = {
-            producto:
-              producto?.nombre ||
-              producto?.product_name ||
-              "Producto desconocido",
-            cantidad: item.cantidad,
-            solicitante:
-              empleado?.name ||
-              empleado?.employee_name ||
-              "Usuario desconocido",
-          };
-          await notificarAdministradores(
-            "requisicion_pendiente",
-            datosNotificacion,
-          );
         }),
       );
       await GetRequisicionesContext();
@@ -365,46 +337,6 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
       toast.error("Error al crear las requisiciones");
     } finally {
       setSaving(false);
-    }
-  };
-  // Funciones para crear notificaciones
-  const crearNotificacion = async (
-    tipoEvento: CreateNotificationParams["tipo_evento"],
-    destinatarioId: string,
-    datosRequisicion: any,
-  ) => {
-    try {
-      const mensaje = getNotificationMessage(tipoEvento, datosRequisicion);
-      const notificationData = createNotificationData({
-        id_user: destinatarioId,
-        mensaje,
-        tipo_evento: tipoEvento,
-      });
-      await PostNotificacionContext(notificationData);
-    } catch (error) {
-      console.error("Error al crear notificación:", error);
-    }
-  };
-  // Función para notificar a todos los administradores
-  const notificarAdministradores = async (
-    tipoEvento: CreateNotificationParams["tipo_evento"],
-    datosRequisicion: any,
-  ) => {
-    try {
-      // Filtrar empleados que sean administradores
-      const administradores = employes.filter(
-        (emp) =>
-          emp.role_name === "Administrador" || emp.role_name === "Super Admin",
-      );
-      // Crear notificación para cada administrador
-      for (const admin of administradores) {
-        if (admin.id_user) {
-          // Usar id_user en lugar de id_employes
-          await crearNotificacion(tipoEvento, admin.id_user, datosRequisicion);
-        }
-      }
-    } catch (error) {
-      console.error("Error al notificar administradores:", error);
     }
   };
   // Handlers específicos para cambiar estado
@@ -425,69 +357,12 @@ const Requisicion: React.FC<{ status: string }> = ({ status = "Todo" }) => {
           estado: newStatus,
           motivo: nuevoMotivo,
         });
-        // Obtener datos adicionales para la notificación
-        const producto = products.find((p) => p.id_product === row.id_product);
-        const datosNotificacion = {
-          producto:
-            producto?.nombre ||
-            producto?.product_name ||
-            "Producto desconocido",
-          cantidad: row.cantidad,
-          solicitante: row.employee_name,
-          motivo: motivo || "",
-        };
         if (newStatus === "Aprobado") {
           await PostCreateSolicitudCompraContext({
             id_requisi: item.id_requisi,
             estado: "Pendiente",
           });
-          // Notificar al solicitante que su requisición fue aprobada
-          if (row.id_employes) {
-            // Buscar el empleado para obtener su id_user
-            const empleadoSolicitante = employes.find(
-              (emp) => emp.id_employes === row.id_employes,
-            );
-            if (empleadoSolicitante?.id_user) {
-              await crearNotificacion(
-                "requisicion_aprobada",
-                empleadoSolicitante.id_user,
-                datosNotificacion,
-              );
-            }
-          }
           toast.success("La requisición ha sido APROBADA");
-        } else if (newStatus === "Rechazado") {
-          // Notificar al solicitante que su requisición fue rechazada
-          if (row.id_employes) {
-            // Buscar el empleado para obtener su id_user
-            const empleadoSolicitante = employes.find(
-              (emp) => emp.id_employes === row.id_employes,
-            );
-            if (empleadoSolicitante?.id_user) {
-              await crearNotificacion(
-                "requisicion_rechazada",
-                empleadoSolicitante.id_user,
-                datosNotificacion,
-              );
-            }
-          }
-          toast.success(`Estado cambiado a ${newStatus}`);
-        } else if (newStatus === "Cancelado") {
-          // Notificar al solicitante que su requisición fue cancelada
-          if (row.id_employes) {
-            // Buscar el empleado para obtener su id_user
-            const empleadoSolicitante = employes.find(
-              (emp) => emp.id_employes === row.id_employes,
-            );
-            if (empleadoSolicitante?.id_user) {
-              await crearNotificacion(
-                "requisicion_cancelada",
-                empleadoSolicitante.id_user,
-                datosNotificacion,
-              );
-            }
-          }
-          toast.success(`Estado cambiado a ${newStatus}`);
         } else {
           toast.success(`Estado cambiado a ${newStatus}`);
         }

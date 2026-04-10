@@ -28,31 +28,37 @@ export const NotificacionProvider: React.FC<ProviderProps> = ({ children }) => {
     const axiosPrivate = useAxiosPrivate();
     const { isAuthenticated } = useAuth();
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            GetNotificacionesContext()
-                .then((data) => {
-                    if (data !== null) {
-                        setNotificaciones(data);
-                    } else {
-                        console.error("Error al recuperar las notificaciones");
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error al recuperar las notificaciones", error);
-                });
-        }
-    }, [isAuthenticated]);
-
     const GetNotificacionesContext = useCallback(async (): Promise<notificationsInterface[] | null> => {
+        if (!isAuthenticated) return null;
         try {
-            const notificaciones = await GetNotificacionesService(axiosPrivate);
-            return notificaciones;
+            const data = await GetNotificacionesService(axiosPrivate);
+            if (data) {
+                setNotificaciones(data);
+            }
+            return data;
         } catch (error) {
-            console.error("Error al recuperar las notificaciones", error);
+            // Solo loguear si no es un 401 (esos los maneja el interceptor)
+            if ((error as any)?.response?.status !== 401) {
+                console.error("Error al recuperar las notificaciones", error);
+            }
             return null;
         }
-    }, [axiosPrivate]);
+    }, [axiosPrivate, isAuthenticated]);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            GetNotificacionesContext();
+        }
+    }, [isAuthenticated, GetNotificacionesContext]);
+
+    // Polling: refrescar notificaciones cada 30 segundos
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        const interval = setInterval(() => {
+            GetNotificacionesContext();
+        }, 30000);
+        return () => clearInterval(interval);
+    }, [isAuthenticated, GetNotificacionesContext]);
 
     const GetNotificacionByIdContext = useCallback(async (id_noti: string): Promise<notificationsInterface | null> => {
         try {
