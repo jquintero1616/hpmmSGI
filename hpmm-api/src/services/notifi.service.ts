@@ -16,7 +16,7 @@ export const getNotiBYService = async (
   id_noti: string 
 ): Promise<NewNoti> => {
     const notification = await notiModel.getNotiByIdModel(id_noti);
-    if (!Notification) {
+    if (!notification) {
         throw new Error(`Notificacion con id_notifications ${id_noti} no encontrado`);
     }
     return notification;
@@ -52,7 +52,5 @@ export async function deleteNotiService(
 ): Promise<NewNoti | null> {
     const deletedNoti = await notiModel.deleteNotiModel(id_noti);
     if (!deletedNoti) return null;
-
-    const desactivatedNoti = await notiModel.deleteNotiModel(id_noti);
-    return desactivatedNoti;        
+    return deletedNoti;        
 } 

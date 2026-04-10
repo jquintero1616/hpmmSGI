@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 
 
 
@@ -43,7 +43,7 @@ export const BitacoraProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }, [isAuthenticated]);
 
-    const GetBitacoraByIdContext = async (
+    const GetBitacoraByIdContext = useCallback(async (
         id_bitacora: string
     ): Promise<Bitacorainterface | undefined> => {
         try {
@@ -53,9 +53,9 @@ export const BitacoraProvider: React.FC<ProviderProps> = ({ children }) => {
             console.error("Error al recuperar la bitácora", error);
             return undefined;
         }
-    };
+    }, [axiosPrivate]);
 
-    const GetBitacorasContext = async (): Promise<Bitacorainterface[] | null> => {
+    const GetBitacorasContext = useCallback(async (): Promise<Bitacorainterface[] | null> => {
         try {
             const bitacoras = await GetBitacorasService(axiosPrivate);
             if (bitacoras !== null) {
@@ -66,7 +66,7 @@ export const BitacoraProvider: React.FC<ProviderProps> = ({ children }) => {
             console.error("Error al recuperar las bitácoras", error);
             return null;
         }
-    };
+    }, [axiosPrivate]);
 
     return (
         <BitacoraContext.Provider

@@ -12,56 +12,35 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { authenticate } = useAuth();
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    // Si el usuario ya escribió el dominio, no lo agregues
-    if (value.endsWith("@hpmm.com")) {
-      setEmail(value);
-    } else {
-      setEmail(value.replace(/@hpmm\.com$/, ""));
-    }
-  };
-
-  const handleEmailBlur = () => {
-    // Al perder el foco, agrega el dominio si no está presente
-    if (email && !email.endsWith("@hpmm.com")) {
-      setEmail(email + "@hpmm.com");
-    }
+    setEmail(e.target.value);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
-    let emailToUse = email;
-    if (!emailToUse.endsWith("@hpmm.com")) {
-      emailToUse = emailToUse + "@hpmm.com";
-      setEmail(emailToUse); // Opcional: actualiza el input
-    }
-
-    if (!emailToUse || !password) {
-      setError("Por favor, ingresa tu correo electronico y contraseña.");
+    if (!email || !password) {
+      toast.warn("Por favor, ingresa tu correo electrónico y contraseña.", { position: "top-right" });
       return;
     }
 
     setLoading(true);
     try {
-      await authenticate(emailToUse, password);
+      await authenticate(email, password);
       toast.success("¡Bienvenido!", { position: "top-right" });
       navigate("/home", { state: { showWelcome: true } });
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        setError("El correo electrónico o la contraseña que has introducido no son correctos, verifica tus credenciales.");
+        toast.error("Credenciales incorrectas. Verifica tu correo y contraseña.", { position: "top-right" });
       } else if (axios.isAxiosError(error) && error.response?.status === 400) {
-        setError("Por favor, completa todos los campos requeridos.");
+        toast.warn("Por favor, completa todos los campos requeridos.", { position: "top-right" });
       } else if (axios.isAxiosError(error) && !error.response) {
-        setError("No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet e inténtalo de nuevo.");
+        toast.error("No se pudo conectar con el servidor. Verifica tu conexión a internet.", { position: "top-right" });
       } else {
-        setError("Ocurrió un error inesperado al iniciar sesión. Por favor, inténtalo de nuevo más tarde.");
+        toast.error("Ocurrió un error inesperado. Inténtalo de nuevo más tarde.", { position: "top-right" });
       }
     } finally {
       setLoading(false);
@@ -77,20 +56,18 @@ const LoginPage: React.FC = () => {
       <LoginFormProps>
         <div className="w-full max-w-md mx-auto p-6">
           <div className="text-center mb-8">
-            <img src={Logo} alt="Logo" className="mx-auto mb-6 w-40 h-30 object-contain" />
-          
+            <img src={Logo} alt="Logo" className="mx-auto mb-4 w-40 h-30 object-contain" />
+            <p className="text-sm text-gray-400">Accede a tu cuenta</p>
           </div>
 
           <LoginForm
             email={email}
             password={password}
-            error={error}
             isLoading={loading}
             onEmailChange={handleEmailChange}
             onPasswordChange={(e) => setPassword(e.target.value)}
             onSubmit={handleLogin}
             onForgotPassword={handleForgotPassword}
-            onEmailBlur={handleEmailBlur} // <-- Asegúrate de pasar esta prop
           />
         </div>
       </LoginFormProps>

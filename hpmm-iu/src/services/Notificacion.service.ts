@@ -19,7 +19,7 @@ export const GetNotificacionByIdService = async (
   axiosPrivate: AxiosInstance
 ): Promise<notificationsInterface | null> => {
   try {
-    const response = await axiosPrivate.get(`/notifi/${id_noti}`);
+    const response = await axiosPrivate.get(`/noti/${id_noti}`);
     return response.data.noti;
   } catch (error) {
     console.error("Error al recuperar la notificación", error);
@@ -61,6 +61,9 @@ export const PutNotificacionService = async (
       tipo: noti.tipo,
       estado: noti.estado,
       id_user: noti.id_user,
+      categoria: noti.categoria,
+      prioridad: noti.prioridad,
+      titulo: noti.titulo,
     },
     { headers: { "Content-Type": "application/json" } }
   );

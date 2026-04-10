@@ -18,7 +18,7 @@ export default function Layout() {
         </aside>
         
         {/* Main content que se adapta al ancho del sidebar */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-auto bg-gray-50 transition-all duration-300">
           <Outlet />
         </main>
       </div>

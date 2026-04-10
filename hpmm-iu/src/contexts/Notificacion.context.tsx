@@ -1,4 +1,4 @@
-import React, {createContext, useState , useEffect} from 'react';
+import React, {createContext, useState, useEffect, useCallback} from 'react';
 import {
     GetNotificacionesService,
     GetNotificacionByIdService,
@@ -44,7 +44,7 @@ export const NotificacionProvider: React.FC<ProviderProps> = ({ children }) => {
         }
     }, [isAuthenticated]);
 
-    const GetNotificacionesContext = async (): Promise<notificationsInterface[] | null> => {
+    const GetNotificacionesContext = useCallback(async (): Promise<notificationsInterface[] | null> => {
         try {
             const notificaciones = await GetNotificacionesService(axiosPrivate);
             return notificaciones;
@@ -52,9 +52,9 @@ export const NotificacionProvider: React.FC<ProviderProps> = ({ children }) => {
             console.error("Error al recuperar las notificaciones", error);
             return null;
         }
-    };
+    }, [axiosPrivate]);
 
-    const GetNotificacionByIdContext = async (id_noti: string): Promise<notificationsInterface | null> => {
+    const GetNotificacionByIdContext = useCallback(async (id_noti: string): Promise<notificationsInterface | null> => {
         try {
             const notificacion = await GetNotificacionByIdService(id_noti, axiosPrivate);
             return notificacion;
@@ -62,7 +62,7 @@ export const NotificacionProvider: React.FC<ProviderProps> = ({ children }) => {
             console.error("Error al recuperar la notificación", error);
             return null;
         }
-    };
+    }, [axiosPrivate]);
 
     const PostNotificacionContext = async (
         noti: notificationsInterface
