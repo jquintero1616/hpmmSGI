@@ -15,7 +15,7 @@ interface ModalProps {
   onCancel?: () => void;
   saveButtonText?: string;
   cancelButtonText?: string;
-  fullScreen?: boolean; // <-- NUEVO
+  fullScreen?: boolean;
 }
 
 const GenericModal: React.FC<ModalProps> = ({
@@ -27,7 +27,7 @@ const GenericModal: React.FC<ModalProps> = ({
   showFooter = true,
   onSave,
   saveButtonText = "Guardar",
-  fullScreen = false, // <-- NUEVO
+  fullScreen = false, //
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   // Cerrar con ESC

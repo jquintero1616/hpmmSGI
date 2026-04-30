@@ -1,30 +1,9 @@
 // src/App.tsx
+import { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { routes } from "./routes/RouterConfig";
 import { AuthProvider } from "./contexts/Auth.context";
-import { UserProvider } from "./contexts/User.context";
-import { PactProvider } from "./contexts/Pacts.context";
-import { KardexProvider } from "./contexts/Kardex.context";
-import { ProductProvider } from "./contexts/Product.context";
-import { CategoryProvider } from "./contexts/Category.context";
-import { SupplierProvider } from "./contexts/Supplier.context";
-import { RoleProvider } from "./contexts/Role.context";
-import { EmployeProvider } from "./contexts/Employes.context";
-import { SubcategoryProvider } from "./contexts/Subcategory.context";
-import { VendedorProvider } from "./contexts/Vendedor.context";
-import { DirectionProvider } from "./contexts/Direction.context";
-import { SubdireccionProvider } from "./contexts/Subdireccion.context";
-import { UnitProvider } from "./contexts/Unit.context";
-import { ShoppingProvider } from "./contexts/Shopping.context";
-import { ProductRequisitionProvider } from "./contexts/Product_requisi.context";
-import { RequisicionProvider } from "./contexts/Requisicion.contex";
-import { BitacoraProvider } from "./contexts/Bitacora.context";
-import { SolicitudComprasProvider } from "./contexts/SolicitudCompras.context";
-import { DetallePactosProvider } from "./contexts/DetallePactos.context";
-import { ReportProvider } from "./contexts/Report.context";
-import { NotificacionProvider } from "./contexts/Notificacion.context";
-import { DonanteProvider } from "./contexts/Donante.context";
 import PrivateRouteValidation from "./routes/PrivateRoute";
 
 function AppRoutes() {
@@ -83,10 +62,20 @@ function AppRoutes() {
 
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {routes.map(renderRoute)}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-screen bg-white">
+          <div className="flex space-x-2">
+            <div className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" />
+          </div>
+        </div>
+      }>
+        <Routes location={location} key={location.pathname}>
+          {routes.map(renderRoute)}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </AnimatePresence>
   );
 }
@@ -94,53 +83,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <UserProvider>
-        <PactProvider>
-          <KardexProvider>
-            <CategoryProvider>
-              <SubcategoryProvider>
-              <ProductProvider>
-                <SupplierProvider>
-                  <RoleProvider>
-                    <EmployeProvider>
-                      <VendedorProvider>
-                        <DirectionProvider>
-                        <SubdireccionProvider>  
-                          <UnitProvider>
-                            <ShoppingProvider>
-                              <ProductRequisitionProvider>
-                                <RequisicionProvider>
-                                  <BitacoraProvider>
-                                    <SolicitudComprasProvider>
-                                      <DetallePactosProvider>
-                                        <ReportProvider>
-                                          <NotificacionProvider>
-                                            <DonanteProvider>
-                                              <Router>
-                                                <AppRoutes />
-                                              </Router>
-                                            </DonanteProvider>
-                                          </NotificacionProvider>
-                                        </ReportProvider>
-                                      </DetallePactosProvider>
-                                    </SolicitudComprasProvider>
-                                  </BitacoraProvider>
-                                </RequisicionProvider>
-                              </ProductRequisitionProvider>
-                            </ShoppingProvider>
-                          </UnitProvider>
-                        </SubdireccionProvider>
-                        </DirectionProvider>
-                      </VendedorProvider>
-                    </EmployeProvider>
-                  </RoleProvider>
-                  </SupplierProvider>
-                </ProductProvider>
-              </SubcategoryProvider>
-            </CategoryProvider>
-          </KardexProvider>
-        </PactProvider>
-      </UserProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
     </AuthProvider>
   );
 }
