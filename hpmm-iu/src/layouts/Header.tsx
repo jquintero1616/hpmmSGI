@@ -6,6 +6,8 @@ import LogoUrl from "../assets/logoBlancoHPMM.png";
 import UsuarioIcon from "../assets/usuario.svg";
 import Notificacion from "../components/organisms/Notificacion";
 import NotificacionesToasty from "../components/molecules/NotificacionesToasty";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
 import { 
   Package, 
   ClipboardList, 
@@ -16,8 +18,20 @@ import {
   LogOut, 
   X, 
   Shield, 
-  CheckCircle 
+  CheckCircle
 } from "lucide-react";
+
+dayjs.locale("es");
+
+const formatFechaLarga = () => {
+  const d = dayjs();
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const weekday = capitalize(d.format("dddd"));
+  const dayNum = d.format("DD");
+  const month = capitalize(d.format("MMMM"));
+  const year = d.format("YYYY");
+  return `${weekday} ${dayNum} de ${month} del ${year}`;
+};
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -26,8 +40,15 @@ const Header: React.FC = () => {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [pendientesCount, setPendientesCount] = useState(0);
+  const [fechaHoy, setFechaHoy] = useState(formatFechaLarga());
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLButtonElement>(null);
+
+  // Actualizar fecha cada minuto
+  useEffect(() => {
+    const id = setInterval(() => setFechaHoy(formatFechaLarga()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Accesos directos a módulos
   const quickAccess = [
@@ -119,15 +140,18 @@ const Header: React.FC = () => {
               alt="Logo HPMM"
               className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-contain drop-shadow-md group-hover:drop-shadow-lg group-hover:scale-105 transition-all duration-300 filter brightness-100 group-hover:brightness-110 scale-125 -my-2"
             />
-            
-            {/* Nombre del sistema - visible en tablets y desktop */}
-            <div className="hidden sm:flex flex-col">
-              
-            </div>
           </div>
 
           {/* Menú derecho responsive */}
           <div className="flex items-center gap-1 sm:gap-3">
+            {/* Fecha actual */}
+            <span className="hidden lg:block text-sm text-white/80 font-medium">
+              {fechaHoy}
+            </span>
+
+            {/* Separador */}
+            <div className="hidden lg:block w-px h-6 bg-white/20"></div>
+
             {/* Accesos directos - visible solo en desktop */}
             <div className="hidden lg:flex items-center gap-1">
               {quickAccess.map((item) => (

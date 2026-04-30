@@ -48,16 +48,6 @@ const useDashboardData = () => {
   return data;
 };
 
-const formatFechaLarga = () => {
-  const d = dayjs();
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-  const weekday = capitalize(d.format("dddd"));
-  const dayNum = d.format("DD");
-  const month = capitalize(d.format("MMMM"));
-  const year = d.format("YYYY");
-  return `${weekday} ${dayNum} de ${month} del ${year}`;
-};
-
 const HomePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -67,7 +57,7 @@ const HomePage: React.FC = () => {
   const { kardex, kardexDetail } = useKardex();
   const { requisitions } = useRequisicion();
   const { scompras } = useSolicitudCompras();
-  const [fechaHoy, setFechaHoy] = useState(formatFechaLarga());
+
 
   // Roles que pueden ver Productos y Kardex
   const rolesConAccesoInventario = [
@@ -165,8 +155,7 @@ const HomePage: React.FC = () => {
   const hoy = dayjs();
   const en30dias = hoy.add(30, "day");
 
-  // Usar kardexDetail que ya tiene toda la información desglosada
-  // Filtrar solo los movimientos de kardex aprobados de tipo Entrada
+ 
   const kardexAprobadosEntrada = kardexDetail
     ? kardexDetail.filter(
         (k: any) => 
@@ -215,11 +204,7 @@ const HomePage: React.FC = () => {
     (p: any) => p.stock_maximo > 0 && p.stock_actual > 0 && p.stock_actual / p.stock_maximo < 0.1
   ).length;
 
-  useEffect(() => {
-    // Actualiza cada minuto por si cruza medianoche
-    const id = setInterval(() => setFechaHoy(formatFechaLarga()), 60 * 1000);
-    return () => clearInterval(id);
-  }, []);
+
 
   return (
     <div className="bg-gray-50 min-h-full">
@@ -230,7 +215,6 @@ const HomePage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             {getSaludo()}, {username || "Usuario"}!
           </h1>
-          <p className="text-sm text-gray-500 mt-1">{fechaHoy}</p>
         </div>
 
         {/* ================== SECCIÓN PRODUCTOS ================== */}
@@ -358,17 +342,7 @@ const HomePage: React.FC = () => {
                   trend="neutral"
                 />
               )}
-              {canViewCard("requisiciones", "/requisicionSeguimiento") && (
-                <DashboardCard
-                  title="Solicitud de Compras"
-                  subtitle="Pendientes"
-                  value={solicitudesPendientes.length}
-                  icon={<ShoppingCartIcon className="w-5 h-5 text-blue-600" />}
-                  onClick={() => navigate("/requisicionSeguimiento")}
-                  colorVariant="blue"
-                  trend={solicitudesPendientes.length > 0 ? "up" : "neutral"}
-                />
-              )}
+        
             </div>
           </div>
         )}

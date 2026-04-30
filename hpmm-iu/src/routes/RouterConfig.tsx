@@ -1,33 +1,36 @@
+import React from "react";
 import PrivateRouteValidation from "./PrivateRoute";
 import Layout from "../layouts/Layout";
 import LoginPage from "../components/pages/Login.page";
 import GenericPage from "../components/pages/Generic.page";
-import HomePage from "../components/pages/Home.page";
-import User from "../components/organisms/User";
-import Pacts from "../components/organisms/Pacts";
-import Products from "../components/organisms/Product";
-import Category from "../components/organisms/Category";
-import Suppliers from "../components/organisms/Supplier";
-import Roles from "../components/organisms/Role";
-import Employe from "../components/organisms/Employes";
-import Kardex from "../components/organisms/Kardex";
-import Subcategory from "../components/organisms/Subcategory";
-import Vendedor from "../components/organisms/Vendedor";
-import Subdireccion from "../components/organisms/Subdireccion";
-import Unit from "../components/organisms/Unit";
-import Direction from "../components/organisms/Direction";
-import Shopping from "../components/organisms/Shopping";
-import Requisicion from "../components/organisms/Requisicion";
-import ProductRequisition from "../components/organisms/Product_requisi";
-import Bitacora from "../components/organisms/Bitacora";
-import SolicitudCompras from "../components/organisms/SolicitudCompras";
-import DetallePactos from "../components/organisms/DetallePactos";
-import Report from "../components/organisms/Report";
 import { subMenuVisibility } from "../config/permissions";
-import SeguimientoTramiteOrganism from "../components/organisms/SeguimientoTramiteOrganism";
-import DasboardGraficos from "../components/molecules/DasboardGraficos";
-import HistorialNotificaciones from "../components/pages/HistorialNotificaciones";
-import Donantes from "../components/organisms/Donante";
+
+// Lazy-loaded components
+const HomePage = React.lazy(() => import("../components/pages/Home.page"));
+const User = React.lazy(() => import("../components/organisms/User"));
+const Pacts = React.lazy(() => import("../components/organisms/Pacts"));
+const Products = React.lazy(() => import("../components/organisms/Product"));
+const Category = React.lazy(() => import("../components/organisms/Category"));
+const Suppliers = React.lazy(() => import("../components/organisms/Supplier"));
+const Roles = React.lazy(() => import("../components/organisms/Role"));
+const Employe = React.lazy(() => import("../components/organisms/Employes"));
+const Kardex = React.lazy(() => import("../components/organisms/Kardex"));
+const Subcategory = React.lazy(() => import("../components/organisms/Subcategory"));
+const Vendedor = React.lazy(() => import("../components/organisms/Vendedor"));
+const Subdireccion = React.lazy(() => import("../components/organisms/Subdireccion"));
+const Unit = React.lazy(() => import("../components/organisms/Unit"));
+const Direction = React.lazy(() => import("../components/organisms/Direction"));
+const Shopping = React.lazy(() => import("../components/organisms/Shopping"));
+const Requisicion = React.lazy(() => import("../components/organisms/Requisicion"));
+const ProductRequisition = React.lazy(() => import("../components/organisms/Product_requisi"));
+const Bitacora = React.lazy(() => import("../components/organisms/Bitacora"));
+const SolicitudCompras = React.lazy(() => import("../components/organisms/SolicitudCompras"));
+const DetallePactos = React.lazy(() => import("../components/organisms/DetallePactos"));
+const Report = React.lazy(() => import("../components/organisms/Report"));
+const SeguimientoTramiteOrganism = React.lazy(() => import("../components/organisms/SeguimientoTramiteOrganism"));
+const DasboardGraficos = React.lazy(() => import("../components/molecules/DasboardGraficos"));
+const HistorialNotificaciones = React.lazy(() => import("../components/pages/HistorialNotificaciones"));
+const Donantes = React.lazy(() => import("../components/organisms/Donante"));
 
 
 // Utilidad para obtener roles permitidos para una ruta específica

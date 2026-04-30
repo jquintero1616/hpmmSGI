@@ -50,22 +50,6 @@ export const RequisicionProvider: React.FC<ProviderProps> = ({ children }) => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      GetRequisicionesContext()
-        .then((data) => {
-          if (data !== null) {
-            setRequisitions(data);
-          } else {
-            console.error("Error al recuperar las requisiciones");
-          }
-        })
-        .catch((error) => {
-          console.error("Error al recuperar las requisiciones", error);
-        });
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
       if (isAuthenticated) {
         GetRequisiDetailsContext()
           .then((data) => {

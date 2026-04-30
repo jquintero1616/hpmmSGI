@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
         <div className="w-full max-w-md mx-auto p-6">
           <div className="text-center mb-8">
             <img src={Logo} alt="Logo" className="mx-auto mb-4 w-40 h-30 object-contain" />
-            <p className="text-sm text-gray-400">Accede a tu cuenta</p>
+            <p className="text-sm text-black">Accede a tu cuenta</p>
           </div>
 
           <LoginForm
